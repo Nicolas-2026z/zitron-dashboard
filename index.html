@@ -197,7 +197,25 @@ function render(){
 function setF(f,btn){
   filt=f;
   document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
-  btn.classList.add("act");render();
+  btn.classList.add("act");
+// PASSWORD PROTECTION
+(function(){
+  const PW = "zitron2026!";
+  if(sessionStorage.getItem("zpw") !== PW){
+    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F2540,#1A3A5C 60%,#244E82)"><div style="background:white;border-radius:16px;padding:44px 40px;width:340px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)"><div style="width:56px;height:56px;background:#1A3A5C;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:white;margin:0 auto 16px">Z</div><div style="font-size:19px;font-weight:700;color:#1A3A5C;margin-bottom:4px">Portafolio Proyectos</div><div style="font-size:13px;color:#6B7280;margin-bottom:24px">Zitron — Acceso privado</div><input id="pwin" type="password" placeholder="Contraseña" style="width:100%;padding:11px 14px;border:2px solid #E2E8F0;border-radius:8px;font-size:15px;text-align:center;letter-spacing:4px;margin-bottom:12px;outline:none;box-sizing:border-box" onkeydown="if(event.key==='Enter')chk()"><button onclick="chk()" style="width:100%;padding:13px;background:#1A3A5C;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Ingresar →</button><div id="perr" style="color:#E24B4A;font-size:12px;margin-top:10px;min-height:16px"></div></div></div>';
+    window.chk = function(){
+      if(document.getElementById("pwin").value === PW){
+        sessionStorage.setItem("zpw", PW);
+        location.reload();
+      } else {
+        document.getElementById("perr").textContent = "Contraseña incorrecta";
+      }
+    };
+    throw "pw";
+  }
+})();
+ 
+render();
 }
 render();
 </script>
