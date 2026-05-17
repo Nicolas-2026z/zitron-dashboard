@@ -283,7 +283,7 @@ function doLogin() {
 
 // ── API ASANA ─────────────────────────────────────────────────────────────
 async function asana(path) {
-  const r = await fetch(`https://corsproxy.io/?https://app.asana.com/api/1.0/${path}`, {
+  const r = await fetch(`https://app.asana.com/api/1.0/${path}`, {
     headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" }
   });
   if (r.status === 401) throw new Error("TOKEN_INVALID");
@@ -292,240 +292,19 @@ async function asana(path) {
 }
 
 // ── CARGA PRINCIPAL ───────────────────────────────────────────────────────
+
 async function loadData() {
   showErr(null);
-  const btn = document.getElementById("rfBtn");
-  btn.disabled = true; btn.textContent = "⟳ Cargando...";
-
-  if (!TOKEN) {
-    TOKEN = prompt(
-      "Pega tu token de Asana (Personal Access Token).\n" +
-      "Se guarda en tu sesión del navegador y no se comparte con nadie:"
-    ) || "";
-    if (!TOKEN) { btn.disabled=false; btn.textContent="⟳ Actualizar"; return; }
-    sessionStorage.setItem("asana_tk", TOKEN);
-  }
-
-  if (!DATA.length) showLoader();
-
-  try {
-    // 1. Proyectos del portafolio
-    const items = await asana(
-      `portfolios/${PORTFOLIO_GID}/items` +
-      `?opt_fields=gid,name,due_on,custom_fields,custom_fields.name,custom_fields.display_value&limit=100`
-    );
-    const projects = items.filter(i => i.resource_type === "project");
-
-    DATA = [];
-    for (let i = 0; i < projects.length; i++) {
-      const p = projects[i];
-      updLoader(`${p.name.slice(0,40)}...`, Math.round((i/projects.length)*100), `${i+1}/${projects.length}`);
-
-      try {
-        // Cabeceras del proyecto
-        const parents = await asana(`tasks?project=${p.gid}&opt_fields=gid,name&limit=100`);
-        const pSet    = new Set(parents.map(t=>t.gid));
-
-        // Subtareas
-        let subs = await asana(
-          `tasks/search?projects.any=${p.gid}&is_subtask=true` +
-          `&opt_fields=gid,completed,parent.gid,parent.name&limit=100&workspace=${WORKSPACE_GID}`
-        );
-        if (HIDDEN[p.gid]) subs = [...subs, ...HIDDEN[p.gid]];
-
-        // Nivel 1
-        const lv1   = subs.filter(t => pSet.has(t.parent?.gid));
-        const total = lv1.length;
-        const done  = lv1.filter(t=>t.completed).length;
-        const pct   = total > 0 ? Math.round(done/total*100) : 0;
-
-        // Fases
-        const fm = {};
-        lv1.forEach(t => {
-          const n = t.parent?.name || "Otras";
-          if (!fm[n]) fm[n]={total:0,done:0};
-          fm[n].total++;
-          if (t.completed) fm[n].done++;
-        });
-        const phases = Object.entries(fm).map(([n,v])=>({
-          name:n, total:v.total, done:v.done,
-          pct: v.total>0 ? Math.round(v.done/v.total*100) : 0
-        }));
-
-        const cf = name => {
-          const f=(p.custom_fields||[]).find(c=>c.name===name);
-          return f?(f.display_value||""):"";
-        };
-
-        DATA.push({
-          gid:p.gid, name:p.name.trim(),
-          pais: cf("Pais")||cf("País")||"",
-          prio: cf("Prioridad")||"",
-          due:  p.due_on||"",
-          total, done, pct, phases
-        });
-      } catch {
-        const cf = n=>{const f=(p.custom_fields||[]).find(c=>c.name===n);return f?(f.display_value||""):"";};
-        DATA.push({gid:p.gid,name:p.name.trim(),pais:cf("Pais")||"",prio:"",due:p.due_on||"",total:0,done:0,pct:null,phases:[]});
-      }
-
-      // Renderizar progresivamente
-      renderKPIs(); render();
-    }
-
-    // Timestamps
-    const now = new Date();
-    const fmt = d => d.toLocaleString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
-    document.getElementById("lastSync").textContent = "Sync: " + fmt(now);
-    document.getElementById("nextSync").textContent = "Próx: " + fmt(new Date(now.getTime()+REFRESH_MS));
-
-    clearTimeout(timer);
-    timer = setTimeout(loadData, REFRESH_MS);
-
-  } catch(e) {
-    if (e.message === "TOKEN_INVALID") {
-      TOKEN = ""; sessionStorage.removeItem("asana_tk");
-      showErr("Token inválido. Recarga la página para ingresar uno nuevo.");
-    } else {
-      showErr("Error: " + e.message);
-    }
-  }
-
-  btn.disabled=false; btn.textContent="⟳ Actualizar";
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────────
-function col(p){
-  if(p===null) return"var(--gry)";
-  if(p>=80) return"var(--grn)"; if(p>=60) return"var(--grn)";
-  if(p>=30) return"var(--blu)"; if(p>=10) return"var(--amb)";
-  return"var(--red)";
-}
-function badge(p){
-  if(p===null) return"Sin datos";
-  if(p>=80)  return"Avanzado ✓"; if(p>=60) return"Avanzado";
-  if(p>=30)  return"En progreso"; if(p>=10) return"Iniciado";
-  return"Sin iniciar";
-}
-const PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
-
-function getFiltered(){
-  const q=(document.getElementById("srch")?.value||"").toLowerCase();
-  const s=document.getElementById("srt")?.value||"pd";
-  let d=DATA.filter(p=>{
-    if(q&&!p.name.toLowerCase().includes(q)&&!(p.pais||"").toLowerCase().includes(q)) return false;
-    if(PM[FILT]) return(p.pais||"")===PM[FILT];
-    if(FILT==="ot") return!Object.values(PM).includes(p.pais||"");
-    return true;
-  });
-  if(s==="pd") d.sort((a,b)=>(b.pct??-1)-(a.pct??-1));
-  else if(s==="pa") d.sort((a,b)=>(a.pct??999)-(b.pct??999));
-  else if(s==="ct") d.sort((a,b)=>(a.pais||"").localeCompare(b.pais||""));
-  else d.sort((a,b)=>a.name.localeCompare(b.name));
-  return d;
-}
-
-function renderKPIs(){
-  const wd=DATA.filter(p=>p.pct!==null);
-  const avg=wd.length?Math.round(wd.reduce((s,p)=>s+p.pct,0)/wd.length):0;
-  const ts=wd.reduce((s,p)=>s+p.total,0), ds=wd.reduce((s,p)=>s+p.done,0);
-  document.getElementById("kpis").innerHTML=[
-    {l:"Total proyectos",        v:DATA.length,                                s:"",          c:"var(--blu)"},
-    {l:"Avance promedio",        v:avg+"%",                                     s:"",          c:col(avg)},
-    {l:"Subtareas completadas",  v:ds+"/"+ts,                                   s:"nivel 1",   c:"var(--grn)"},
-    {l:"Avanzados ≥60%",         v:wd.filter(p=>p.pct>=60).length,             s:"proyectos", c:"var(--grn)"},
-    {l:"En progreso 10–59%",     v:wd.filter(p=>p.pct>=10&&p.pct<60).length,   s:"proyectos", c:"var(--blu)"},
-    {l:"Sin iniciar 0%",         v:wd.filter(p=>p.pct===0).length,              s:"proyectos", c:"var(--red)"},
-    {l:"Sin datos",              v:DATA.filter(p=>p.pct===null).length,         s:"proyectos", c:"var(--gry)"},
-  ].map(k=>`<div class="kpi">
-    <div class="kpi-l">${k.l}</div>
-    <div class="kpi-v" style="color:${k.c}">${k.v}</div>
-    ${k.s?`<div class="kpi-s">${k.s}</div>`:""}
-  </div>`).join("");
-}
-
-function toggle(gid){
-  const card=document.getElementById("c-"+gid);
-  const det=document.getElementById("d-"+gid);
-  if(!det) return;
-  const open=det.style.display==="block";
-  det.style.display=open?"none":"block";
-  card?.classList.toggle("open",!open);
-}
-
-function render(){
-  if(!DATA.length) return;
-  const list=getFiltered();
-  document.getElementById("plist").innerHTML=list.map(p=>{
-    const c=col(p.pct), bt=badge(p.pct);
-    const bw=p.pct??0, pv=p.pct!==null?p.pct+"%":"—";
-    const cnt=p.total>0?`${p.done}/${p.total} subtareas`:"Sin datos";
-    const phs=(p.phases||[]).map(ph=>`
-      <div class="phrow">
-        <span class="phname" title="${ph.name}">${ph.name}</span>
-        <div class="phbg"><div class="phfill" style="width:${ph.pct}%;background:${col(ph.pct)};"></div></div>
-        <span class="phpct" style="color:${col(ph.pct)}">${ph.pct}%</span>
-        <span class="phct">${ph.done}/${ph.total}</span>
-      </div>`).join("");
-    return`<div class="pcard" id="c-${p.gid}" onclick="toggle('${p.gid}')">
-      <div class="ptop">
-        <span class="pname" title="${p.name}">${p.name}</span>
-        ${p.pais?`<span class="pcountry">${p.pais}</span>`:""}
-        <span class="pbadge" style="background:${c}22;color:${c}">${bt}</span>
-        <span class="ppct" style="color:${c}">${pv}</span>
-        <span class="pchev">▾</span>
-      </div>
-      <div class="pbar-row">
-        <div class="pbar-bg"><div class="pbar-fill" style="width:${bw}%;background:${c};"></div></div>
-        <span class="pcnt">${cnt}</span>
-      </div>
-      <div class="pdet" id="d-${p.gid}">
-        ${phs||'<p style="font-size:11px;color:var(--sub);font-style:italic">Sin fases.</p>'}
-      </div>
-    </div>`;
-  }).join("")||`<div style="text-align:center;padding:40px;color:var(--sub);font-size:13px;">Sin resultados</div>`;
-  document.getElementById("footer").textContent=
-    `${list.length} proyectos · Datos en tiempo real desde Asana · Auto-actualización cada hora`;
-}
-
-function showLoader(){
-  document.getElementById("plist").innerHTML=`
-    <div class="loader">
-      <div class="spin"></div>
-      <div id="lmsg" style="font-size:13px;margin-bottom:8px">Conectando con Asana...</div>
-      <div class="lprog"><div class="lprogf" id="lprogf" style="width:0%"></div></div>
-      <div class="lcnt" id="lcnt"></div>
-    </div>`;
-}
-function updLoader(msg,pct,cnt){
-  const m=document.getElementById("lmsg");
-  const f=document.getElementById("lprogf");
-  const c=document.getElementById("lcnt");
-  if(m) m.textContent=msg;
-  if(f) f.style.width=pct+"%";
-  if(c) c.textContent=cnt;
-}
-function setF(f,btn){
-  FILT=f;
-  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
-  btn.classList.add("act"); render();
-}
-function showErr(msg){
-  const b=document.getElementById("errbox");
-  if(msg){b.textContent="⚠️ "+msg;b.style.display="block";}
-  else b.style.display="none";
-}
-function exportCSV(){
-  const rows=[["Proyecto","País","Prioridad","Fecha entrega","Total","Completadas","% Avance","Estado"]];
-  DATA.forEach(p=>{
-    const e=p.pct===null?"Sin datos":p.pct>=80?"Avanzado ✓":p.pct>=60?"Avanzado":p.pct>=30?"En progreso":p.pct>=10?"Iniciado":"Sin iniciar";
-    rows.push([p.name,p.pais||"",p.prio||"",p.due||"",p.total,p.done,p.pct!==null?p.pct+"%":"—",e]);
-  });
-  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${v}"`).join(",")).join("\n");
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-  a.download=`Zitron_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
+  document.getElementById("rfBtn").disabled = true;
+  document.getElementById("rfBtn").textContent = "Cargando...";
+  DATA = STATIC_DATA.projects;
+  const now = new Date(STATIC_DATA.updated_at);
+  const fmt = d => d.toLocaleString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  document.getElementById("lastSync").textContent = "Actualizado: " + fmt(now);
+  document.getElementById("nextSync").textContent = "Datos al 17/05/2026";
+  renderKPIs(); render();
+  document.getElementById("rfBtn").disabled = false;
+  document.getElementById("rfBtn").textContent = "⟳ Actualizar";
 }
 
 document.getElementById("pwInput").focus();
