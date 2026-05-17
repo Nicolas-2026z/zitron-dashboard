@@ -50,6 +50,47 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 </style>
 </head>
 <body>
+<div id="loginScreen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F2540 0%,#1A3A5C 60%,#244E82 100%);position:fixed;top:0;left:0;width:100%;z-index:9999">
+  <div style="background:white;border-radius:16px;padding:44px 40px;width:360px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)">
+    <div style="width:64px;height:64px;background:#1A3A5C;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:white;margin:0 auto 18px">Z</div>
+    <div style="font-size:20px;font-weight:700;color:#1A3A5C;margin-bottom:4px">Portafolio Proyectos</div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Zitron — Acceso privado</div>
+    <input id="pwInput" type="password" placeholder="••••••••" maxlength="40"
+      style="width:100%;padding:12px 16px;border:2px solid #E2E8F0;border-radius:8px;font-size:16px;text-align:center;letter-spacing:4px;margin-bottom:14px;outline:none;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()"
+      style="width:100%;padding:13px;background:#1A3A5C;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">
+      Ingresar →
+    </button>
+    <div id="loginErr" style="color:#E24B4A;font-size:13px;margin-top:10px;min-height:18px"></div>
+    <div style="font-size:10px;color:#CBD5E0;margin-top:16px">Solicita la contraseña al administrador</div>
+  </div>
+</div>
+ 
+<script>
+function doLogin(){
+  var pw = document.getElementById('pwInput').value;
+  if(pw === 'zitron2026!'){
+    document.getElementById('loginScreen').style.display = 'none';
+    sessionStorage.setItem('zitron_pw','ok');
+  } else {
+    document.getElementById('loginErr').textContent = 'Contraseña incorrecta';
+    document.getElementById('pwInput').value = '';
+  }
+}
+// Si ya ingresó en esta sesión, ocultar login
+if(sessionStorage.getItem('zitron_pw')==='ok'){
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('loginScreen').style.display='none';
+  });
+}
+// Foco automático
+window.addEventListener('load', function(){
+  var el = document.getElementById('pwInput');
+  if(el) el.focus();
+});
+</script>
+ 
  
 <header class="header">
   <div class="hleft">
@@ -197,27 +238,10 @@ function render(){
 function setF(f,btn){
   filt=f;
   document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
-  btn.classList.add("act");
-// PASSWORD PROTECTION
-(function(){
-  const PW = "zitron2026!";
-  if(sessionStorage.getItem("zpw") !== PW){
-    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F2540,#1A3A5C 60%,#244E82)"><div style="background:white;border-radius:16px;padding:44px 40px;width:340px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)"><div style="width:56px;height:56px;background:#1A3A5C;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:white;margin:0 auto 16px">Z</div><div style="font-size:19px;font-weight:700;color:#1A3A5C;margin-bottom:4px">Portafolio Proyectos</div><div style="font-size:13px;color:#6B7280;margin-bottom:24px">Zitron — Acceso privado</div><input id="pwin" type="password" placeholder="Contraseña" style="width:100%;padding:11px 14px;border:2px solid #E2E8F0;border-radius:8px;font-size:15px;text-align:center;letter-spacing:4px;margin-bottom:12px;outline:none;box-sizing:border-box" onkeydown="if(event.key==='Enter')chk()"><button onclick="chk()" style="width:100%;padding:13px;background:#1A3A5C;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Ingresar →</button><div id="perr" style="color:#E24B4A;font-size:12px;margin-top:10px;min-height:16px"></div></div></div>';
-    window.chk = function(){
-      if(document.getElementById("pwin").value === PW){
-        sessionStorage.setItem("zpw", PW);
-        location.reload();
-      } else {
-        document.getElementById("perr").textContent = "Contraseña incorrecta";
-      }
-    };
-    throw "pw";
-  }
-})();
- 
-render();
+  btn.classList.add("act");render();
 }
 render();
 </script>
 </body>
 </html>
+ 
