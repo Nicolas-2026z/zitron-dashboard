@@ -4,310 +4,202 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Portafolio Proyectos — Zitron</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A3A5C'/><text y='24' x='5' font-size='22' font-weight='bold' fill='white'>Z</text></svg>">
 <style>
-:root{
-  --hdr:#1A3A5C;--grn:#1D9E75;--blu:#378ADD;
-  --amb:#BA7517;--red:#E24B4A;--gry:#6B7280;
-  --bg:#F3F6FA;--card:#fff;--border:#E2E8F0;
-  --text:#1A202C;--sub:#6B7280;
-}
+:root{--hdr:#1A3A5C;--grn:#1D9E75;--blu:#378ADD;--amb:#BA7517;--red:#E24B4A;--bg:#F3F6FA;--border:#E2E8F0;--text:#1A202C;--sub:#6B7280;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);}
-
-/* LOGIN */
-#loginScreen{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#0F2540 0%,#1A3A5C 60%,#244E82 100%);
-}
-.lcard{
-  background:#fff;border-radius:18px;padding:44px 40px;width:360px;
-  text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35);
-}
-.llogo{
-  width:64px;height:64px;background:var(--hdr);border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:30px;font-weight:800;color:#fff;margin:0 auto 16px;
-}
-.ltitle{font-size:20px;font-weight:700;color:var(--hdr);margin-bottom:4px;}
-.lsub{font-size:13px;color:var(--sub);margin-bottom:26px;}
-.linput{
-  width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;
-  font-size:15px;text-align:center;letter-spacing:4px;margin-bottom:12px;
-  outline:none;transition:border-color .2s;
-}
-.linput:focus{border-color:var(--blu);}
-.lbtn{
-  width:100%;padding:13px;background:var(--hdr);color:#fff;border:none;
-  border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;
-}
-.lbtn:hover{background:#243F6B;}
-.lerr{color:var(--red);font-size:12px;margin-top:10px;min-height:16px;}
-.lhint{font-size:10px;color:#94A3B8;margin-top:16px;line-height:1.5;}
-
-/* APP */
-#app{display:none;}
-.header{
-  background:var(--hdr);color:#fff;padding:0 24px;height:58px;
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25);
-}
+.header{background:var(--hdr);color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25);}
 .hleft{display:flex;align-items:center;gap:12px;}
-.hlogo{
-  width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;
-}
+.hlogo{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;}
 .htitle{font-size:15px;font-weight:700;}
 .hsub{font-size:10px;opacity:.6;margin-top:1px;}
-.hright{display:flex;align-items:center;gap:8px;}
-.syncinfo{font-size:10px;opacity:.7;text-align:right;line-height:1.6;}
-.syncinfo span{color:#86EFAC;}
-.hbtn{
-  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
-  font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;
-  white-space:nowrap;transition:all .15s;
-}
-.hbtn-g{background:var(--grn);color:#fff;}
-.hbtn-g:hover{background:#178a64;}
-.hbtn-g:disabled{background:#555;cursor:not-allowed;}
-.hbtn-o{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
-.hbtn-o:hover{background:rgba(255,255,255,.22);}
-
-/* MAIN */
+.hright{font-size:11px;opacity:.7;text-align:right;line-height:1.7;}
 .main{max-width:1080px;margin:0 auto;padding:22px 18px;}
-
-/* KPIS */
 .kpis{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
-.kpi{
-  background:#fff;border:1px solid var(--border);border-radius:10px;
-  padding:14px 16px;flex:1;min-width:110px;text-align:center;
-}
-.kpi-l{font-size:10px;color:var(--sub);margin-bottom:5px;line-height:1.4;}
-.kpi-v{font-size:26px;font-weight:700;}
-.kpi-s{font-size:10px;color:#94A3B8;margin-top:3px;}
-
-/* CONTROLS */
+.kpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;flex:1;min-width:110px;text-align:center;}
+.kl{font-size:10px;color:var(--sub);margin-bottom:5px;}
+.kv{font-size:26px;font-weight:700;}
 .ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
-.srch{
-  padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:8px;
-  font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%236B7280' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.868-3.833zm-5.242 1.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") no-repeat 10px center;
-  width:200px;outline:none;
-}
-.srch:focus{border-color:var(--blu);}
-.sortsel{
-  padding:8px 12px;border:1px solid var(--border);border-radius:8px;
-  font-size:13px;background:#fff;cursor:pointer;outline:none;
-}
-
-/* PILLS */
+.ctrl input,.ctrl select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;}
+.ctrl input{width:220px;}
 .pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
-.pill{
-  padding:5px 15px;border-radius:20px;border:1.5px solid var(--border);
-  background:#fff;font-size:12px;font-weight:500;cursor:pointer;color:var(--sub);
-}
-.pill:hover{border-color:#94A3B8;}
+.pill{padding:5px 15px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;color:var(--sub);}
 .pill.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
-
-/* CARDS */
 .plist{display:flex;flex-direction:column;gap:8px;}
-.pcard{
-  background:#fff;border:1px solid var(--border);border-radius:12px;
-  padding:12px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s;
-}
-.pcard:hover{border-color:#94A3B8;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.pcard{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:border-color .15s;}
+.pcard:hover{border-color:#94A3B8;}
 .ptop{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
-.pname{
-  flex:1;min-width:0;font-size:13px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.pcountry{
-  font-size:11px;color:var(--sub);padding:2px 8px;
-  border-radius:12px;background:var(--bg);white-space:nowrap;
-}
-.pbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;white-space:nowrap;}
+.pname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcountry{font-size:11px;color:var(--sub);padding:2px 8px;border-radius:12px;background:var(--bg);}
+.pbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;}
 .ppct{font-size:15px;font-weight:700;min-width:42px;text-align:right;}
-.pchev{font-size:12px;color:var(--sub);transition:transform .2s;display:inline-block;}
+.pchev{font-size:12px;color:var(--sub);transition:transform .2s;}
 .pcard.open .pchev{transform:rotate(180deg);}
 .pbar-row{display:flex;align-items:center;gap:10px;}
 .pbar-bg{height:7px;background:#E8EDF3;border-radius:4px;flex:1;overflow:hidden;}
-.pbar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.pbar-fill{height:100%;border-radius:4px;}
 .pcnt{font-size:11px;color:var(--sub);white-space:nowrap;min-width:95px;text-align:right;}
-
-/* DETAIL */
 .pdet{display:none;border-top:1px solid var(--border);margin-top:11px;padding-top:11px;}
 .phrow{display:flex;align-items:center;gap:8px;padding:3px 0;}
-.phname{font-size:11px;color:var(--sub);min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.phname{font-size:11px;color:var(--sub);min-width:130px;}
 .phbg{height:4px;background:#E8EDF3;border-radius:2px;flex:1;overflow:hidden;}
 .phfill{height:100%;border-radius:2px;}
 .phpct{font-size:11px;font-weight:600;min-width:34px;text-align:right;}
 .phct{font-size:10px;color:var(--sub);min-width:48px;text-align:right;}
-
-/* LOADER */
-.loader{text-align:center;padding:50px 20px;color:var(--sub);}
-.spin{
-  width:40px;height:40px;border:3px solid #E2E8F0;border-top-color:var(--blu);
-  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;
-}
-@keyframes spin{to{transform:rotate(360deg);}}
-.lprog{max-width:260px;margin:10px auto 0;height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;}
-.lprogf{height:100%;background:var(--blu);border-radius:3px;transition:width .4s;}
-.lcnt{font-size:11px;margin-top:6px;color:#94A3B8;}
-
-/* ERR */
-.errbox{
-  background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;
-  padding:14px 18px;color:#991B1B;font-size:13px;margin-bottom:16px;display:none;
-}
-
 .footer{text-align:center;font-size:11px;color:#94A3B8;padding:24px 0 16px;}
-@media(max-width:600px){
-  .header{padding:0 12px;}.main{padding:14px 12px;}
-  .kpi{min-width:90px;padding:10px 12px;}.kpi-v{font-size:22px;}
-  .pname{font-size:12px;}
-}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div class="lcard">
-    <div class="llogo">Z</div>
-    <div class="ltitle">Portafolio Proyectos</div>
-    <div class="lsub">Zitron — Acceso privado</div>
-    <input class="linput" type="password" id="pwInput"
-           placeholder="••••••••" maxlength="40"
-           onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="lbtn" onclick="doLogin()">Ingresar →</button>
-    <div class="lerr" id="lerr"></div>
-    <div class="lhint">
-      Ingresa la contraseña para acceder al<br>
-      dashboard de avance de proyectos.
+ 
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">Z</div>
+    <div>
+      <div class="htitle">Portafolio Consolidado — Zitron</div>
+      <div class="hsub">% avance nivel 1 sin cabeceras · ponderado por nivel 2</div>
     </div>
   </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <header class="header">
-    <div class="hleft">
-      <div class="hlogo">Z</div>
-      <div>
-        <div class="htitle">Portafolio Consolidado — Zitron</div>
-        <div class="hsub">% avance subtareas nivel 1 · sin cabeceras · tiempo real Asana</div>
-      </div>
-    </div>
-    <div class="hright">
-      <div class="syncinfo">
-        <div id="lastSync">Cargando...</div>
-        <span id="nextSync"></span>
-      </div>
-      <button class="hbtn hbtn-o" onclick="exportCSV()">⬇ CSV</button>
-      <button class="hbtn hbtn-g" id="rfBtn" onclick="loadData()">⟳ Actualizar</button>
-    </div>
-  </header>
-
-  <main class="main">
-    <div class="errbox" id="errbox"></div>
-    <div class="kpis" id="kpis"></div>
-    <div class="ctrl">
-      <input class="srch" id="srch" type="text" placeholder="Buscar..." oninput="render()">
-      <select class="sortsel" id="srt" onchange="render()">
-        <option value="pd">Mayor avance</option>
-        <option value="pa">Menor avance</option>
-        <option value="na">Nombre A-Z</option>
-        <option value="ct">País</option>
-      </select>
-    </div>
-    <div class="pills">
-      <button class="pill act" onclick="setF('all',this)">Todos</button>
-      <button class="pill" onclick="setF('mx',this)">🇲🇽 México</button>
-      <button class="pill" onclick="setF('pe',this)">🇵🇪 Perú</button>
-      <button class="pill" onclick="setF('cl',this)">🇨🇱 Chile</button>
-      <button class="pill" onclick="setF('co',this)">🇨🇴 Colombia</button>
-      <button class="pill" onclick="setF('ot',this)">Otros</button>
-    </div>
-    <div class="plist" id="plist">
-      <div class="loader">
-        <div class="spin"></div>
-        <div id="lmsg">Conectando con Asana...</div>
-        <div class="lprog"><div class="lprogf" id="lprogf" style="width:0%"></div></div>
-        <div class="lcnt" id="lcnt"></div>
-      </div>
-    </div>
-    <div class="footer" id="footer"></div>
-  </main>
-</div>
-
+  <div class="hright">
+    <div>Actualizado: 17/05/2026</div>
+    <div style="color:#86EFAC">33 proyectos</div>
+  </div>
+</header>
+ 
+<main class="main">
+  <div class="kpis" id="kpis"></div>
+  <div class="ctrl">
+    <input type="text" id="srch" placeholder="Buscar proyecto o país..." oninput="render()">
+    <select id="srt" onchange="render()">
+      <option value="pd">Mayor avance</option>
+      <option value="pa">Menor avance</option>
+      <option value="na">Nombre A-Z</option>
+      <option value="ct">País</option>
+    </select>
+  </div>
+  <div class="pills">
+    <button class="pill act" onclick="setF('all',this)">Todos</button>
+    <button class="pill" onclick="setF('mx',this)">🇲🇽 México</button>
+    <button class="pill" onclick="setF('pe',this)">🇵🇪 Perú</button>
+    <button class="pill" onclick="setF('cl',this)">🇨🇱 Chile</button>
+    <button class="pill" onclick="setF('co',this)">🇨🇴 Colombia</button>
+    <button class="pill" onclick="setF('ot',this)">Otros</button>
+  </div>
+  <div class="plist" id="plist"></div>
+  <div class="footer" id="footer"></div>
+</main>
+ 
 <script>
-// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
-// La contraseña protege el acceso visual.
-// El token se guarda en sessionStorage (se borra al cerrar el navegador).
-const CORRECT_PW    = "Zitron2026!";   // ← CAMBIA ESTO
-const PORTFOLIO_GID = "1213511928397658";
-const WORKSPACE_GID = "402967058777498";
-const REFRESH_MS    = 60 * 60 * 1000; // 1 hora
-
-// Subtareas de Compras del 50001451 que search_tasks no devuelve
-const HIDDEN = {
-  "1213391072478496": [
-    {gid:"a1",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a2",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a3",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a4",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a5",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a6",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-    {gid:"a7",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
-  ]
-};
-
-let TOKEN = "";
-let DATA  = [];
-let FILT  = "all";
-let timer = null;
-
-// ── LOGIN ─────────────────────────────────────────────────────────────────
-function doLogin() {
-  const pw = document.getElementById("pwInput").value.trim();
-  if (!pw) return;
-  if (pw !== CORRECT_PW) {
-    document.getElementById("lerr").textContent = "Contraseña incorrecta";
-    document.getElementById("pwInput").value = "";
-    return;
-  }
-  TOKEN = sessionStorage.getItem("asana_tk") || "";
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  loadData();
+const P=[
+  {n:"50001524 – OT4261/4262 JZR",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",7,7],["Logística",4,4],["Cierre",2,2]]},
+  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:44,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,5],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001477 – OT4167-4169 TRITON MINERA",p:"Nicaragua",t:54,d:46,pct:85,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",7,7],["Compras",7,7],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",6,6],["Montaje",7,4],["Logística",4,1],["Cierre",2,0]]},
+  {n:"50001514 – OT4243/4244 ZVN 90KW",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,2]]},
+  {n:"50001515 – OT4245/4246 CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001500 – OT4212/4214 MIN.LA HACIENDA",p:"Mexico",t:48,d:34,pct:71,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,4],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,3],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001446 – OT4067-4069 MINERA FRESNILLO",p:"Mexico",t:52,d:36,pct:69,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,4],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001504 – OT4220 ZITRON PERU",p:"Peru",t:44,d:30,pct:68,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001415 – OT4113/4114 ZVR",p:"Peru",t:51,d:34,pct:67,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,5],["Propuesta",7,7],["Compras",7,5],["Ing.Diseño",4,3],["CC",1,1],["Bodega",6,4],["Montaje",7,2],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001508 – OT4232/4233 XEMORTIZ",p:"Mexico",t:41,d:27,pct:66,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,2],["Bodega salida",3,2],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001504 – OT4219 ZITRON PERU",p:"Peru",t:38,d:24,pct:63,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing.Diseño",4,3],["Bodega entrada",2,1],["Calderería",3,2],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001473 – OT4164/4165 MAPIMI",p:"Mexico",t:48,d:29,pct:60,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,1],["Bodega salida",4,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001485 – OT4183/4184 CALABRESSE",p:"Rep. Dominicana",t:52,d:30,pct:58,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,4],["Compras",6,3],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Fab.Externa",3,2],["Bodega salida",5,2],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001506 – OT4221/4222/4223",p:"Colombia",t:53,d:29,pct:55,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,5],["Compras",6,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Fab.Externa",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001501 – OT4213/4215 MIN.LA HACIENDA",p:"Mexico",t:49,d:25,pct:51,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,4],["Compras",5,1],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,2],["Bodega salida",4,2],["Montaje",6,1],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001497 – OT4196/4197/4198 XEMORTIZ",p:"Mexico",t:52,d:26,pct:50,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,4],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Fab.Externa",3,0],["Bodega salida",5,1],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001309 – OT3756 ZITRON COLOMBIA",p:"Colombia",t:31,d:14,pct:45,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,2],["Compras",4,1],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001541 – OT4232 XEMORTIZ FRISCO",p:"Mexico",t:38,d:16,pct:42,ph:[["Kick Off",5,5],["Ing.JP",4,2],["Propuesta",7,5],["Compras",6,3],["Ing.Diseño",4,0],["Bodega entrada",3,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001466 – OT4302 TOB+REJ+ZVN",p:"Peru",t:39,d:16,pct:41,ph:[["Kick Off",5,5],["Ing.JP",5,4],["Propuesta",8,3],["Compras",2,2],["Ing.Diseño",3,3],["Bodega entrada",5,0],["Bodega salida",5,0],["Logística",4,0]]},
+  {n:"50001490 – OT4204-4211 ZITRON PERU",p:"Peru",t:63,d:25,pct:40,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",7,7],["Propuesta",9,9],["Compras",9,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001498 – OT4200/4201 CALABRESSE",p:"Rep. Dominicana",t:51,d:20,pct:39,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,5],["Compras",6,3],["Ing.Diseño",4,2],["Bodega entrada",2,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001518 – OT4264/4265/4266 EQ.CHAPARRAL",p:"Mexico",t:54,d:21,pct:39,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,5],["Propuesta",7,7],["Compras",6,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001533 – OT4285/4286 GESVIAL",p:"Chile",t:47,d:16,pct:34,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,3],["Compras",2,1],["Ing.Diseño",3,2],["Bodega entrada",2,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001525 – OT4287-4293 ZVR",p:"Peru",t:47,d:15,pct:32,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,4],["Propuesta",8,8],["Compras",8,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001520 – XEMORTIZ DDG",p:"Mexico",t:41,d:13,pct:32,ph:[["Kick Off",5,5],["Ing.JP",4,3],["Propuesta",4,2],["Compras",4,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001534 – OT4294-4298 ZVR",p:"Peru",t:47,d:15,pct:32,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,4],["Propuesta",8,7],["Compras",8,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001516 – OT4247/4248 TUNEL LA BANDERA",p:"Rep. Dominicana",t:46,d:13,pct:28,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",6,4],["Compras",6,0],["Ing.Diseño",4,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001499 – OT4202-4227 EQ.CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",9,4],["Compras",9,2],["Ing.Diseño",4,1],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001532 – XEMORTIZ AMERICAS GOLD",p:"Mexico",t:41,d:10,pct:24,ph:[["Kick Off",5,5],["Ing.JP",4,3],["Propuesta",4,2],["Compras",4,0],["Ing.Diseño",4,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001547 – OT4317 XEMORTIZ AMERICAS GOLD",p:"Mexico",t:38,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Montaje",6,0],["Logística",4,0]]},
+  {n:"50001546 – OT4316 XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Montaje",6,0],["Logística",4,0]]},
+  {n:"50001545 – OT4315 XEMORTIZ FRISCO",p:"Mexico",t:41,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Montaje",6,0],["Logística",4,0]]},
+  {n:"50001543 – OT4309 ZVN",p:"Colombia",t:41,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Montaje",6,0],["Logística",4,0]]},
+];
+ 
+const PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
+let filt="all";
+ 
+function col(p){if(p>=60)return"#1D9E75";if(p>=30)return"#378ADD";if(p>=10)return"#BA7517";return"#E24B4A";}
+function bi(p){
+  if(p>=80)return{t:"Avanzado ✓",c:"#1D9E75"};if(p>=60)return{t:"Avanzado",c:"#1D9E75"};
+  if(p>=30)return{t:"En progreso",c:"#378ADD"};if(p>=10)return{t:"Iniciado",c:"#BA7517"};
+  return{t:"Sin iniciar",c:"#E24B4A"};
 }
-
-// ── API ASANA ─────────────────────────────────────────────────────────────
-async function asana(path) {
-  const r = await fetch(`https://app.asana.com/api/1.0/${path}`, {
-    headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" }
+function getF(){
+  const q=(document.getElementById("srch").value||"").toLowerCase();
+  const s=document.getElementById("srt").value;
+  let d=P.filter(x=>{
+    if(q&&!x.n.toLowerCase().includes(q)&&!x.p.toLowerCase().includes(q))return false;
+    if(PM[filt])return x.p===PM[filt];
+    if(filt==="ot")return!Object.values(PM).includes(x.p);
+    return true;
   });
-  if (r.status === 401) throw new Error("TOKEN_INVALID");
-  if (!r.ok) throw new Error(`Asana ${r.status}`);
-  return (await r.json()).data;
+  if(s==="pd")d.sort((a,b)=>b.pct-a.pct);
+  else if(s==="pa")d.sort((a,b)=>a.pct-b.pct);
+  else if(s==="ct")d.sort((a,b)=>a.p.localeCompare(b.p));
+  else d.sort((a,b)=>a.n.localeCompare(b.n));
+  return d;
 }
-
-// ── CARGA PRINCIPAL ───────────────────────────────────────────────────────
-
-async function loadData() {
-  showErr(null);
-  document.getElementById("rfBtn").disabled = true;
-  document.getElementById("rfBtn").textContent = "Cargando...";
-  DATA = STATIC_DATA.projects;
-  const now = new Date(STATIC_DATA.updated_at);
-  const fmt = d => d.toLocaleString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
-  document.getElementById("lastSync").textContent = "Actualizado: " + fmt(now);
-  document.getElementById("nextSync").textContent = "Datos al 17/05/2026";
-  renderKPIs(); render();
-  document.getElementById("rfBtn").disabled = false;
-  document.getElementById("rfBtn").textContent = "⟳ Actualizar";
+function rKPIs(){
+  const avg=Math.round(P.reduce((s,x)=>s+x.pct,0)/P.length);
+  const ts=P.reduce((s,x)=>s+x.t,0),ds=P.reduce((s,x)=>s+x.d,0);
+  document.getElementById("kpis").innerHTML=[
+    {l:"Total proyectos",v:P.length,c:"#378ADD"},
+    {l:"Avance promedio",v:avg+"%",c:col(avg)},
+    {l:"Subtareas completadas",v:ds+"/"+ts,c:"#1D9E75"},
+    {l:"Avanzados ≥60%",v:P.filter(x=>x.pct>=60).length,c:"#1D9E75"},
+    {l:"En progreso",v:P.filter(x=>x.pct>=10&&x.pct<60).length,c:"#378ADD"},
+    {l:"Sin iniciar",v:P.filter(x=>x.pct===0).length,c:"#E24B4A"},
+  ].map(k=>`<div class="kpi"><div class="kl">${k.l}</div><div class="kv" style="color:${k.c}">${k.v}</div></div>`).join("");
 }
-
-document.getElementById("pwInput").focus();
+function toggle(i){
+  const card=document.getElementById("c"+i),det=document.getElementById("d"+i);
+  if(!det)return;
+  const open=det.style.display==="block";
+  det.style.display=open?"none":"block";
+  if(card)card.classList.toggle("open",!open);
+}
+function render(){
+  rKPIs();
+  const data=getF();
+  document.getElementById("plist").innerHTML=data.map((x,i)=>{
+    const c=col(x.pct),{t:bt,c:bc}=bi(x.pct);
+    const phs=x.ph.map(([fn,ft,fd])=>{
+      const fp=ft>0?Math.round(fd/ft*100):0;
+      return`<div class="phrow"><span class="phname">${fn}</span><div class="phbg"><div class="phfill" style="width:${fp}%;background:${col(fp)};"></div></div><span class="phpct" style="color:${col(fp)}">${fp}%</span><span class="phct">${fd}/${ft}</span></div>`;
+    }).join("");
+    return`<div class="pcard" id="c${i}" onclick="toggle(${i})">
+      <div class="ptop">
+        <span class="pname" title="${x.n}">${x.n}</span>
+        <span class="pcountry">${x.p}</span>
+        <span class="pbadge" style="background:${bc}22;color:${bc}">${bt}</span>
+        <span class="ppct" style="color:${c}">${x.pct}%</span>
+        <span class="pchev">▾</span>
+      </div>
+      <div class="pbar-row">
+        <div class="pbar-bg"><div class="pbar-fill" style="width:${x.pct}%;background:${c};"></div></div>
+        <span class="pcnt">${x.d}/${x.t} subtareas</span>
+      </div>
+      <div class="pdet" id="d${i}">${phs}</div>
+    </div>`;
+  }).join("")||`<div style="text-align:center;padding:40px;color:#6B7280">Sin resultados</div>`;
+  document.getElementById("footer").textContent=`${data.length} proyectos · Actualizado 17/05/2026 · Nivel 1 sin cabeceras`;
+}
+function setF(f,btn){
+  filt=f;
+  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
+  btn.classList.add("act");render();
+}
+render();
 </script>
 </body>
 </html>
