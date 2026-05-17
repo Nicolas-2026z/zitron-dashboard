@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Portafolio Proyectos — Zitron</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A3A5C'/><text y='24' x='5' font-size='22' font-weight='bold' fill='white'>Z</text></svg>">
+<style>
+:root{
+  --hdr:#1A3A5C;--grn:#1D9E75;--blu:#378ADD;
+  --amb:#BA7517;--red:#E24B4A;--gry:#6B7280;
+  --bg:#F3F6FA;--card:#fff;--border:#E2E8F0;
+  --text:#1A202C;--sub:#6B7280;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);}
+
+/* LOGIN */
+#loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0F2540 0%,#1A3A5C 60%,#244E82 100%);
+}
+.lcard{
+  background:#fff;border-radius:18px;padding:44px 40px;width:360px;
+  text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35);
+}
+.llogo{
+  width:64px;height:64px;background:var(--hdr);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:800;color:#fff;margin:0 auto 16px;
+}
+.ltitle{font-size:20px;font-weight:700;color:var(--hdr);margin-bottom:4px;}
+.lsub{font-size:13px;color:var(--sub);margin-bottom:26px;}
+.linput{
+  width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;
+  font-size:15px;text-align:center;letter-spacing:4px;margin-bottom:12px;
+  outline:none;transition:border-color .2s;
+}
+.linput:focus{border-color:var(--blu);}
+.lbtn{
+  width:100%;padding:13px;background:var(--hdr);color:#fff;border:none;
+  border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;
+}
+.lbtn:hover{background:#243F6B;}
+.lerr{color:var(--red);font-size:12px;margin-top:10px;min-height:16px;}
+.lhint{font-size:10px;color:#94A3B8;margin-top:16px;line-height:1.5;}
+
+/* APP */
+#app{display:none;}
+.header{
+  background:var(--hdr);color:#fff;padding:0 24px;height:58px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.hleft{display:flex;align-items:center;gap:12px;}
+.hlogo{
+  width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;
+}
+.htitle{font-size:15px;font-weight:700;}
+.hsub{font-size:10px;opacity:.6;margin-top:1px;}
+.hright{display:flex;align-items:center;gap:8px;}
+.syncinfo{font-size:10px;opacity:.7;text-align:right;line-height:1.6;}
+.syncinfo span{color:#86EFAC;}
+.hbtn{
+  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;transition:all .15s;
+}
+.hbtn-g{background:var(--grn);color:#fff;}
+.hbtn-g:hover{background:#178a64;}
+.hbtn-g:disabled{background:#555;cursor:not-allowed;}
+.hbtn-o{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.hbtn-o:hover{background:rgba(255,255,255,.22);}
+
+/* MAIN */
+.main{max-width:1080px;margin:0 auto;padding:22px 18px;}
+
+/* KPIS */
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.kpi{
+  background:#fff;border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;flex:1;min-width:110px;text-align:center;
+}
+.kpi-l{font-size:10px;color:var(--sub);margin-bottom:5px;line-height:1.4;}
+.kpi-v{font-size:26px;font-weight:700;}
+.kpi-s{font-size:10px;color:#94A3B8;margin-top:3px;}
+
+/* CONTROLS */
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.srch{
+  padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%236B7280' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.868-3.833zm-5.242 1.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") no-repeat 10px center;
+  width:200px;outline:none;
+}
+.srch:focus{border-color:var(--blu);}
+.sortsel{
+  padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;background:#fff;cursor:pointer;outline:none;
+}
+
+/* PILLS */
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.pill{
+  padding:5px 15px;border-radius:20px;border:1.5px solid var(--border);
+  background:#fff;font-size:12px;font-weight:500;cursor:pointer;color:var(--sub);
+}
+.pill:hover{border-color:#94A3B8;}
+.pill.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
+
+/* CARDS */
+.plist{display:flex;flex-direction:column;gap:8px;}
+.pcard{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:12px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s;
+}
+.pcard:hover{border-color:#94A3B8;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.ptop{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
+.pname{
+  flex:1;min-width:0;font-size:13px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pcountry{
+  font-size:11px;color:var(--sub);padding:2px 8px;
+  border-radius:12px;background:var(--bg);white-space:nowrap;
+}
+.pbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;white-space:nowrap;}
+.ppct{font-size:15px;font-weight:700;min-width:42px;text-align:right;}
+.pchev{font-size:12px;color:var(--sub);transition:transform .2s;display:inline-block;}
+.pcard.open .pchev{transform:rotate(180deg);}
+.pbar-row{display:flex;align-items:center;gap:10px;}
+.pbar-bg{height:7px;background:#E8EDF3;border-radius:4px;flex:1;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.pcnt{font-size:11px;color:var(--sub);white-space:nowrap;min-width:95px;text-align:right;}
+
+/* DETAIL */
+.pdet{display:none;border-top:1px solid var(--border);margin-top:11px;padding-top:11px;}
+.phrow{display:flex;align-items:center;gap:8px;padding:3px 0;}
+.phname{font-size:11px;color:var(--sub);min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.phbg{height:4px;background:#E8EDF3;border-radius:2px;flex:1;overflow:hidden;}
+.phfill{height:100%;border-radius:2px;}
+.phpct{font-size:11px;font-weight:600;min-width:34px;text-align:right;}
+.phct{font-size:10px;color:var(--sub);min-width:48px;text-align:right;}
+
+/* LOADER */
+.loader{text-align:center;padding:50px 20px;color:var(--sub);}
+.spin{
+  width:40px;height:40px;border:3px solid #E2E8F0;border-top-color:var(--blu);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lprog{max-width:260px;margin:10px auto 0;height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;}
+.lprogf{height:100%;background:var(--blu);border-radius:3px;transition:width .4s;}
+.lcnt{font-size:11px;margin-top:6px;color:#94A3B8;}
+
+/* ERR */
+.errbox{
+  background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;
+  padding:14px 18px;color:#991B1B;font-size:13px;margin-bottom:16px;display:none;
+}
+
+.footer{text-align:center;font-size:11px;color:#94A3B8;padding:24px 0 16px;}
+@media(max-width:600px){
+  .header{padding:0 12px;}.main{padding:14px 12px;}
+  .kpi{min-width:90px;padding:10px 12px;}.kpi-v{font-size:22px;}
+  .pname{font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lcard">
+    <div class="llogo">Z</div>
+    <div class="ltitle">Portafolio Proyectos</div>
+    <div class="lsub">Zitron — Acceso privado</div>
+    <input class="linput" type="password" id="pwInput"
+           placeholder="••••••••" maxlength="40"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">Ingresar →</button>
+    <div class="lerr" id="lerr"></div>
+    <div class="lhint">
+      Ingresa la contraseña para acceder al<br>
+      dashboard de avance de proyectos.
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="header">
+    <div class="hleft">
+      <div class="hlogo">Z</div>
+      <div>
+        <div class="htitle">Portafolio Consolidado — Zitron</div>
+        <div class="hsub">% avance subtareas nivel 1 · sin cabeceras · tiempo real Asana</div>
+      </div>
+    </div>
+    <div class="hright">
+      <div class="syncinfo">
+        <div id="lastSync">Cargando...</div>
+        <span id="nextSync"></span>
+      </div>
+      <button class="hbtn hbtn-o" onclick="exportCSV()">⬇ CSV</button>
+      <button class="hbtn hbtn-g" id="rfBtn" onclick="loadData()">⟳ Actualizar</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="errbox" id="errbox"></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="ctrl">
+      <input class="srch" id="srch" type="text" placeholder="Buscar..." oninput="render()">
+      <select class="sortsel" id="srt" onchange="render()">
+        <option value="pd">Mayor avance</option>
+        <option value="pa">Menor avance</option>
+        <option value="na">Nombre A-Z</option>
+        <option value="ct">País</option>
+      </select>
+    </div>
+    <div class="pills">
+      <button class="pill act" onclick="setF('all',this)">Todos</button>
+      <button class="pill" onclick="setF('mx',this)">🇲🇽 México</button>
+      <button class="pill" onclick="setF('pe',this)">🇵🇪 Perú</button>
+      <button class="pill" onclick="setF('cl',this)">🇨🇱 Chile</button>
+      <button class="pill" onclick="setF('co',this)">🇨🇴 Colombia</button>
+      <button class="pill" onclick="setF('ot',this)">Otros</button>
+    </div>
+    <div class="plist" id="plist">
+      <div class="loader">
+        <div class="spin"></div>
+        <div id="lmsg">Conectando con Asana...</div>
+        <div class="lprog"><div class="lprogf" id="lprogf" style="width:0%"></div></div>
+        <div class="lcnt" id="lcnt"></div>
+      </div>
+    </div>
+    <div class="footer" id="footer"></div>
+  </main>
+</div>
+
+<script>
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
+// La contraseña protege el acceso visual.
+// El token se guarda en sessionStorage (se borra al cerrar el navegador).
+const CORRECT_PW    = "Zitron2026!";   // ← CAMBIA ESTO
+const PORTFOLIO_GID = "1213511928397658";
+const WORKSPACE_GID = "402967058777498";
+const REFRESH_MS    = 60 * 60 * 1000; // 1 hora
+
+// Subtareas de Compras del 50001451 que search_tasks no devuelve
+const HIDDEN = {
+  "1213391072478496": [
+    {gid:"a1",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a2",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a3",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a4",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a5",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a6",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+    {gid:"a7",completed:true,parent:{gid:"1213425602230953",name:"Compras"}},
+  ]
+};
+
+let TOKEN = "";
+let DATA  = [];
+let FILT  = "all";
+let timer = null;
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────
+function doLogin() {
+  const pw = document.getElementById("pwInput").value.trim();
+  if (!pw) return;
+  if (pw !== CORRECT_PW) {
+    document.getElementById("lerr").textContent = "Contraseña incorrecta";
+    document.getElementById("pwInput").value = "";
+    return;
+  }
+  TOKEN = sessionStorage.getItem("asana_tk") || "";
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  loadData();
+}
+
+// ── API ASANA ─────────────────────────────────────────────────────────────
+async function asana(path) {
+  const r = await fetch(`https://app.asana.com/api/1.0/${path}`, {
+    headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" }
+  });
+  if (r.status === 401) throw new Error("TOKEN_INVALID");
+  if (!r.ok) throw new Error(`Asana ${r.status}`);
+  return (await r.json()).data;
+}
+
+// ── CARGA PRINCIPAL ───────────────────────────────────────────────────────
+async function loadData() {
+  showErr(null);
+  const btn = document.getElementById("rfBtn");
+  btn.disabled = true; btn.textContent = "⟳ Cargando...";
+
+  if (!TOKEN) {
+    TOKEN = prompt(
+      "Pega tu token de Asana (Personal Access Token).\n" +
+      "Se guarda en tu sesión del navegador y no se comparte con nadie:"
+    ) || "";
+    if (!TOKEN) { btn.disabled=false; btn.textContent="⟳ Actualizar"; return; }
+    sessionStorage.setItem("asana_tk", TOKEN);
+  }
+
+  if (!DATA.length) showLoader();
+
+  try {
+    // 1. Proyectos del portafolio
+    const items = await asana(
+      `portfolios/${PORTFOLIO_GID}/items` +
+      `?opt_fields=gid,name,due_on,custom_fields,custom_fields.name,custom_fields.display_value&limit=100`
+    );
+    const projects = items.filter(i => i.resource_type === "project");
+
+    DATA = [];
+    for (let i = 0; i < projects.length; i++) {
+      const p = projects[i];
+      updLoader(`${p.name.slice(0,40)}...`, Math.round((i/projects.length)*100), `${i+1}/${projects.length}`);
+
+      try {
+        // Cabeceras del proyecto
+        const parents = await asana(`tasks?project=${p.gid}&opt_fields=gid,name&limit=100`);
+        const pSet    = new Set(parents.map(t=>t.gid));
+
+        // Subtareas
+        let subs = await asana(
+          `tasks/search?projects.any=${p.gid}&is_subtask=true` +
+          `&opt_fields=gid,completed,parent.gid,parent.name&limit=100&workspace=${WORKSPACE_GID}`
+        );
+        if (HIDDEN[p.gid]) subs = [...subs, ...HIDDEN[p.gid]];
+
+        // Nivel 1
+        const lv1   = subs.filter(t => pSet.has(t.parent?.gid));
+        const total = lv1.length;
+        const done  = lv1.filter(t=>t.completed).length;
+        const pct   = total > 0 ? Math.round(done/total*100) : 0;
+
+        // Fases
+        const fm = {};
+        lv1.forEach(t => {
+          const n = t.parent?.name || "Otras";
+          if (!fm[n]) fm[n]={total:0,done:0};
+          fm[n].total++;
+          if (t.completed) fm[n].done++;
+        });
+        const phases = Object.entries(fm).map(([n,v])=>({
+          name:n, total:v.total, done:v.done,
+          pct: v.total>0 ? Math.round(v.done/v.total*100) : 0
+        }));
+
+        const cf = name => {
+          const f=(p.custom_fields||[]).find(c=>c.name===name);
+          return f?(f.display_value||""):"";
+        };
+
+        DATA.push({
+          gid:p.gid, name:p.name.trim(),
+          pais: cf("Pais")||cf("País")||"",
+          prio: cf("Prioridad")||"",
+          due:  p.due_on||"",
+          total, done, pct, phases
+        });
+      } catch {
+        const cf = n=>{const f=(p.custom_fields||[]).find(c=>c.name===n);return f?(f.display_value||""):"";};
+        DATA.push({gid:p.gid,name:p.name.trim(),pais:cf("Pais")||"",prio:"",due:p.due_on||"",total:0,done:0,pct:null,phases:[]});
+      }
+
+      // Renderizar progresivamente
+      renderKPIs(); render();
+    }
+
+    // Timestamps
+    const now = new Date();
+    const fmt = d => d.toLocaleString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    document.getElementById("lastSync").textContent = "Sync: " + fmt(now);
+    document.getElementById("nextSync").textContent = "Próx: " + fmt(new Date(now.getTime()+REFRESH_MS));
+
+    clearTimeout(timer);
+    timer = setTimeout(loadData, REFRESH_MS);
+
+  } catch(e) {
+    if (e.message === "TOKEN_INVALID") {
+      TOKEN = ""; sessionStorage.removeItem("asana_tk");
+      showErr("Token inválido. Recarga la página para ingresar uno nuevo.");
+    } else {
+      showErr("Error: " + e.message);
+    }
+  }
+
+  btn.disabled=false; btn.textContent="⟳ Actualizar";
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function col(p){
+  if(p===null) return"var(--gry)";
+  if(p>=80) return"var(--grn)"; if(p>=60) return"var(--grn)";
+  if(p>=30) return"var(--blu)"; if(p>=10) return"var(--amb)";
+  return"var(--red)";
+}
+function badge(p){
+  if(p===null) return"Sin datos";
+  if(p>=80)  return"Avanzado ✓"; if(p>=60) return"Avanzado";
+  if(p>=30)  return"En progreso"; if(p>=10) return"Iniciado";
+  return"Sin iniciar";
+}
+const PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
+
+function getFiltered(){
+  const q=(document.getElementById("srch")?.value||"").toLowerCase();
+  const s=document.getElementById("srt")?.value||"pd";
+  let d=DATA.filter(p=>{
+    if(q&&!p.name.toLowerCase().includes(q)&&!(p.pais||"").toLowerCase().includes(q)) return false;
+    if(PM[FILT]) return(p.pais||"")===PM[FILT];
+    if(FILT==="ot") return!Object.values(PM).includes(p.pais||"");
+    return true;
+  });
+  if(s==="pd") d.sort((a,b)=>(b.pct??-1)-(a.pct??-1));
+  else if(s==="pa") d.sort((a,b)=>(a.pct??999)-(b.pct??999));
+  else if(s==="ct") d.sort((a,b)=>(a.pais||"").localeCompare(b.pais||""));
+  else d.sort((a,b)=>a.name.localeCompare(b.name));
+  return d;
+}
+
+function renderKPIs(){
+  const wd=DATA.filter(p=>p.pct!==null);
+  const avg=wd.length?Math.round(wd.reduce((s,p)=>s+p.pct,0)/wd.length):0;
+  const ts=wd.reduce((s,p)=>s+p.total,0), ds=wd.reduce((s,p)=>s+p.done,0);
+  document.getElementById("kpis").innerHTML=[
+    {l:"Total proyectos",        v:DATA.length,                                s:"",          c:"var(--blu)"},
+    {l:"Avance promedio",        v:avg+"%",                                     s:"",          c:col(avg)},
+    {l:"Subtareas completadas",  v:ds+"/"+ts,                                   s:"nivel 1",   c:"var(--grn)"},
+    {l:"Avanzados ≥60%",         v:wd.filter(p=>p.pct>=60).length,             s:"proyectos", c:"var(--grn)"},
+    {l:"En progreso 10–59%",     v:wd.filter(p=>p.pct>=10&&p.pct<60).length,   s:"proyectos", c:"var(--blu)"},
+    {l:"Sin iniciar 0%",         v:wd.filter(p=>p.pct===0).length,              s:"proyectos", c:"var(--red)"},
+    {l:"Sin datos",              v:DATA.filter(p=>p.pct===null).length,         s:"proyectos", c:"var(--gry)"},
+  ].map(k=>`<div class="kpi">
+    <div class="kpi-l">${k.l}</div>
+    <div class="kpi-v" style="color:${k.c}">${k.v}</div>
+    ${k.s?`<div class="kpi-s">${k.s}</div>`:""}
+  </div>`).join("");
+}
+
+function toggle(gid){
+  const card=document.getElementById("c-"+gid);
+  const det=document.getElementById("d-"+gid);
+  if(!det) return;
+  const open=det.style.display==="block";
+  det.style.display=open?"none":"block";
+  card?.classList.toggle("open",!open);
+}
+
+function render(){
+  if(!DATA.length) return;
+  const list=getFiltered();
+  document.getElementById("plist").innerHTML=list.map(p=>{
+    const c=col(p.pct), bt=badge(p.pct);
+    const bw=p.pct??0, pv=p.pct!==null?p.pct+"%":"—";
+    const cnt=p.total>0?`${p.done}/${p.total} subtareas`:"Sin datos";
+    const phs=(p.phases||[]).map(ph=>`
+      <div class="phrow">
+        <span class="phname" title="${ph.name}">${ph.name}</span>
+        <div class="phbg"><div class="phfill" style="width:${ph.pct}%;background:${col(ph.pct)};"></div></div>
+        <span class="phpct" style="color:${col(ph.pct)}">${ph.pct}%</span>
+        <span class="phct">${ph.done}/${ph.total}</span>
+      </div>`).join("");
+    return`<div class="pcard" id="c-${p.gid}" onclick="toggle('${p.gid}')">
+      <div class="ptop">
+        <span class="pname" title="${p.name}">${p.name}</span>
+        ${p.pais?`<span class="pcountry">${p.pais}</span>`:""}
+        <span class="pbadge" style="background:${c}22;color:${c}">${bt}</span>
+        <span class="ppct" style="color:${c}">${pv}</span>
+        <span class="pchev">▾</span>
+      </div>
+      <div class="pbar-row">
+        <div class="pbar-bg"><div class="pbar-fill" style="width:${bw}%;background:${c};"></div></div>
+        <span class="pcnt">${cnt}</span>
+      </div>
+      <div class="pdet" id="d-${p.gid}">
+        ${phs||'<p style="font-size:11px;color:var(--sub);font-style:italic">Sin fases.</p>'}
+      </div>
+    </div>`;
+  }).join("")||`<div style="text-align:center;padding:40px;color:var(--sub);font-size:13px;">Sin resultados</div>`;
+  document.getElementById("footer").textContent=
+    `${list.length} proyectos · Datos en tiempo real desde Asana · Auto-actualización cada hora`;
+}
+
+function showLoader(){
+  document.getElementById("plist").innerHTML=`
+    <div class="loader">
+      <div class="spin"></div>
+      <div id="lmsg" style="font-size:13px;margin-bottom:8px">Conectando con Asana...</div>
+      <div class="lprog"><div class="lprogf" id="lprogf" style="width:0%"></div></div>
+      <div class="lcnt" id="lcnt"></div>
+    </div>`;
+}
+function updLoader(msg,pct,cnt){
+  const m=document.getElementById("lmsg");
+  const f=document.getElementById("lprogf");
+  const c=document.getElementById("lcnt");
+  if(m) m.textContent=msg;
+  if(f) f.style.width=pct+"%";
+  if(c) c.textContent=cnt;
+}
+function setF(f,btn){
+  FILT=f;
+  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
+  btn.classList.add("act"); render();
+}
+function showErr(msg){
+  const b=document.getElementById("errbox");
+  if(msg){b.textContent="⚠️ "+msg;b.style.display="block";}
+  else b.style.display="none";
+}
+function exportCSV(){
+  const rows=[["Proyecto","País","Prioridad","Fecha entrega","Total","Completadas","% Avance","Estado"]];
+  DATA.forEach(p=>{
+    const e=p.pct===null?"Sin datos":p.pct>=80?"Avanzado ✓":p.pct>=60?"Avanzado":p.pct>=30?"En progreso":p.pct>=10?"Iniciado":"Sin iniciar";
+    rows.push([p.name,p.pais||"",p.prio||"",p.due||"",p.total,p.done,p.pct!==null?p.pct+"%":"—",e]);
+  });
+  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${v}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  a.download=`Zitron_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+document.getElementById("pwInput").focus();
+</script>
+</body>
+</html>
