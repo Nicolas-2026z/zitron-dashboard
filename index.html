@@ -283,7 +283,7 @@ function doLogin() {
 
 // ── API ASANA ─────────────────────────────────────────────────────────────
 async function asana(path) {
-  const r = await fetch(`https://app.asana.com/api/1.0/${path}`, {
+  const r = await fetch(`https://corsproxy.io/?https://app.asana.com/api/1.0/${path}`, {
     headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" }
   });
   if (r.status === 401) throw new Error("TOKEN_INVALID");
