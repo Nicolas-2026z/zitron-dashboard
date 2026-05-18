@@ -101,7 +101,7 @@ window.addEventListener('load', function(){
     </div>
   </div>
   <div class="hright">
-    <div>Actualizado: 17/05/2026</div>
+    <div>Actualizado: 18/05/2026</div>
     <div style="color:#86EFAC">33 proyectos</div>
   </div>
 </header>
@@ -124,6 +124,8 @@ window.addEventListener('load', function(){
     <button class="pill" onclick="setF('cl',this)">🇨🇱 Chile</button>
     <button class="pill" onclick="setF('co',this)">🇨🇴 Colombia</button>
     <button class="pill" onclick="setF('ot',this)">Otros</button>
+    <button class="pill" onclick="setF('des',this)">✅ Despachados</button>
+    <button class="pill" onclick="setF('pend',this)">🚚 Pendiente despacho</button>
   </div>
   <div class="plist" id="plist"></div>
   <div class="footer" id="footer"></div>
@@ -132,7 +134,7 @@ window.addEventListener('load', function(){
 <script>
 const P=[
   {n:"50001524 – OT4261/4262 JZR",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:44,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,5],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:44,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,5],["Logística",4,4],["Cierre",2,0]]},
   {n:"50001477 – OT4167-4169 TRITON MINERA",p:"Nicaragua",t:54,d:45,pct:83,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",7,7],["Compras",7,7],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,5],["Logística",4,1],["Cierre",2,0],["Puesta marcha",2,0]]},
   {n:"50001514 – OT4243/4244 ZVN 90KW",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,2]]},
   {n:"50001515 – OT4245/4246 CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
@@ -182,6 +184,8 @@ function getF(){
     if(q&&!x.n.toLowerCase().includes(q)&&!x.p.toLowerCase().includes(q))return false;
     if(PM[filt])return x.p===PM[filt];
     if(filt==="ot")return!Object.values(PM).includes(x.p);
+    if(filt==="des"){const l=x.ph.find(ph=>ph[0]==="Logística");return l&&l[1]>0&&l[1]===l[2];}
+    if(filt==="pend"){const l=x.ph.find(ph=>ph[0]==="Logística");return !(l&&l[1]>0&&l[1]===l[2]);}
     return true;
   });
   if(s==="pd")d.sort((a,b)=>b.pct-a.pct);
@@ -200,6 +204,7 @@ function rKPIs(){
     {l:"Avanzados ≥60%",v:P.filter(x=>x.pct>=60).length,c:"#1D9E75"},
     {l:"En progreso",v:P.filter(x=>x.pct>=10&&x.pct<60).length,c:"#378ADD"},
     {l:"Sin iniciar",v:P.filter(x=>x.pct===0).length,c:"#E24B4A"},
+    {l:"Despachados",v:P.filter(x=>{const l=x.ph.find(p=>p[0]==="Logística");return l&&l[1]>0&&l[1]===l[2];}).length,c:"#1D9E75"},
   ].map(k=>`<div class="kpi"><div class="kl">${k.l}</div><div class="kv" style="color:${k.c}">${k.v}</div></div>`).join("");
 }
 function toggle(i){
@@ -218,11 +223,18 @@ function render(){
       const fp=ft>0?Math.round(fd/ft*100):0;
       return`<div class="phrow"><span class="phname">${fn}</span><div class="phbg"><div class="phfill" style="width:${fp}%;background:${col(fp)};"></div></div><span class="phpct" style="color:${col(fp)}">${fp}%</span><span class="phct">${fd}/${ft}</span></div>`;
     }).join("");
+    // Verificar si está despachado (Logística done==total y total>0)
+    const logPhase = x.ph.find(ph=>ph[0]==="Logística");
+    const despachado = logPhase && logPhase[1]>0 && logPhase[1]===logPhase[2];
+    const dbadge = despachado
+      ? `<span class="pbadge" style="background:#1D9E7522;color:#1D9E75">✅ Despachado</span>`
+      : `<span class="pbadge" style="background:#E24B4A22;color:#E24B4A">🚚 Pendiente</span>`;
     return`<div class="pcard" id="c${i}" onclick="toggle(${i})">
       <div class="ptop">
         <span class="pname" title="${x.n}">${x.n}</span>
         <span class="pcountry">${x.p}</span>
         <span class="pbadge" style="background:${bc}22;color:${bc}">${bt}</span>
+        ${dbadge}
         <span class="ppct" style="color:${c}">${x.pct}%</span>
         <span class="pchev">▾</span>
       </div>
@@ -233,7 +245,7 @@ function render(){
       <div class="pdet" id="d${i}">${phs}</div>
     </div>`;
   }).join("")||`<div style="text-align:center;padding:40px;color:#6B7280">Sin resultados</div>`;
-  document.getElementById("footer").textContent=`${data.length} proyectos · Actualizado 17/05/2026 · Nivel 1 sin cabeceras`;
+  document.getElementById("footer").textContent=`${data.length} proyectos · Actualizado 18/05/2026 · Nivel 1 sin cabeceras`;
 }
 function setF(f,btn){
   filt=f;
