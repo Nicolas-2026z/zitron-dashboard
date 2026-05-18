@@ -125,7 +125,7 @@ window.addEventListener('load', function(){
     <button class="pill" onclick="setF('co',this)">🇨🇴 Colombia</button>
     <button class="pill" onclick="setF('ot',this)">Otros</button>
     <button class="pill" onclick="setF('des',this)">✅ Despachados</button>
-    <button class="pill" onclick="setF('pend',this)">🚚 Pendiente despacho</button>
+    
   </div>
   <div class="plist" id="plist"></div>
   <div class="footer" id="footer"></div>
@@ -134,7 +134,7 @@ window.addEventListener('load', function(){
 <script>
 const P=[
   {n:"50001524 – OT4261/4262 JZR",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:44,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,5],["Logística",4,4],["Cierre",2,0]]},
+  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:46,pct:96,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,7],["Logística",4,4],["Cierre",2,0]]},
   {n:"50001477 – OT4167-4169 TRITON MINERA",p:"Nicaragua",t:54,d:45,pct:83,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",7,7],["Compras",7,7],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,5],["Logística",4,1],["Cierre",2,0],["Puesta marcha",2,0]]},
   {n:"50001514 – OT4243/4244 ZVN 90KW",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,2]]},
   {n:"50001515 – OT4245/4246 CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
@@ -228,7 +228,7 @@ function render(){
     const despachado = logPhase && logPhase[1]>0 && logPhase[1]===logPhase[2];
     const dbadge = despachado
       ? `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">✅ Despachado</span>`
-      : ``;
+      : `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">🚚 Pend. despacho</span>`;
     return`<div class="pcard" id="c${i}" onclick="toggle(${i})">
       <div class="ptop">
         <span class="pname" title="${x.n}">${x.n}</span>
