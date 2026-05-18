@@ -66,7 +66,7 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
     <div style="font-size:10px;color:#CBD5E0;margin-top:16px">Solicita la contraseña al administrador</div>
   </div>
 </div>
- 
+
 <script>
 function doLogin(){
   var pw = document.getElementById('pwInput').value;
@@ -90,8 +90,8 @@ window.addEventListener('load', function(){
   if(el) el.focus();
 });
 </script>
- 
- 
+
+
 <header class="header">
   <div class="hleft">
     <div class="hlogo">Z</div>
@@ -105,7 +105,7 @@ window.addEventListener('load', function(){
     <div style="color:#86EFAC">33 proyectos</div>
   </div>
 </header>
- 
+
 <main class="main">
   <div class="kpis" id="kpis"></div>
   <div class="ctrl">
@@ -130,7 +130,7 @@ window.addEventListener('load', function(){
   <div class="plist" id="plist"></div>
   <div class="footer" id="footer"></div>
 </main>
- 
+
 <script>
 const P=[
   {n:"50001524 – OT4261/4262 JZR",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
@@ -167,10 +167,10 @@ const P=[
   {n:"50001545 – OT4315 XEMORTIZ FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
   {n:"50001543 – OT4309 ZVN",p:"Colombia",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
 ];
- 
+
 const PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 let filt="all";
- 
+
 function col(p){if(p>=60)return"#1D9E75";if(p>=30)return"#378ADD";if(p>=10)return"#BA7517";return"#E24B4A";}
 function bi(p){
   if(p>=80)return{t:"Avanzado ✓",c:"#1D9E75"};if(p>=60)return{t:"Avanzado",c:"#1D9E75"};
@@ -227,15 +227,15 @@ function render(){
     const logPhase = x.ph.find(ph=>ph[0]==="Logística");
     const despachado = logPhase && logPhase[1]>0 && logPhase[1]===logPhase[2];
     const dbadge = despachado
-      ? `<span class="pbadge" style="background:#1D9E7522;color:#1D9E75">✅ Despachado</span>`
-      : `<span class="pbadge" style="background:#E24B4A22;color:#E24B4A">🚚 Pendiente</span>`;
+      ? `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">✅ Despachado</span>`
+      : ``;
     return`<div class="pcard" id="c${i}" onclick="toggle(${i})">
       <div class="ptop">
         <span class="pname" title="${x.n}">${x.n}</span>
         <span class="pcountry">${x.p}</span>
         <span class="pbadge" style="background:${bc}22;color:${bc}">${bt}</span>
-        ${dbadge}
         <span class="ppct" style="color:${c}">${x.pct}%</span>
+        ${dbadge}
         <span class="pchev">▾</span>
       </div>
       <div class="pbar-row">
