@@ -271,12 +271,12 @@ function initDashboard() {
 
   const typeCount = {Ventilador:0,Accesorios:0,Motor:0};
   DATA.forEach(d=>d.types.forEach(t=>{if(typeCount[t]!==undefined)typeCount[t]++;}));
-  const typeTotal = Object.values(typeCount).reduce((s,v)=>s+v,0);
+  const typeTotal = Object.values(typeCount).reduce((s,v)=>s+v,0); const uniqueTotal = DATA.length;
   const CIRC = 2*Math.PI*45;
   const TYPE_COLORS = {Ventilador:'#3b82f6',Accesorios:'#10b981',Motor:'#f0a500'};
   const TYPE_IDS = {Ventilador:'donut-v',Accesorios:'donut-a',Motor:'donut-m'};
   const legend = document.getElementById('type-legend');
-  document.getElementById('donut-center').textContent = typeTotal;
+  document.getElementById("donut-center").textContent = uniqueTotal;
   setTimeout(()=>{
     let dashOffset = CIRC/4;
     Object.entries(typeCount).forEach(([type,count])=>{
@@ -285,7 +285,7 @@ function initDashboard() {
       el.style.strokeDasharray=`${len} ${CIRC-len}`;
       el.setAttribute('stroke-dashoffset',dashOffset);
       dashOffset -= len;
-      legend.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${TYPE_COLORS[type]}"></div><span>${type}</span><span class="legend-val">${count} ofertas</span></div>`;
+      legend.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${TYPE_COLORS[type]}"></div><span>${type}</span><span class="legend-val">${count} con este tipo</span></div>`;
     });
   },100);
 
