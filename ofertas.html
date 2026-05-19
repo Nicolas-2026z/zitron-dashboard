@@ -7,17 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0d12; --surface: #111520; --surface2: #181e2e;
-    --border: #1f2940; --accent: #f0a500; --accent2: #3b82f6;
-    --accent3: #10b981; --accent4: #ef4444; --text: #e2e8f0;
-    --muted: #64748b; --vent: #3b82f6; --motor: #f0a500; --acc: #10b981;
+    --bg: #0f1a2e; --surface: #162035; --surface2: #1c2840;
+    --border: #243354; --accent: #f0a500; --accent2: #3b82f6;
+    --accent3: #10b981; --accent4: #ef4444; --text: #dce8f8;
+    --muted: #7a9bbf; --vent: #3b82f6; --motor: #f0a500; --acc: #10b981;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
 
   /* LOGIN */
-  #login-screen { position: fixed; inset: 0; z-index: 9999; background: #0a0d12; display: flex; align-items: center; justify-content: center; }
+  #login-screen { position: fixed; inset: 0; z-index: 9999; background: #0f1a2e; display: flex; align-items: center; justify-content: center; }
   .login-box { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 48px 40px; width: 360px; text-align: center; }
   .login-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); border-radius: 16px 16px 0 0; }
   .login-logo { width: 44px; height: 44px; background: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); margin: 0 auto 20px; }
@@ -33,7 +33,7 @@
 
   /* DASHBOARD */
   #dashboard { display: none; position: relative; z-index: 1; }
-  header { padding: 28px 40px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(10,13,18,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+  header { padding: 28px 40px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(15,26,46,0.97); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
   .logo { display: flex; align-items: center; gap: 14px; }
   .logo-mark { width: 36px; height: 36px; background: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); }
   .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
