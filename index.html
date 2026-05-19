@@ -29,7 +29,7 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .pcard{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:border-color .15s;}
 .pcard:hover{border-color:#94A3B8;}
 .ptop{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
-.pname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:normal;overflow:visible;}
 .pcountry{font-size:11px;color:var(--sub);padding:2px 8px;border-radius:12px;background:var(--bg);}
 .pbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;}
 .ppct{font-size:15px;font-weight:700;min-width:42px;text-align:right;}
@@ -152,7 +152,6 @@ var P=[
 {n:"50001546 - XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
 {n:"50001545 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
 {n:"50001543 - ZITRON COLOMBIA EGM",p:"Colombia",t:44,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001549 - ZITRON PERU",p:"Peru",t:44,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]}
 ];
 function col(p){return p>=60?"#1D9E75":p>=30?"#378ADD":p>=10?"#BA7517":"#E24B4A";}
 function bi(p){
