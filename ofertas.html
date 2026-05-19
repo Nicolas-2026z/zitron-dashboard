@@ -15,7 +15,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
- 
+
   /* LOGIN */
   #login-screen { position: fixed; inset: 0; z-index: 9999; background: #0a0d12; display: flex; align-items: center; justify-content: center; }
   .login-box { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 48px 40px; width: 360px; text-align: center; }
@@ -30,7 +30,7 @@
   .login-btn:hover { opacity: 0.88; }
   .login-error { margin-top: 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent4); display: none; }
   .login-error.show { display: block; }
- 
+
   /* DASHBOARD */
   #dashboard { display: none; position: relative; z-index: 1; }
   header { padding: 28px 40px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(10,13,18,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
@@ -42,7 +42,7 @@
   .header-right span { display: block; color: var(--accent); font-size: 13px; font-weight: 500; }
   .logout-btn { margin-left: 20px; padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s; }
   .logout-btn:hover { border-color: var(--accent4); color: var(--accent4); }
- 
+
   main { padding: 36px 40px; max-width: 1400px; margin: 0 auto; }
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
   .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; overflow: hidden; animation: fadeUp 0.5s ease both; }
@@ -104,7 +104,7 @@
 </style>
 </head>
 <body>
- 
+
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box" id="login-box">
@@ -117,7 +117,7 @@
     <div class="login-error" id="login-error">⚠ Contraseña incorrecta</div>
   </div>
 </div>
- 
+
 <!-- DASHBOARD -->
 <div id="dashboard">
 <header>
@@ -136,7 +136,7 @@
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
 </header>
- 
+
 <main>
   <div class="kpi-grid">
     <div class="kpi blue"><div class="kpi-label">Total Ofertas</div><div class="kpi-value blue">29</div><div class="kpi-sub">archivos procesados</div></div>
@@ -144,7 +144,7 @@
     <div class="kpi green"><div class="kpi-label">Países</div><div class="kpi-value green">7</div><div class="kpi-sub">CL · PE · MX · AR · CO · NI · EC</div></div>
     <div class="kpi red"><div class="kpi-label">Oferta Mayor</div><div class="kpi-value red" id="kpi-mayor">—</div><div class="kpi-sub" id="kpi-mayor-name">—</div></div>
   </div>
- 
+
   <p class="section-title">Análisis por categoría</p>
   <div class="charts-row">
     <div class="chart-card">
@@ -164,7 +164,7 @@
     <div class="chart-card"><div class="chart-card-title">Valor por País (USD)</div><div class="country-chart" id="country-chart"></div></div>
     <div class="chart-card"><div class="chart-card-title">Top Ofertas por Valor</div><div class="bar-chart" id="top-bar"></div></div>
   </div>
- 
+
   <p class="section-title">Detalle completo de ofertas</p>
   <div class="table-section">
     <div class="table-header">
@@ -182,10 +182,10 @@
   </div>
 </main>
 </div>
- 
+
 <script>
 const PASS = 'zitron2026!';
- 
+
 function checkLogin() {
   const v = document.getElementById('pwd-input').value;
   const err = document.getElementById('login-error');
@@ -202,18 +202,18 @@ function checkLogin() {
     document.getElementById('pwd-input').value = '';
   }
 }
- 
+
 function logout() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('pwd-input').value = '';
   document.getElementById('login-error').classList.remove('show');
 }
- 
+
 const FLAGS = {CL:'🇨🇱',PE:'🇵🇪',MX:'🇲🇽',AR:'🇦🇷',CO:'🇨🇴',NI:'🇳🇮',EC:'🇪🇨'};
 const COUNTRY_NAMES = {CL:'Chile',PE:'Perú',MX:'México',AR:'Argentina',CO:'Colombia',NI:'Nicaragua',EC:'Ecuador'};
 const COUNTRY_COLORS = ['#3b82f6','#10b981','#f0a500','#ef4444','#8b5cf6','#ec4899','#06b6d4'];
- 
+
 const MODELS = {
   "26PE0018":"ZVN 1-9-90/2 · FAR 90/100","26PE0017":"ZVN 2-9-90/2 · FAR 90/100",
   "26PE0010":"ZVN 1-7-42/2 · ZVN 1-9-110/2 · FAR 70/100 · FAR 90/100","26PE0001":"ZVN 1-20-300/6 · ZVN 1-24-450/6",
@@ -229,46 +229,46 @@ const MODELS = {
   "2370-24-PE-A":"ZVN 1-16-126/4 · ZVN 1-16-330/4 · FAR 160/200",
   "2370-24-PE-B":"ZVN 1-16-184/4 · ZVN 1-16-210/4 · FAR 160/200"
 };
- 
+
 const DATA = [
-  {code:"26PE0018",country:"PE",client:"Alpayana",types:["Ventilador","Accesorios"],rev:0,total:8630.86},
-  {code:"26PE0017",country:"PE",client:"Aracata",types:["Ventilador","Accesorios"],rev:0,total:14352.06},
-  {code:"26PE0010",country:"PE",client:"Capex Poderosa",types:["Ventilador","Accesorios"],rev:1,total:10651.25},
-  {code:"26PE0001",country:"PE",client:"El Brocal Codos",types:["Accesorios"],rev:0,total:6304.40},
-  {code:"26NI0004",country:"NI",client:"Rele Borna Triton",types:["Accesorios"],rev:0,total:0},
-  {code:"26MX0037",country:"MX",client:"Booster 110Kcfm",types:["Ventilador","Accesorios"],rev:0,total:2625.00},
-  {code:"26MX0027",country:"MX",client:"Agnico Eagle",types:["Ventilador"],rev:0,total:4657.10},
-  {code:"26MX0031",country:"MX",client:"Arian Silver Guanajatillo",types:["Ventilador","Motor"],rev:0,total:46800.00},
+  {code:"26PE0018",country:"PE",client:"Alpayana",types:["Ventilador","Accesorios"],rev:0,total:115452},
+  {code:"26PE0017",country:"PE",client:"Aracata",types:["Ventilador","Accesorios"],rev:0,total:200466},
+  {code:"26PE0010",country:"PE",client:"Capex Poderosa",types:["Ventilador","Accesorios"],rev:1,total:85654},
+  {code:"26PE0001",country:"PE",client:"El Brocal Codos",types:["Accesorios"],rev:1,total:314307},
+  {code:"26NI0004",country:"NI",client:"Rele Borna Triton",types:["Accesorios"],rev:0,total:625},
+  {code:"26MX0037",country:"MX",client:"Booster 110Kcfm",types:["Ventilador","Accesorios"],rev:0,total:44606},
+  {code:"26MX0027",country:"MX",client:"Agnico Eagle",types:["Ventilador"],rev:0,total:18655},
+  {code:"26MX0031",country:"MX",client:"Arian Silver Guanajatillo",types:["Ventilador","Motor"],rev:0,total:249648},
   {code:"26EC0001",country:"EC",client:"Ecuador — sin costeo",types:["Ventilador"],rev:0,total:0},
-  {code:"26CL0055",country:"CL",client:"Balanceo Chuqui",types:["Accesorios"],rev:0,total:0},
-  {code:"26CO0016",country:"CO",client:"Repuestos Alabes AMM",types:["Accesorios"],rev:0,total:0},
-  {code:"26CO0017",country:"CO",client:"Secundarios Marmato",types:["Ventilador","Accesorios"],rev:0,total:7033.68},
-  {code:"26CL0052",country:"CL",client:"Teniente",types:["Ventilador"],rev:0,total:3737.19},
-  {code:"26CL0048A",country:"CL",client:"Tunel Lo Ruiz (Indra)",types:["Ventilador"],rev:0,total:14223.49},
-  {code:"26CL0048B",country:"CL",client:"Tunel Lo Ruiz (Sice)",types:["Ventilador"],rev:0,total:14223.49},
-  {code:"26CL0047",country:"CL",client:"Minera Florida",types:["Ventilador"],rev:0,total:25432.62},
-  {code:"26CL0046",country:"CL",client:"Rep. Geovita",types:["Accesorios"],rev:0,total:0},
-  {code:"26CL0037",country:"CL",client:"Atakama",types:["Accesorios"],rev:1,total:7616.44},
-  {code:"26CL0036",country:"CL",client:"P500 y P4600",types:["Ventilador"],rev:0,total:7140.00},
-  {code:"26CL0028",country:"CL",client:"Reparacion AVOII",types:["Accesorios"],rev:0,total:0},
-  {code:"26CL0025",country:"CL",client:"Minera Arqueros",types:["Ventilador","Accesorios"],rev:0,total:28968.80},
-  {code:"26CL0017",country:"CL",client:"Diablo Regimiento",types:["Ventilador"],rev:2,total:0},
-  {code:"26CL0005",country:"CL",client:"Motor Andina",types:["Motor"],rev:0,total:0},
-  {code:"26AR0003",country:"AR",client:"Minera Gualcamayo",types:["Ventilador","Accesorios"],rev:0,total:5932.86},
-  {code:"26AR0002",country:"AR",client:"Lunahuasi",types:["Ventilador","Accesorios"],rev:0,total:2625.00},
-  {code:"25CL2554",country:"CL",client:"Minera Chipana",types:["Ventilador","Accesorios"],rev:2,total:28968.80},
-  {code:"25PE0013b",country:"PE",client:"Huaron Adicional",types:["Ventilador","Accesorios"],rev:1,total:7057.78},
-  {code:"2370-24-PE-A",country:"PE",client:"Acciona",types:["Ventilador","Accesorios"],rev:0,total:2520.00},
-  {code:"2370-24-PE-B",country:"PE",client:"Tunel Nueva Carretera",types:["Ventilador","Accesorios"],rev:0,total:2520.00},
+  {code:"26CL0055",country:"CL",client:"Balanceo Chuqui",types:["Accesorios"],rev:0,total:2262},
+  {code:"26CO0016",country:"CO",client:"Repuestos Alabes AMM",types:["Accesorios"],rev:0,total:43484},
+  {code:"26CO0017",country:"CO",client:"Secundarios Marmato",types:["Ventilador","Accesorios"],rev:0,total:48856},
+  {code:"26CL0052",country:"CL",client:"Teniente",types:["Ventilador"],rev:0,total:268860},
+  {code:"26CL0048A",country:"CL",client:"Tunel Lo Ruiz (Indra)",types:["Ventilador"],rev:0,total:979366},
+  {code:"26CL0048B",country:"CL",client:"Tunel Lo Ruiz (Sice)",types:["Ventilador"],rev:0,total:1011313},
+  {code:"26CL0047",country:"CL",client:"Minera Florida",types:["Ventilador"],rev:0,total:268860},
+  {code:"26CL0046",country:"CL",client:"Rep. Geovita",types:["Accesorios"],rev:0,total:11513},
+  {code:"26CL0037",country:"CL",client:"Atakama",types:["Accesorios"],rev:0,total:75003},
+  {code:"26CL0036",country:"CL",client:"P500 y P4600",types:["Ventilador"],rev:0,total:0},
+  {code:"26CL0028",country:"CL",client:"Reparacion AVOII",types:["Accesorios"],rev:0,total:11722},
+  {code:"26CL0025",country:"CL",client:"Minera Arqueros",types:["Ventilador","Accesorios"],rev:0,total:91556},
+  {code:"26CL0017",country:"CL",client:"Diablo Regimiento",types:["Ventilador"],rev:2,total:6895},
+  {code:"26CL0005",country:"CL",client:"Motor Andina",types:["Motor"],rev:0,total:108600},
+  {code:"26AR0003",country:"AR",client:"Minera Gualcamayo",types:["Ventilador","Accesorios"],rev:0,total:42459},
+  {code:"26AR0002",country:"AR",client:"Lunahuasi",types:["Ventilador","Accesorios"],rev:0,total:151610},
+  {code:"25CL2554",country:"CL",client:"Minera Chipana",types:["Ventilador","Accesorios"],rev:2,total:91556},
+  {code:"25PE0013b",country:"PE",client:"Huaron Adicional",types:["Ventilador","Accesorios"],rev:1,total:449460},
+  {code:"2370-24-PE-A",country:"PE",client:"Acciona",types:["Ventilador","Accesorios"],rev:0,total:857978},
+  {code:"2370-24-PE-B",country:"PE",client:"Tunel Nueva Carretera",types:["Ventilador","Accesorios"],rev:0,total:1169400},
 ];
- 
+
 function initDashboard() {
   const totalMonto = DATA.reduce((s,d)=>s+d.total,0);
   document.getElementById('kpi-monto').textContent = 'USD ' + totalMonto.toLocaleString('es-CL',{maximumFractionDigits:0});
   const topOffer = [...DATA].sort((a,b)=>b.total-a.total)[0];
   document.getElementById('kpi-mayor').textContent = 'USD ' + topOffer.total.toLocaleString('es-CL',{maximumFractionDigits:0});
   document.getElementById('kpi-mayor-name').textContent = topOffer.client;
- 
+
   const typeCount = {Ventilador:0,Accesorios:0,Motor:0};
   DATA.forEach(d=>d.types.forEach(t=>{if(typeCount[t]!==undefined)typeCount[t]++;}));
   const typeTotal = Object.values(typeCount).reduce((s,v)=>s+v,0);
@@ -288,7 +288,7 @@ function initDashboard() {
       legend.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${TYPE_COLORS[type]}"></div><span>${type}</span><span class="legend-val">${count} ofertas</span></div>`;
     });
   },100);
- 
+
   const countryData={};
   DATA.forEach(d=>{if(!countryData[d.country])countryData[d.country]={count:0,total:0};countryData[d.country].count++;countryData[d.country].total+=d.total;});
   const sortedCountries=Object.entries(countryData).sort((a,b)=>b[1].total-a[1].total);
@@ -298,7 +298,7 @@ function initDashboard() {
     const pct=maxC>0?data.total/maxC*100:0;
     cc.innerHTML+=`<div class="country-row"><div class="country-header"><span class="country-name">${FLAGS[code]} ${COUNTRY_NAMES[code]} <span style="color:var(--muted);font-size:10px;font-family:'DM Mono',monospace">(${data.count})</span></span><span class="country-amt">${data.total>0?'USD '+data.total.toLocaleString('es-CL',{maximumFractionDigits:0}):'—'}</span></div><div class="country-bar-track"><div class="country-bar-fill" data-pct="${pct}" style="width:0%;background:${COUNTRY_COLORS[i%COUNTRY_COLORS.length]}"></div></div></div>`;
   });
- 
+
   const topOffers=[...DATA].filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,7);
   const maxTop=topOffers[0].total;
   const tb=document.getElementById('top-bar');
@@ -306,11 +306,11 @@ function initDashboard() {
     const pct=d.total/maxTop*100;
     tb.innerHTML+=`<div class="bar-row"><div class="bar-label">${FLAGS[d.country]}</div><div class="bar-track"><div class="bar-fill" data-pct="${pct}" style="width:0%;background:${COUNTRY_COLORS[i%COUNTRY_COLORS.length]}"></div></div><div class="bar-val" title="${d.client}">$${(d.total/1000).toFixed(1)}k</div></div>`;
   });
- 
+
   setTimeout(()=>{document.querySelectorAll('[data-pct]').forEach(el=>{el.style.width=el.dataset.pct+'%';});},150);
   renderTable('all');
 }
- 
+
 function renderTable(filter) {
   const body=document.getElementById('table-body');
   body.innerHTML='';
@@ -331,7 +331,7 @@ function renderTable(filter) {
     body.innerHTML+=`<tr><td class="code-cell">${d.code}</td><td>${d.client}</td><td>${FLAGS[d.country]} ${COUNTRY_NAMES[d.country]}</td><td><div class="type-tags">${tags}</div></td><td style="max-width:220px"><div style="display:flex;flex-wrap:wrap;gap:2px">${modelHtml}</div></td><td><span class="rev-badge">Rev.0${d.rev}</span></td><td style="text-align:right"><span class="amount-cell ${amtClass}">${amtText}</span></td></tr>`;
   });
 }
- 
+
 function filterTable(type,btn) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
