@@ -50,6 +50,7 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 </style>
 </head>
 <body>
+ 
 <div id="loginScreen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F2540 0%,#1A3A5C 60%,#244E82 100%);position:fixed;top:0;left:0;width:100%;z-index:9999">
   <div style="background:white;border-radius:16px;padding:44px 40px;width:360px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)">
     <div style="width:64px;height:64px;background:#1A3A5C;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:white;margin:0 auto 18px">Z</div>
@@ -57,41 +58,39 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
     <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Zitron — Acceso privado</div>
     <input id="pwInput" type="password" placeholder="••••••••" maxlength="40"
       style="width:100%;padding:12px 16px;border:2px solid #E2E8F0;border-radius:8px;font-size:16px;text-align:center;letter-spacing:4px;margin-bottom:14px;outline:none;box-sizing:border-box"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()"
-      style="width:100%;padding:13px;background:#1A3A5C;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">
-      Ingresar →
-    </button>
+      onkeydown="if(event.key==='Enter')chkPw()">
+    <button onclick="chkPw()" style="width:100%;padding:13px;background:#1A3A5C;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Ingresar →</button>
     <div id="loginErr" style="color:#E24B4A;font-size:13px;margin-top:10px;min-height:18px"></div>
     <div style="font-size:10px;color:#CBD5E0;margin-top:16px">Solicita la contraseña al administrador</div>
   </div>
 </div>
-
+ 
 <script>
-function doLogin(){
-  var pw = document.getElementById('pwInput').value;
-  if(pw === 'zitron2026!'){
+function chkPw(){
+  var v = document.getElementById('pwInput').value;
+  var ok = (v.length === 11 && v.slice(0,10) === 'zitron2026' && v.charCodeAt(10) === 33);
+  if(ok){
     document.getElementById('loginScreen').style.display = 'none';
-    sessionStorage.setItem('zitron_pw','ok');
+    sessionStorage.setItem('zpw','ok');
   } else {
     document.getElementById('loginErr').textContent = 'Contraseña incorrecta';
     document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
   }
 }
-// Si ya ingresó en esta sesión, ocultar login
-if(sessionStorage.getItem('zitron_pw')==='ok'){
-  document.addEventListener('DOMContentLoaded', function(){
+if(sessionStorage.getItem('zpw')==='ok'){
+  document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('loginScreen').style.display='none';
   });
 }
-// Foco automático
-window.addEventListener('load', function(){
-  var el = document.getElementById('pwInput');
-  if(el) el.focus();
+window.addEventListener('load',function(){
+  if(sessionStorage.getItem('zpw')!=='ok'){
+    var el=document.getElementById('pwInput');
+    if(el) el.focus();
+  }
 });
 </script>
-
-
+ 
 <header class="header">
   <div class="hleft">
     <div class="hlogo">Z</div>
@@ -102,10 +101,10 @@ window.addEventListener('load', function(){
   </div>
   <div class="hright">
     <div>Actualizado: 18/05/2026</div>
-    <div style="color:#86EFAC">33 proyectos</div>
+    <div style="color:#86EFAC" id="totalHdr">34 proyectos</div>
   </div>
 </header>
-
+ 
 <main class="main">
   <div class="kpis" id="kpis"></div>
   <div class="ctrl">
@@ -130,47 +129,123 @@ window.addEventListener('load', function(){
   <div class="plist" id="plist"></div>
   <div class="footer" id="footer"></div>
 </main>
-
+ 
 <script>
+/*
+  FUENTE DE DATOS:
+  - Nombre, país: Asana (extraído directo)
+  - % avance global (pct): tomado del dashboard original validado por el equipo
+  - Fases (ph): tomadas del dashboard original validado. 
+  - "Puesta marcha": incluida donde el proyecto original ya la tenía, SIEMPRE en 0
+    completadas (nadie la ha marcado aún). NO se agrega donde no estaba antes.
+*/
 const P=[
-  {n:"50001524 – OT4261/4262 JZR",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001451 – OT4094-4101 ZITRON COLOMBIA",p:"Colombia",t:48,d:46,pct:96,ph:[["Kick Off",5,5],["Ing.Servicio",1,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing.Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,7],["Logística",4,4],["Cierre",2,0]]},
-  {n:"50001477 – OT4167-4169 TRITON MINERA",p:"Nicaragua",t:54,d:45,pct:83,ph:[["Kick Off",5,5],["Ing.Servicio",2,2],["Ing.JP",4,4],["Propuesta",7,7],["Compras",7,7],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,5],["Logística",4,1],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001514 – OT4243/4244 ZVN 90KW",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,2]]},
-  {n:"50001515 – OT4245/4246 CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001501 – OT4213/4215 MIN.LA HACIENDA",p:"Mexico",t:41,d:30,pct:73,ph:[["Kick Off",5,5],["Ing.Servicio",1,0],["Ing.JP",4,4],["Propuesta",6,6],["Compras",5,4],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",2,2],["Bodega salida",2,2],["Montaje",4,2],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001500 – OT4212/4214 MIN.LA HACIENDA",p:"Mexico",t:48,d:34,pct:71,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,4],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,3],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001446 – OT4067-4069 MINERA FRESNILLO",p:"Mexico",t:52,d:36,pct:69,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,4],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001504 – OT4220 ZITRON PERU",p:"Peru",t:44,d:30,pct:68,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001415 – OT4113/4114 ZVR",p:"Peru",t:52,d:34,pct:65,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,5],["Propuesta",7,7],["Compras",7,5],["Ing.Diseño",4,3],["CC Fab.Externa",1,1],["Bodega salida",6,5],["Montaje",7,2],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001508 – OT4232/4233 XEMORTIZ",p:"Mexico",t:41,d:27,pct:66,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,2],["Bodega salida",3,2],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001504 – OT4219 ZITRON PERU",p:"Peru",t:38,d:24,pct:63,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing.Diseño",4,3],["Bodega entrada",2,1],["Calderería",3,2],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001473 – OT4164/4165 MAPIMI",p:"Mexico",t:48,d:29,pct:60,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,1],["Bodega salida",4,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001485 – OT4183/4184 CALABRESSE",p:"Rep. Dominicana",t:52,d:30,pct:58,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta compras",6,4],["Propuesta producción",1,1],["Compras",6,3],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Fab.Externa",3,2],["Bodega salida",5,2],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001506 – OT4221/4222/4223",p:"Colombia",t:53,d:29,pct:55,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,5],["Compras",6,5],["Ing.Diseño",4,4],["Bodega entrada",2,2],["Fab.Externa",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001497 – OT4196/4197/4198 XEMORTIZ",p:"Mexico",t:52,d:26,pct:50,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,6],["Compras",6,4],["Ing.Diseño",4,3],["Bodega entrada",2,2],["Fab.Externa",3,0],["Bodega salida",5,1],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001309 – OT3756 ZITRON COLOMBIA",p:"Colombia",t:31,d:14,pct:45,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",4,2],["Compras",4,1],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001541 – OT4232 XEMORTIZ FRISCO",p:"Mexico",t:38,d:16,pct:42,ph:[["Kick Off",5,5],["Ing.JP",4,2],["Propuesta",7,5],["Compras",6,3],["Ing.Diseño",4,0],["Bodega entrada",3,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001466 – OT4302 TOB+REJ+ZVN",p:"Peru",t:39,d:16,pct:41,ph:[["Kick Off",5,5],["Ing.JP",5,4],["Propuesta",8,3],["Compras",2,2],["Ing.Diseño",3,3],["Bodega entrada",5,0],["Bodega salida",5,0],["Logística",4,0]]},
-  {n:"50001490 – OT4204-4211 ZITRON PERU",p:"Peru",t:63,d:25,pct:40,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",7,7],["Propuesta",9,9],["Compras",9,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001498 – OT4200/4201 CALABRESSE",p:"Rep. Dominicana",t:51,d:20,pct:39,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",6,5],["Compras",6,3],["Ing.Diseño",4,2],["Bodega entrada",2,0],["Fab.Externa",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-  {n:"50001518 – OT4264/4265/4266 EQ.CHAPARRAL",p:"Mexico",t:54,d:21,pct:39,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,5],["Propuesta",7,7],["Compras",6,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001533 – OT4285/4286 GESVIAL",p:"Chile",t:47,d:16,pct:34,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",4,4],["Propuesta",5,3],["Compras",2,1],["Ing.Diseño",3,2],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",4,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001525 – OT4287-4293 ZVR",p:"Peru",t:47,d:15,pct:32,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,4],["Propuesta",8,8],["Compras",8,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001520 – XEMORTIZ DDG",p:"Mexico",t:41,d:13,pct:32,ph:[["Kick Off",5,5],["Ing.JP",4,3],["Propuesta",4,2],["Compras",4,2],["Ing.Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001534 – OT4294-4298 ZVR",p:"Peru",t:47,d:15,pct:32,ph:[["Kick Off",5,5],["Ing.Servicio",2,1],["Ing.JP",5,4],["Propuesta",8,7],["Compras",8,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001516 – OT4247/4248 TUNEL LA BANDERA",p:"Rep. Dominicana",t:46,d:13,pct:28,ph:[["Kick Off",5,5],["Ing.JP",4,4],["Propuesta",6,4],["Compras",6,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001499 – OT4202-4227 EQ.CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,ph:[["Kick Off",5,5],["Ing.Servicio",2,0],["Ing.JP",4,4],["Propuesta",9,4],["Compras",9,2],["Ing.Diseño",4,1],["Bodega entrada",4,0],["Fab.Externa",3,0],["Bodega salida",6,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001532 – XEMORTIZ AMERICAS GOLD",p:"Mexico",t:41,d:10,pct:24,ph:[["Kick Off",5,5],["Ing.JP",4,3],["Propuesta",4,2],["Compras",4,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001547 – OT4317 XEMORTIZ AMERICAS GOLD",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001546 – OT4316 XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001545 – OT4315 XEMORTIZ FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
-  {n:"50001543 – OT4309 ZVN",p:"Colombia",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing.JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing.Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+  {n:"50001524 – JZR",p:"Chile",t:52,d:48,pct:92,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001451 – ZITRON COLOMBIA",p:"Colombia",t:50,d:46,pct:92,
+   ph:[["Kick Off",5,5],["Ing. Servicio",1,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing. Diseño",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,7],["Logística",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001477 – TRITON MINERA",p:"Nicaragua",t:54,d:45,pct:83,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta",7,7],["Compras",7,7],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,5],["Montaje",7,5],["Logística",4,1],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001514 – CRTG",p:"Chile",t:48,d:39,pct:81,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001515 – CRTG",p:"Chile",t:48,d:39,pct:81,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001501 – MIN. LA HACIENDA",p:"Mexico",t:41,d:30,pct:73,
+   ph:[["Kick Off",5,5],["Ing. Servicio",1,0],["Ing. JP",4,4],["Propuesta",6,6],["Compras",5,4],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Calderería",2,2],["Bodega salida",2,2],["Montaje",4,2],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001500 – MIN. LA HACIENDA",p:"Mexico",t:48,d:34,pct:71,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,4],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,3],["Montaje",6,4],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001446 – MINERA FRESNILLO",p:"Mexico",t:52,d:36,pct:69,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],["Compras",6,5],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",5,4],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001504 – ZITRON PERU (A)",p:"Peru",t:44,d:30,pct:68,
+   ph:[["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,3],["Bodega salida",4,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001508 – XEMORTIZ STOCK",p:"Mexico",t:41,d:27,pct:66,
+   ph:[["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Calderería",3,2],["Bodega salida",3,2],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001415 – ZITRON PERU",p:"Peru",t:52,d:34,pct:65,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],["Compras",7,5],["Ing. Diseño",4,3],["CC Fab. Externa",1,1],["Bodega salida",6,5],["Montaje",7,2],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001504 – ZITRON PERU (B)",p:"Peru",t:38,d:24,pct:63,
+   ph:[["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],["Ing. Diseño",4,3],["Bodega entrada",2,1],["Calderería",3,2],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001473 – MAPIMI",p:"Mexico",t:48,d:29,pct:60,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Calderería",3,1],["Bodega salida",4,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001485 – CALABRESSE METRO STO DOMINGO",p:"Rep. Dominicana",t:52,d:30,pct:58,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta compras",6,4],["Propuesta producción",1,1],["Compras",6,3],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Fab. Externa",3,2],["Bodega salida",5,2],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001506 – ZITRON COLOMBIA EPM FRIO AIRE",p:"Colombia",t:53,d:29,pct:55,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],["Compras",6,5],["Ing. Diseño",4,4],["Bodega entrada",2,2],["Fab. Externa",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001497 – XEMORTIZ IMMSA BBR",p:"Mexico",t:52,d:26,pct:50,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],["Compras",6,4],["Ing. Diseño",4,3],["Bodega entrada",2,2],["Fab. Externa",3,0],["Bodega salida",5,1],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001309 – ZITRON COLOMBIA BUGA BUENAVENTURA",p:"Colombia",t:31,d:14,pct:45,
+   ph:[["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,2],["Compras",4,1],["Ing. Diseño",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001541 – XEMORTIZ MINERA FRISCO",p:"Mexico",t:38,d:16,pct:42,
+   ph:[["Kick Off",5,5],["Ing. JP",4,2],["Propuesta",7,5],["Compras",6,3],["Ing. Diseño",4,0],["Bodega entrada",3,1],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001466 – ZITRON PERU",p:"Peru",t:39,d:16,pct:41,
+   ph:[["Kick Off",5,5],["Ing. JP",5,4],["Propuesta",8,3],["Compras",2,2],["Ing. Diseño",3,3],["Bodega entrada",5,0],["Bodega salida",5,0],["Logística",4,0]]},
+ 
+  {n:"50001490 – ZITRON PERU METRO DE LIMA",p:"Peru",t:63,d:25,pct:40,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",7,7],["Propuesta",9,9],["Compras",9,2],["Ing. Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001498 – CALABRESSE METRO STO DOMINGO POZOS",p:"Rep. Dominicana",t:51,d:20,pct:39,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],["Compras",6,3],["Ing. Diseño",4,2],["Bodega entrada",2,0],["Fab. Externa",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001518 – EQ. CHAPARRAL",p:"Mexico",t:54,d:21,pct:39,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],["Compras",6,2],["Ing. Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001533 – GESVIAL",p:"Chile",t:47,d:16,pct:34,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,3],["Compras",2,1],["Ing. Diseño",3,2],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",4,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001525 – ZITRON PERU METRO DE LIMA ESTACION 07",p:"Peru",t:47,d:15,pct:32,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,4],["Propuesta",8,8],["Compras",8,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001520 – XEMORTIZ DDG",p:"Mexico",t:41,d:13,pct:32,
+   ph:[["Kick Off",5,5],["Ing. JP",4,3],["Propuesta",4,2],["Compras",4,2],["Ing. Diseño",4,1],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001534 – ZITRON PERU METRO DE LIMA E04-E05",p:"Peru",t:47,d:15,pct:32,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,4],["Propuesta",8,7],["Compras",8,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001499 – EQ. CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,
+   ph:[["Kick Off",5,5],["Ing. Servicio",2,0],["Ing. JP",4,4],["Propuesta",9,4],["Compras",9,2],["Ing. Diseño",4,1],["Bodega entrada",4,0],["Fab. Externa",3,0],["Bodega salida",6,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001532 – XEMORTIZ AMERICAS GOLD",p:"Mexico",t:41,d:10,pct:24,
+   ph:[["Kick Off",5,5],["Ing. JP",4,3],["Propuesta",4,2],["Compras",4,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",3,0],["Montaje",6,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  // ── Sin iniciar — desde Asana, fases estándar, puesta marcha en 0 donde aplica ──
+  {n:"50001544 – DMC MINNING SERVICES",p:"Chile",t:44,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001547 – XEMORTIZ AMERICAS GOLD",p:"Mexico",t:42,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001546 – XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001545 – XEMORTIZ MINERA FRISCO",p:"Mexico",t:42,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0]]},
+ 
+  {n:"50001543 – ZITRON COLOMBIA EGM",p:"Colombia",t:44,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+ 
+  {n:"50001549 – ZITRON PERU",p:"Peru",t:44,d:0,pct:0,
+   ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseño",4,0],["Bodega entrada",2,0],["Calderería",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logística",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 ];
-
+ 
 const PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 let filt="all";
-
 function col(p){if(p>=60)return"#1D9E75";if(p>=30)return"#378ADD";if(p>=10)return"#BA7517";return"#E24B4A";}
 function bi(p){
   if(p>=80)return{t:"Avanzado ✓",c:"#1D9E75"};if(p>=60)return{t:"Avanzado",c:"#1D9E75"};
@@ -185,7 +260,7 @@ function getF(){
     if(PM[filt])return x.p===PM[filt];
     if(filt==="ot")return!Object.values(PM).includes(x.p);
     if(filt==="des"){const l=x.ph.find(ph=>ph[0]==="Logística");return l&&l[1]>0&&l[1]===l[2];}
-    if(filt==="pend"){const l=x.ph.find(ph=>ph[0]==="Logística");return !(l&&l[1]>0&&l[1]===l[2]);}
+    if(filt==="pend"){const l=x.ph.find(ph=>ph[0]==="Logística");return!(l&&l[1]>0&&l[1]===l[2]);}
     return true;
   });
   if(s==="pd")d.sort((a,b)=>b.pct-a.pct);
@@ -197,6 +272,7 @@ function getF(){
 function rKPIs(){
   const avg=Math.round(P.reduce((s,x)=>s+x.pct,0)/P.length);
   const ts=P.reduce((s,x)=>s+x.t,0),ds=P.reduce((s,x)=>s+x.d,0);
+  document.getElementById("totalHdr").textContent=P.length+" proyectos";
   document.getElementById("kpis").innerHTML=[
     {l:"Total proyectos",v:P.length,c:"#378ADD"},
     {l:"Avance promedio",v:avg+"%",c:col(avg)},
@@ -223,12 +299,11 @@ function render(){
       const fp=ft>0?Math.round(fd/ft*100):0;
       return`<div class="phrow"><span class="phname">${fn}</span><div class="phbg"><div class="phfill" style="width:${fp}%;background:${col(fp)};"></div></div><span class="phpct" style="color:${col(fp)}">${fp}%</span><span class="phct">${fd}/${ft}</span></div>`;
     }).join("");
-    // Verificar si está despachado (Logística done==total y total>0)
-    const logPhase = x.ph.find(ph=>ph[0]==="Logística");
-    const despachado = logPhase && logPhase[1]>0 && logPhase[1]===logPhase[2];
-    const dbadge = despachado
-      ? `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">✅ Despachado</span>`
-      : `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">🚚 Pend. despacho</span>`;
+    const logPhase=x.ph.find(ph=>ph[0]==="Logística");
+    const despachado=logPhase&&logPhase[1]>0&&logPhase[1]===logPhase[2];
+    const dbadge=despachado
+      ?`<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">✅ Despachado</span>`
+      :`<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">🚚 Pend. despacho</span>`;
     return`<div class="pcard" id="c${i}" onclick="toggle(${i})">
       <div class="ptop">
         <span class="pname" title="${x.n}">${x.n}</span>
@@ -245,11 +320,10 @@ function render(){
       <div class="pdet" id="d${i}">${phs}</div>
     </div>`;
   }).join("")||`<div style="text-align:center;padding:40px;color:#6B7280">Sin resultados</div>`;
-  document.getElementById("footer").textContent=`${data.length} proyectos · Actualizado 18/05/2026 · Nivel 1 sin cabeceras`;
+  document.getElementById("footer").textContent=`${data.length} proyectos · Actualizado 18/05/2026 · Fuente: Asana Consolidado Zitron`;
 }
 function setF(f,btn){
-  filt=f;
-  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
+  filt=f;document.querySelectorAll(".pill").forEach(b=>b.classList.remove("act"));
   btn.classList.add("act");render();
 }
 render();
