@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ofertas Zitron 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --hdr:#0D1B2E;--bg:#EFF3F8;--card:#FFFFFF;--border:#DDE4EE;
+  --blu:#1D4ED8;--blu2:#3B82F6;--grn:#059669;--red:#DC2626;--amb:#D97706;--pur:#6D28D9;
+  --grn2:#10B981;--red2:#EF4444;
+  --text:#0F172A;--sub:#64748B;--lite:#94A3B8;--xlit:#CBD5E1;
+  --blu-l:#EFF6FF;--grn-l:#ECFDF5;--red-l:#FEF2F2;--amb-l:#FFFBEB;--pur-l:#F5F3FF;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
+
+/* LOGIN */
+#login{display:flex;min-height:100vh;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,#060E1C 0%,#0D1B2E 55%,#1A3A5C 100%);
+  position:fixed;inset:0;z-index:9999;}
+.lbox{background:#fff;border-radius:20px;padding:48px 44px;width:370px;text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.45);}
+.llogo{width:68px;height:68px;background:var(--hdr);border-radius:16px;display:flex;
+  align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+  font-size:28px;font-weight:600;color:#fff;margin:0 auto 18px;}
+.ltitle{font-size:20px;font-weight:700;color:var(--hdr);margin-bottom:4px;}
+.lsub{font-size:12px;color:var(--sub);margin-bottom:26px;}
+.lbox input{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;
+  font-size:20px;text-align:center;letter-spacing:7px;margin-bottom:12px;outline:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .2s;}
+.lbox input:focus{border-color:var(--blu);}
+.lbox button{width:100%;padding:12px;background:var(--hdr);color:#fff;border:none;
+  border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.lbox button:hover{opacity:.85;}
+#lerr{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+
+/* HEADER */
+.hdr{background:var(--hdr);color:#fff;height:58px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 10px rgba(0,0,0,.35);}
+.hl{display:flex;align-items:center;gap:12px;}
+.hlogo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:18px;
+  background:rgba(255,255,255,.12);padding:5px 11px;border-radius:8px;}
+.htitle{font-size:14px;font-weight:600;}
+.hsub{font-size:10px;opacity:.5;margin-top:1px;}
+.hr{font-size:11px;opacity:.55;text-align:right;line-height:1.8;}
+.hr b{color:#6EE7B7;}
+
+/* LAYOUT */
+.main{max-width:1280px;margin:0 auto;padding:22px 18px 48px;}
+
+/* KPI STRIP */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--blu));}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.kpi-val{font-size:28px;font-weight:700;color:var(--acc,var(--blu));line-height:1;}
+.kpi-sub{font-size:10px;color:var(--lite);margin-top:5px;}
+
+/* SECTION HEADERS */
+.sec{font-size:12px;font-weight:700;color:var(--hdr);margin:24px 0 12px;
+  display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.05em;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.g13{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-bottom:12px;}
+.g31{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:800px){.g2,.g3,.g13,.g31{grid-template-columns:1fr;}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;box-shadow:var(--shadow);}
+.ctitle{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:14px;}
+
+/* TABLE — resumen día/semana al estilo Excel */
+.xtbl{width:100%;border-collapse:collapse;font-size:12px;}
+.xtbl thead th{background:#F1F5FB;padding:7px 10px;text-align:center;
+  font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
+  letter-spacing:.04em;border:1px solid var(--border);}
+.xtbl thead th:first-child{text-align:left;}
+.xtbl tbody td{padding:6px 10px;border:1px solid #EEF2F7;text-align:center;vertical-align:middle;}
+.xtbl tbody td:first-child{text-align:left;color:var(--sub);font-size:11px;}
+.xtbl tbody td:nth-child(2){text-align:left;color:var(--text);}
+.xtbl tfoot td{padding:7px 10px;border:1px solid var(--border);text-align:center;
+  font-weight:700;background:#F8FAFC;font-size:12px;}
+.xtbl tfoot td:first-child{text-align:left;}
+.num-pos{color:var(--grn);font-weight:700;}
+.num-neg{color:var(--red);font-weight:700;}
+.num-neu{color:var(--sub);}
+.cell-ent{color:var(--blu);font-weight:600;}
+.cell-sal{color:var(--grn);font-weight:600;}
+.week-badge{display:inline-block;background:#EFF6FF;color:var(--blu);font-size:10px;
+  font-weight:600;padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+
+/* CHART */
+.chart-box{position:relative;}
+.chart-box canvas{max-height:200px;}
+
+/* BARRA PAIS */
+.pbar{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.pbar-lbl{font-size:12px;min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pbar-track{flex:1;height:16px;background:#EEF2F7;border-radius:4px;overflow:hidden;position:relative;}
+.pbar-total{height:100%;border-radius:4px;background:var(--blu2);opacity:.3;position:absolute;top:0;left:0;}
+.pbar-env{height:100%;border-radius:4px;background:var(--grn);position:absolute;top:0;left:0;}
+.pbar-nums{font-size:11px;color:var(--sub);white-space:nowrap;min-width:55px;text-align:right;}
+
+/* DETALLE OFERTAS */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.filters input{padding:7px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:12px;outline:none;width:220px;background:#fff;}
+.filters input:focus{border-color:var(--blu);}
+.fpill{padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);
+  background:#fff;font-size:11px;cursor:pointer;color:var(--sub);font-weight:500;}
+.fpill.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
+
+.dtbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.dtbl thead th{background:#F1F5FB;padding:8px 10px;text-align:left;font-size:10px;
+  font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;
+  border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:58px;z-index:5;}
+.dtbl tbody tr{border-bottom:1px solid #F1F5F9;}
+.dtbl tbody tr:hover{background:#F8FAFC;}
+.dtbl tbody td{padding:7px 10px;vertical-align:middle;}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.b-env{background:var(--grn-l);color:#065F46;}
+.b-pend{background:var(--red-l);color:#991B1B;}
+.nro{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--pur);}
+.tdname{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tdname a{color:var(--blu);text-decoration:none;}
+.tdname a:hover{text-decoration:underline;}
+.tfoot{font-size:11px;color:var(--sub);padding:8px 2px;}
+
+/* Toggle semana/dia */
+.tgl-wrap{display:flex;gap:5px;margin-bottom:12px;}
+.tgl{padding:4px 12px;border-radius:7px;border:1px solid var(--border);
+  font-size:11px;cursor:pointer;color:var(--sub);background:#fff;}
+.tgl.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="llogo">Z</div>
+    <div class="ltitle">Ofertas Zitron 2026</div>
+    <div class="lsub">Dashboard comercial · Acceso privado</div>
+    <input id="pwi" type="password" placeholder="••••••••" maxlength="40" onkeydown="if(event.key==='Enter')chk()">
+    <button onclick="chk()">Ingresar</button>
+    <div id="lerr"></div>
+  </div>
+</div>
+<script>
+function chk(){var v=document.getElementById('pwi').value;
+  if(v==='zitron2026!'){document.getElementById('login').style.display='none';sessionStorage.setItem('zpw','ok');}
+  else{document.getElementById('lerr').textContent='Contraseña incorrecta';document.getElementById('pwi').value='';}}
+if(sessionStorage.getItem('zpw')==='ok')document.addEventListener('DOMContentLoaded',function(){document.getElementById('login').style.display='none';});
+window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok')document.getElementById('pwi').focus();});
+</script>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hl">
+    <div class="hlogo">Z</div>
+    <div><div class="htitle">Ofertas Zitron 2026</div><div class="hsub">Proyecto Asana · Consolidado comercial</div></div>
+  </div>
+  <div class="hr"><div>Actualizado: 20/05/2026</div><div><b id="hbadge">59 ofertas</b></div></div>
+</header>
+
+<main class="main">
+
+<!-- KPIs -->
+<div class="kpis">
+  <div class="kpi" style="--acc:#1D4ED8"><div class="kpi-lbl">Total ofertas</div><div class="kpi-val" id="k-total">59</div><div class="kpi-sub">secciones en Asana</div></div>
+  <div class="kpi" style="--acc:#059669"><div class="kpi-lbl">Enviadas</div><div class="kpi-val" id="k-env">24</div><div class="kpi-sub">consolidado ✓</div></div>
+  <div class="kpi" style="--acc:#DC2626"><div class="kpi-lbl">Pendientes</div><div class="kpi-val" id="k-pend">35</div><div class="kpi-sub">sin enviar</div></div>
+  <div class="kpi" style="--acc:#D97706"><div class="kpi-lbl">% Avance global</div><div class="kpi-val" id="k-tasa">41%</div><div class="kpi-sub">enviadas / total</div></div>
+  <div class="kpi" style="--acc:#6D28D9"><div class="kpi-lbl">Países activos</div><div class="kpi-val">9</div><div class="kpi-sub">con ofertas 2026</div></div>
+</div>
+
+<!-- RESUMEN MOVIMIENTOS -->
+<div class="sec">📊 Resumen oferta — movimientos</div>
+<div class="g2">
+
+  <!-- TABLA DÍA / SEMANA -->
+  <div class="card">
+    <div class="ctitle">Movimientos por período</div>
+    <div class="tgl-wrap">
+      <button class="tgl act" onclick="setTbl('dia',this)">Por día</button>
+      <button class="tgl" onclick="setTbl('sem',this)">Por semana</button>
+    </div>
+    <div id="tbl-movimientos"></div>
+  </div>
+
+  <!-- RESUMEN POR SEMANA (fijo, tipo Excel) -->
+  <div class="card">
+    <div class="ctitle">Resumen por semana</div>
+    <div id="tbl-semanas"></div>
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+      <div class="ctitle">Ofertas por país</div>
+      <div id="pais-bars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GRÁFICOS -->
+<div class="sec">📈 Gráficos de flujo</div>
+<div class="g3">
+  <div class="card chart-box">
+    <div class="ctitle">Entradas y salidas por día</div>
+    <canvas id="ch-dia"></canvas>
+  </div>
+  <div class="card chart-box">
+    <div class="ctitle">Entradas y salidas por semana</div>
+    <canvas id="ch-sem"></canvas>
+  </div>
+  <div class="card chart-box">
+    <div class="ctitle">Acumulado entradas vs salidas</div>
+    <canvas id="ch-cum"></canvas>
+  </div>
+</div>
+
+<!-- DETALLE OFERTAS -->
+<div class="sec">📋 Detalle de ofertas</div>
+<div class="filters">
+  <input id="srch" type="text" placeholder="Buscar oferta, cliente, país...">
+  <button class="fpill act" onclick="setF('all',this)">Todas</button>
+  <button class="fpill" onclick="setF('env',this)">✓ Enviadas</button>
+  <button class="fpill" onclick="setF('pend',this)">● Pendientes</button>
+  <button class="fpill" onclick="setF('cl',this)">🇨🇱 Chile</button>
+  <button class="fpill" onclick="setF('pe',this)">🇵🇪 Perú</button>
+  <button class="fpill" onclick="setF('mx',this)">🇲🇽 México</button>
+  <button class="fpill" onclick="setF('ar',this)">🇦🇷 Argentina</button>
+  <button class="fpill" onclick="setF('co',this)">🇨🇴 Colombia</button>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="overflow-x:auto;max-height:520px;overflow-y:auto;">
+    <table class="dtbl">
+      <thead>
+        <tr>
+          <th>N° Oferta</th>
+          <th>Descripción</th>
+          <th>País</th>
+          <th>Cliente</th>
+          <th>Estado</th>
+          <th>Sub ✓</th>
+          <th>F. Creación</th>
+          <th>F. Salida</th>
+          <th>Responsable</th>
+        </tr>
+      </thead>
+      <tbody id="dtbl-body"></tbody>
+    </table>
+  </div>
+</div>
+<div class="tfoot" id="dtbl-foot"></div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+var OFFERS=[
+{nro:"25PE0013",sec:"25PE0013 - Servicio de Alquiler de 05 Ventiladores adicionales",pais:"Peru",cli:"PAN AMERICAN SILVER",av:0.0,ent:"2026-05-18",env:true,sal:"2026-05-18",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214913426305444",assignee:""},
+{nro:"26CR0001",sec:"26CR0001 - mina bellavista",pais:"Costa rica",cli:"MINA BELLAVISTA",av:0.0,ent:"2026-05-18",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214913549337088",assignee:""},
+{nro:"26CL0043",sec:"26CL0043 -  Ventilacion definitiva AVO 2",pais:"Chile",cli:"avo2",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214780521668803",assignee:""},
+{nro:"26MX0028",sec:"26MX0028 - XCARET  Tunel de viento",pais:"Mexico",cli:"XCARET",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214780810332064",assignee:""},
+{nro:"26MX0036",sec:"26MX0036 - Oferta nueva Torex",pais:"Mexico",cli:"Torex",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781205722401",assignee:"DAVID BLAZQUEZ"},
+{nro:"26CO0016",sec:"26CO0016 - Recambios álabes ventiladores principales",pais:"Colombia",cli:"ARIS MARMATO",av:0.0,ent:"2026-05-13",env:true,sal:"2026-05-18",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781122284833",assignee:""},
+{nro:"26CO0017",sec:"26CO0017  - Secundarios Marmato",pais:"Colombia",cli:"ARIS MARMATO",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781208969106",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0058",sec:"26CL0058 - Cotización Ventilador PDES",pais:"Chile",cli:"NCL",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781175641240",assignee:""},
+{nro:"26CL0061",sec:"26CL0061 - COTIZACION VENTILADORES",pais:"Chile",cli:"DMC",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781395387195",assignee:""},
+{nro:"26PE0014",sec:"26PE0014 - 7 VENTILADORES ZITRON TALLER AEI",pais:"Peru",cli:"AEI",av:0.0,ent:"2026-05-13",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781459785041",assignee:""},
+{nro:"26CL0046",sec:"26CL0046 -  GARANTIA EQUIPOS ZVN1-10-55",pais:"Chile",cli:"CANDELARIA",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749560651096",assignee:""},
+{nro:"26CL0053",sec:"26CL0053 - (Subtramo 2A y 2B) Línea 9 - CRTG",pais:"Chile",cli:"CRTG",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214739965237812",assignee:""},
+{nro:"25CL0054",sec:"25CL0054 - Visita Minera Arqueros",pais:"Chile",cli:"Minera Arqueros",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214741836406092",assignee:""},
+{nro:"25CL0054",sec:"26CL0057 - Solicita Cotización de Herramientas VDF",pais:"Chile",cli:"Codelco",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749017926618",assignee:""},
+{nro:"26CO0015",sec:"26CO0015 - Cotización ventiladores ZVN 1-6-11 y 25 EMS",pais:"Colombia",cli:"EMS",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214746222096654",assignee:""},
+{nro:"26AR0004",sec:"26AR0004 - Licitación Línea F Subte Buenos Aires - Roggio/Ghella",pais:"Argentina",cli:"Línea F Subte Buenos Aires - Roggio/Ghella",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214746269956092",assignee:""},
+{nro:"26PE0011",sec:"26PE0011 - Revisión Oferta Técnica y económica  ACCIONA",pais:"Peru",cli:"ACCIONA",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749309523658",assignee:"Carlos Pérez"},
+{nro:"26CL0051",sec:"26CL0051 - Ventilador Zitron dañado",pais:"Chile",cli:"DMC",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749561538950",assignee:""},
+{nro:"26MX0042",sec:"26MX0042 - Proyecto de Torex Reguladores",pais:"Mexico",cli:"TOREX GOLD",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214750004949607",assignee:""},
+{nro:"26CL0025",sec:"26CL0025 -  Candelaria por Ductería",pais:"Chile",cli:"CANDELARIA",av:0.0,ent:"2026-05-12",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214752359624680",assignee:"DAVID BLAZQUEZ"},
+{nro:"26CL0015",sec:"26CL0015 - LICITACION PUBLICA INTERNACIONAL SUMINISTRO Y MANTENIMIENTO",pais:"Chile",cli:"Metro Santiago linea 9",av:0.0,ent:"2026-05-08",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628387415927",assignee:""},
+{nro:"26PE0017",sec:"26PE0017 - COTIZACION VENTILADORES  - ARCATA",pais:"Peru",cli:"SIERRA MINERA CARAZ S.A.C",av:1.0,ent:"2026-05-08",env:true,sal:"2026-05-08",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628697359418",assignee:""},
+{nro:"26MX0038",sec:"26MX0038 - Cotizacion de Rodete Zitron: Concheño",pais:"Mexico",cli:"minera frisco",av:0.0,ent:"2026-05-08",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628684237369",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0056",sec:"26CL0056 - Reparación ventiladores Van 110 mas otro",pais:"Chile",cli:"PAN AMERICAN SILVER",av:0.0,ent:"2026-05-08",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628896631461",assignee:""},
+{nro:"26CO0013",sec:"26CO0013 - Propuesta construcción silenciadores",pais:"Colombia",cli:"aris mining",av:0.0,ent:"2026-05-08",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628713404935",assignee:"Carlos Pérez"},
+{nro:"26mx0037",sec:"26MX0037 - 13521206 VENTILADOR 200HP",pais:"Mexico",cli:"Minera Fricso",av:1.0,ent:"2026-05-07",env:true,sal:"2026-05-07",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214596972085525",assignee:"Carlos Pérez"},
+{nro:"26CL0054",sec:"25cl0054-Visita Minera Arqueros",pais:"Chile",cli:"Minera Arqueros",av:0.0,ent:"2026-05-06",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565160385301",assignee:"DAVID BLAZQUEZ"},
+{nro:"26AR0003",sec:"26AR0003- SOLICITUD DE COTIZACION // VENTILADORES",pais:"Argentina",cli:"Minera Gualcamayo",av:1.0,ent:"2026-05-06",env:true,sal:"2026-05-12",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565171056375",assignee:""},
+{nro:"26CL0055",sec:"26CL0055  - Se requiere cotización del servicio // RV: REQ-111E // Se ",pais:"Chile",cli:"DCH",av:10.0,ent:"2026-05-06",env:true,sal:"2026-05-08",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565462428703",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26PE0019",sec:"26PE0019 -  Metro de Lima PV4-7 (ramal IV)",pais:"Peru",cli:"Metro de Lima PV4-7 (ramal IV)",av:0.0,ent:"2026-05-04",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214506707879901",assignee:"DAVID BLAZQUEZ"},
+{nro:"25PE0036",sec:"25PE0036 -  Ventilador Eléctrico- VE-294",pais:"Peru",cli:"",av:0.0,ent:"2026-05-04",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214508468957583",assignee:""},
+{nro:"26CL0037",sec:"26CL0037 - atacama kozan",pais:"Chile",cli:"ATACAMA KOZAN",av:1.0,ent:"2026-05-04",env:true,sal:"2026-05-04",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214494787364061",assignee:""},
+{nro:"26CL0022",sec:"26CL0022 - COTIZACION RUTA 57 SANTIAGO - COLINA  - LOS ANDES",pais:"Chile",cli:"SACYR",av:0.0,ent:"2026-05-04",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214498079367742",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0048",sec:"26CL0048 - TÚNEL LO RUIZ",pais:"Chile",cli:"INDRA",av:0.0,ent:"2026-05-04",env:true,sal:"2026-05-14",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214497323636894",assignee:""},
+{nro:"26CL0011",sec:"26CL0011-ENVIO DE OC184347 - GRUPO MINERO LAS CENIZAS",pais:"Chile",cli:"LAS CENIZAS",av:0.0,ent:"2026-05-04",env:true,sal:"2026-05-18",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214501194276694",assignee:""},
+{nro:"26PE0013",sec:"26PE0013 -  COTIZAR VENTILADOR MINERO - GLORE PERU - UM YARUCHAGUA",pais:"Peru",cli:"Glore Peru",av:0.0,ent:"2026-04-29",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214398046352814",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26PE0018",sec:"26PE0018 -  Orden de Compra 4510085177",pais:"Peru",cli:"Alpayana",av:1.0,ent:"2026-04-29",env:true,sal:"2026-04-29",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214398492075459",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0005",sec:"26CL0005  -MOTOR INDUC 630kW 400V 111A 994rpm WEG",pais:"Chile",cli:"",av:1.0,ent:"2026-04-29",env:true,sal:"2026-05-04",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214395292684272",assignee:""},
+{nro:"26CL0028",sec:"26CL0028  -Oferta Pendiente Reparación AVO2",pais:"Chile",cli:"",av:1.0,ent:"2026-04-29",env:true,sal:"2026-05-04",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396036668594",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0052",sec:"26CL0052  -EQUIPOS DE VENTILACION INDUSTRIAL",pais:"Chile",cli:"Codelco",av:0.0,ent:"2026-04-29",env:true,sal:"2026-05-18",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396714263901",assignee:""},
+{nro:"26CL0049",sec:"26CL0049  -Dimensiones Ventilación Punta del COBRE",pais:"Chile",cli:"Pu cobre",av:0.0,ent:"2026-04-29",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396952540026",assignee:"DAVID BLAZQUEZ"},
+{nro:"26CL0044",sec:"26CL0044 -Ventilación Tren Santiago-Batuco",pais:"Chile",cli:"AED",av:0.0,ent:"2026-04-29",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214397240424391",assignee:"DAVID BLAZQUEZ"},
+{nro:"26CL0038",sec:"26CL0038 -LIC VENTILADORES AUXILIARES DE INYECCIÓN Y EXTRACCIÓN, DCH.",pais:"Chile",cli:"Codelco",av:0.0,ent:"2026-04-29",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214397813984470",assignee:""},
+{nro:"25CL2554",sec:"25CL2554 - Minera Chipana",pais:"",cli:"",av:1.0,ent:"2026-04-28",env:true,sal:"2026-05-12",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214372713261021",assignee:"DAVID BLAZQUEZ"},
+{nro:"26AR0002",sec:"26AR0002 - Estudio Lunahuasi",pais:"Argentina",cli:"Lunahuasi",av:1.0,ent:"2026-04-28",env:true,sal:"2026-04-28",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214386129953526",assignee:""},
+{nro:"26MX0027",sec:"26MX0027 - AGNICO EAGLE",pais:"Mexico",cli:"Arian Silver",av:1.0,ent:"2026-04-28",env:true,sal:"2026-05-06",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214372714902240",assignee:""},
+{nro:"26CL0047",sec:"26CL0047 - COTIZACION DE VENTILADORES AXIALES",pais:"Chile",cli:"",av:1.0,ent:"2026-04-28",env:true,sal:"2026-05-12",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214358215800341",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26PE0010",sec:"26PE0010 -  VENTILADORES AXIALES 10K, 20K, 40K, 50K y 100K CFM / 26PE0",pais:"Peru",cli:"PODEROSA",av:1.0,ent:"2026-04-27",env:true,sal:"2026-05-18",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971192",assignee:""},
+{nro:"2370-24-PE",sec:"2370-24-PE24-PE - Suministro ventiladores y manga - Túnel de la Nueva ",pais:"Peru",cli:"OSSA",av:0.0,ent:"2026-04-27",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971207",assignee:"Carlos Pérez"},
+{nro:"2370-24-PE",sec:"2370-24-PE - OFERTA EN PERÚ (NCC)",pais:"Peru",cli:"Acciona",av:0.0,ent:"2026-04-27",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971237",assignee:"Carlos Pérez"},
+{nro:"26NI004",sec:"26NI004 - Solicitud oferta - Partes de Repuestos Zitron",pais:"Nicaragua",cli:"TRITON MINERA",av:1.0,ent:"2026-04-27",env:true,sal:"2026-05-12",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971253",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26PE0001",sec:"26PE0001 - BROCAL CODOS",pais:"Peru",cli:"BROCAL",av:1.0,ent:"2026-04-27",env:true,sal:"2026-05-12",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971269",assignee:"DAVID BLAZQUEZ"},
+{nro:"26CL0022",sec:"26CL0022 -Oferta Ventiladores Jet Fan",pais:"Chile",cli:"IDOM",av:0.0,ent:"2026-04-27",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971286",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26MX0031",sec:"26MX0031 -  Nuevo Proyecto Arian Silver - Guanajuatillo",pais:"Mexico",cli:"Arian Silver",av:1.0,ent:"2026-04-27",env:true,sal:"2026-04-30",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971333",assignee:"DAVID BLAZQUEZ"},
+{nro:"26EC0001",sec:"26EC0001 -  RL1338-OfertaVentiladores",pais:"Ecuador",cli:"Metro de Quito L1",av:0.0,ent:"2026-04-27",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971319",assignee:"Carlos Pérez"},
+{nro:"26CL0036",sec:"26CL0036 - PWP-413 Ventiladores P500 y P4600",pais:"Chile",cli:"CODELCO",av:1.0,ent:"2026-04-27",env:true,sal:"2026-04-29",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971347",assignee:"Francisca Alejandra Ramos Aravales"},
+{nro:"26CL0046",sec:"26CL0046 -  GARANTIA EQUIPOS",pais:"Chile",cli:"MAQSA",av:1.0,ent:"2026-04-27",env:true,sal:"2026-04-29",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971360",assignee:"Carlos Pérez"},
+{nro:"26CL0017",sec:"26CL0017 VDF DR 1272 /",pais:"Chile",cli:"DMC",av:1.0,ent:"2026-04-27",env:true,sal:"2026-05-04",url:"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971373",assignee:"DAVID BLAZQUEZ"},
+{nro:"",sec:"Sin nombre",pais:"",cli:"",av:0.0,ent:"2026-04-27",env:false,sal:"",url:"https://app.asana.com/1/402967058777498/project/1214299938971075",assignee:""}
+];
+var DAY_ROWS=[{"date": "2026-04-27", "label": "27-04-2026", "dow": "Lunes", "ent": 12, "sal": 0, "dif": 12, "cum_ent": 12, "cum_sal": 0, "week": 18}, {"date": "2026-04-28", "label": "28-04-2026", "dow": "Martes", "ent": 4, "sal": 1, "dif": 3, "cum_ent": 16, "cum_sal": 1, "week": 18}, {"date": "2026-04-29", "label": "29-04-2026", "dow": "Miércoles", "ent": 8, "sal": 3, "dif": 5, "cum_ent": 24, "cum_sal": 4, "week": 18}, {"date": "2026-04-30", "label": "30-04-2026", "dow": "Jueves", "ent": 0, "sal": 1, "dif": -1, "cum_ent": 24, "cum_sal": 5, "week": 18}, {"date": "2026-05-04", "label": "04-05-2026", "dow": "Lunes", "ent": 6, "sal": 4, "dif": 2, "cum_ent": 30, "cum_sal": 9, "week": 19}, {"date": "2026-05-06", "label": "06-05-2026", "dow": "Miércoles", "ent": 3, "sal": 1, "dif": 2, "cum_ent": 33, "cum_sal": 10, "week": 19}, {"date": "2026-05-07", "label": "07-05-2026", "dow": "Jueves", "ent": 1, "sal": 1, "dif": 0, "cum_ent": 34, "cum_sal": 11, "week": 19}, {"date": "2026-05-08", "label": "08-05-2026", "dow": "Viernes", "ent": 5, "sal": 2, "dif": 3, "cum_ent": 39, "cum_sal": 13, "week": 19}, {"date": "2026-05-12", "label": "12-05-2026", "dow": "Martes", "ent": 10, "sal": 5, "dif": 5, "cum_ent": 49, "cum_sal": 18, "week": 20}, {"date": "2026-05-13", "label": "13-05-2026", "dow": "Miércoles", "ent": 8, "sal": 0, "dif": 8, "cum_ent": 57, "cum_sal": 18, "week": 20}, {"date": "2026-05-14", "label": "14-05-2026", "dow": "Jueves", "ent": 0, "sal": 1, "dif": -1, "cum_ent": 57, "cum_sal": 19, "week": 20}, {"date": "2026-05-18", "label": "18-05-2026", "dow": "Lunes", "ent": 2, "sal": 5, "dif": -3, "cum_ent": 59, "cum_sal": 24, "week": 21}];
+var WEEK_ROWS=[{"week": 18, "label": "Semana 18", "ent": 24, "sal": 5, "dif": 19}, {"week": 19, "label": "Semana 19", "ent": 15, "sal": 8, "dif": 7}, {"week": 20, "label": "Semana 20", "ent": 18, "sal": 6, "dif": 12}, {"week": 21, "label": "Semana 21", "ent": 2, "sal": 5, "dif": -3}];
+var PAIS_ROWS=[["Chile", {"total": 28, "env": 11}], ["Peru", {"total": 12, "env": 5}], ["Mexico", {"total": 7, "env": 3}], ["Colombia", {"total": 4, "env": 1}], ["Argentina", {"total": 3, "env": 2}], ["Sin país", {"total": 2, "env": 1}], ["Costa rica", {"total": 1, "env": 0}], ["Nicaragua", {"total": 1, "env": 1}], ["Ecuador", {"total": 1, "env": 0}]];
+/* ── helpers ── */
+var FLAGS={Chile:'🇨🇱',Mexico:'🇲🇽',Peru:'🇵🇪',Colombia:'🇨🇴',Nicaragua:'🇳🇮',
+  Argentina:'🇦🇷',Ecuador:'🇪🇨','Costa rica':'🇨🇷','Sin país':'🌍'};
+function fd(s){if(!s||s==='—')return'—';var d=new Date(s+'T00:00:00');
+  return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit'});}
+function sn(n){var p=(n||'').split(' ');return p.length<=1?n:p[0][0]+'. '+p.slice(1).join(' ');}
+function cls(v){return v>0?'num-pos':v<0?'num-neg':'num-neu';}
+function sign(v){return v>0?'+'+v:v;}
+
+/* ── Tabla movimientos día/semana ── */
+var TBL_VIEW='dia';
+function setTbl(v,btn){TBL_VIEW=v;document.querySelectorAll('.tgl').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');renderMovTbl();}
+
+function renderMovTbl(){
+  var rows = TBL_VIEW==='dia' ? DAY_ROWS : WEEK_ROWS;
+  var isDia = TBL_VIEW==='dia';
+  var totE=0,totS=0;
+  rows.forEach(function(r){totE+=r.ent;totS+=r.sal;});
+
+  var thead = isDia
+    ? '<thead><tr><th>Fecha</th><th>Día</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif I vs S</th><th style="text-align:center">Semana</th></tr></thead>'
+    : '<thead><tr><th>Semana</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif I vs S</th></tr></thead>';
+
+  var tbody = rows.map(function(r){
+    var dif = r.ent - r.sal;
+    if(isDia){
+      return '<tr>'
+        +'<td>'+r.label+'</td>'
+        +'<td>'+r.dow+'</td>'
+        +'<td class="cell-ent">'+r.ent+'</td>'
+        +'<td class="cell-sal">'+r.sal+'</td>'
+        +'<td class="'+cls(dif)+'">'+sign(dif)+'</td>'
+        +'<td><span class="week-badge">'+r.week+'</span></td>'
+        +'</tr>';
+    } else {
+      var dif2=r.ent-r.sal;
+      return '<tr>'
+        +'<td style="font-weight:600">'+r.label+'</td>'
+        +'<td class="cell-ent">'+r.ent+'</td>'
+        +'<td class="cell-sal">'+r.sal+'</td>'
+        +'<td class="'+cls(dif2)+'">'+sign(dif2)+'</td>'
+        +'</tr>';
+    }
+  }).join('');
+
+  var tfoot = isDia
+    ? '<tfoot><tr><td colspan="2" style="text-align:left;font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td><td></td></tr></tfoot>'
+    : '<tfoot><tr><td style="font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td></tr></tfoot>';
+
+  document.getElementById('tbl-movimientos').innerHTML='<table class="xtbl">'+thead+'<tbody>'+tbody+'</tbody>'+tfoot+'</table>';
+}
+
+/* ── Tabla resumen semanas ── */
+function renderSemTbl(){
+  var totE=0,totS=0;
+  WEEK_ROWS.forEach(function(r){totE+=r.ent;totS+=r.sal;});
+  var rows=WEEK_ROWS.map(function(r){
+    var dif=r.ent-r.sal;
+    return '<tr>'
+      +'<td style="font-weight:600">'+r.label+'</td>'
+      +'<td class="cell-ent">'+r.ent+'</td>'
+      +'<td class="cell-sal">'+r.sal+'</td>'
+      +'<td class="'+cls(dif)+'">'+sign(dif)+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('tbl-semanas').innerHTML=
+    '<table class="xtbl"><thead><tr><th>Semana</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif I vs S</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'<tfoot><tr><td style="font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td></tr></tfoot>'
+    +'</table>';
+}
+
+/* ── Barras país ── */
+function renderPais(){
+  var max=Math.max.apply(null,PAIS_ROWS.map(function(r){return r[1].total;}));
+  var html=PAIS_ROWS.map(function(r){
+    var p=r[0],v=r[1];
+    var tp=Math.round(v.total/max*100);
+    var ep=Math.round(v.env/v.total*100);
+    return '<div class="pbar">'
+      +'<span class="pbar-lbl">'+(FLAGS[p]||'🌍')+' '+p+'</span>'
+      +'<div class="pbar-track">'
+      +'<div class="pbar-total" style="width:'+tp+'%"></div>'
+      +'<div class="pbar-env" style="width:'+Math.round(v.env/max*100)+'%"></div>'
+      +'</div>'
+      +'<span class="pbar-nums" style="color:var(--blu2)">'+v.total+' / <span style="color:var(--grn)">'+v.env+'✓</span></span>'
+      +'</div>';
+  }).join('');
+  document.getElementById('pais-bars').innerHTML=html
+    +'<div style="font-size:10px;color:var(--lite);margin-top:6px">Gris=total · Verde=enviadas</div>';
+}
+
+/* ── Chart.js helpers ── */
+var CH_DEFAULTS={responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},
+  scales:{x:{ticks:{font:{size:10}},grid:{display:false}},
+          y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'#F1F5F9'}}}};
+
+function buildCharts(){
+  // Día
+  var dias=DAY_ROWS.map(function(r){return r.label;});
+  var dE=DAY_ROWS.map(function(r){return r.ent;});
+  var dS=DAY_ROWS.map(function(r){return r.sal;});
+  new Chart(document.getElementById('ch-dia').getContext('2d'),{
+    type:'bar',
+    data:{labels:dias,datasets:[
+      {label:'Entradas',data:dE,backgroundColor:'rgba(29,78,216,.75)',borderRadius:4},
+      {label:'Salidas',data:dS,backgroundColor:'rgba(5,150,105,.75)',borderRadius:4}
+    ]},options:Object.assign({},CH_DEFAULTS)
+  });
+
+  // Semana
+  var sems=WEEK_ROWS.map(function(r){return r.label;});
+  var sE=WEEK_ROWS.map(function(r){return r.ent;});
+  var sS=WEEK_ROWS.map(function(r){return r.sal;});
+  new Chart(document.getElementById('ch-sem').getContext('2d'),{
+    type:'bar',
+    data:{labels:sems,datasets:[
+      {label:'Entradas',data:sE,backgroundColor:'rgba(29,78,216,.75)',borderRadius:5},
+      {label:'Salidas',data:sS,backgroundColor:'rgba(5,150,105,.75)',borderRadius:5}
+    ]},options:Object.assign({},CH_DEFAULTS)
+  });
+
+  // Acumulado
+  var cumE=[],cumS=[],ce=0,cs=0;
+  DAY_ROWS.forEach(function(r){ce+=r.ent;cs+=r.sal;cumE.push(ce);cumS.push(cs);});
+  new Chart(document.getElementById('ch-cum').getContext('2d'),{
+    type:'line',
+    data:{labels:dias,datasets:[
+      {label:'Acum. entradas',data:cumE,borderColor:'#1D4ED8',backgroundColor:'rgba(29,78,216,.08)',
+        borderWidth:2,pointRadius:4,fill:true,tension:.3},
+      {label:'Acum. salidas',data:cumS,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',
+        borderWidth:2,pointRadius:4,fill:true,tension:.3}
+    ]},options:Object.assign({},CH_DEFAULTS)
+  });
+}
+
+/* ── Tabla detalle ofertas ── */
+var FILT='all',SEARCH='';
+function setF(f,btn){FILT=f;document.querySelectorAll('.fpill').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');renderDtbl();}
+
+function filtered(){
+  return OFFERS.filter(function(o){
+    if(SEARCH){var q=SEARCH.toLowerCase();if((o.sec+o.nro+o.cli+o.pais).toLowerCase().indexOf(q)<0)return false;}
+    if(FILT==='env')return o.env;
+    if(FILT==='pend')return !o.env;
+    if(FILT==='cl')return o.pais==='Chile';
+    if(FILT==='pe')return o.pais==='Peru';
+    if(FILT==='mx')return o.pais==='Mexico';
+    if(FILT==='ar')return o.pais==='Argentina';
+    if(FILT==='co')return o.pais==='Colombia';
+    return true;
+  }).sort(function(a,b){
+    if(a.env!==b.env)return a.env?1:-1;
+    return (b.ent||'').localeCompare(a.ent||'');
+  });
+}
+
+function renderDtbl(){
+  var data=filtered();
+  var total=OFFERS.length,env=OFFERS.filter(function(o){return o.env;}).length;
+  document.getElementById('k-total').textContent=total;
+  document.getElementById('k-env').textContent=env;
+  document.getElementById('k-pend').textContent=total-env;
+  document.getElementById('k-tasa').textContent=Math.round(env/total*100)+'%';
+  document.getElementById('hbadge').textContent=total+' ofertas';
+
+  document.getElementById('dtbl-body').innerHTML=data.map(function(o){
+    var nro=o.nro||o.sec.split('-')[0].trim();
+    var desc=o.sec.length>55?o.sec.slice(0,55)+'…':o.sec;
+    var flag=FLAGS[o.pais]||'🌍';
+    var cli=o.cli||'—';
+
+    // Días de demora
+    var demora='—';
+    if(o.ent&&o.sal){
+      var de=new Date(o.ent+'T00:00:00'),ds=new Date(o.sal+'T00:00:00');
+      var dd=Math.round((ds-de)/86400000);
+      demora='<span style="color:'+(dd<=3?'var(--grn)':dd<=7?'var(--amb)':'var(--red)')+'">'+dd+'d</span>';
+    }
+
+    return '<tr>'
+      +'<td><span class="nro">'+nro+'</span></td>'
+      +'<td class="tdname"><a href="'+o.url+'" target="_blank" title="'+o.sec+'">'+desc+'</a></td>'
+      +'<td>'+flag+' '+o.pais+'</td>'
+      +'<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+cli+'">'+cli+'</td>'
+      +'<td>'+(o.env?'<span class="badge b-env">✓ Enviada</span>':'<span class="badge b-pend">● Pendiente</span>')+'</td>'
+      +'<td style="text-align:center">'+demora+'</td>'
+      +'<td style="color:var(--sub)">'+fd(o.ent)+'</td>'
+      +'<td style="color:'+(o.env?'var(--grn)':'var(--lite)')+'">'+fd(o.sal)+'</td>'
+      +'<td style="color:var(--sub)">'+sn(o.assignee)+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('dtbl-foot').textContent=data.length+' ofertas · Pendientes primero';
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',function(){
+  renderMovTbl();
+  renderSemTbl();
+  renderPais();
+  buildCharts();
+  renderDtbl();
+  document.getElementById('srch').addEventListener('input',function(){SEARCH=this.value;renderDtbl();});
+});
+</script>
+</body>
+</html>
