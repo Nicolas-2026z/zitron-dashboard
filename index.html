@@ -47,9 +47,46 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .phpct{font-size:11px;font-weight:600;min-width:34px;text-align:right;}
 .phct{font-size:10px;color:var(--sub);min-width:48px;text-align:right;}
 .footer{text-align:center;font-size:11px;color:#94A3B8;padding:24px 0 16px;}
+/* ── Servicios y Mantención ── */
+.sec-title{font-size:15px;font-weight:700;color:var(--hdr);margin:32px 0 6px;display:flex;align-items:center;gap:8px;}
+.sec-title::before{content:'';display:inline-block;width:4px;height:18px;background:var(--hdr);border-radius:2px;}
+.sec-sub{font-size:11px;color:var(--sub);margin-bottom:14px;}
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+@media(max-width:640px){.svc-grid{grid-template-columns:1fr;}}
+.svc-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.svc-card h3{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
+.sbar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.sbar-label{font-size:12px;color:var(--text);min-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sbar-track{flex:1;background:#E8EDF3;border-radius:3px;height:8px;overflow:hidden;}
+.sbar-fill{height:100%;border-radius:3px;}
+.sbar-count{font-size:12px;font-weight:600;color:var(--text);min-width:22px;text-align:right;}
+.svc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+@media(max-width:640px){.svc-kpis{grid-template-columns:repeat(2,1fr);}}
+.skpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center;}
+.skpi .kl{font-size:10px;color:var(--sub);margin-bottom:4px;}
+.skpi .kv{font-size:22px;font-weight:700;}
+.svc-tasks{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.svc-tasks h3{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.stabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.stab{font-size:12px;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;background:#fff;color:var(--sub);}
+.stab.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
+.strow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.strow:last-child{border-bottom:none;}
+.stname{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stname a{color:var(--blu);text-decoration:none;}
+.stname a:hover{text-decoration:underline;}
+.stdate{font-size:11px;color:var(--sub);white-space:nowrap;}
+.stdate.ov{color:var(--red);font-weight:600;}
+.stassign{font-size:11px;color:var(--sub);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.stpill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.p-alta{background:#FEE2E2;color:#991B1B;}
+.p-media{background:#FEF3C7;color:#92400E;}
+.p-baja{background:#D1FAE5;color:#065F46;}
 </style>
 </head>
 <body>
+ 
+<!-- LOGIN -->
 <div id="loginScreen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F2540 0%,#1A3A5C 60%,#244E82 100%);position:fixed;top:0;left:0;width:100%;z-index:9999">
   <div style="background:white;border-radius:16px;padding:44px 40px;width:360px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)">
     <div style="width:64px;height:64px;background:#1A3A5C;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:white;margin:0 auto 18px">Z</div>
@@ -66,30 +103,24 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 <script>
 function chkPw(){
   var v=document.getElementById('pwInput').value;
-  if(v==='zitron2026!'){
-    document.getElementById('loginScreen').style.display='none';
-    sessionStorage.setItem('zpw','ok');
-  } else {
-    document.getElementById('loginErr').textContent='Contrasena incorrecta';
-    document.getElementById('pwInput').value='';
-    document.getElementById('pwInput').focus();
-  }
+  if(v==='zitron2026!'){document.getElementById('loginScreen').style.display='none';sessionStorage.setItem('zpw','ok');}
+  else{document.getElementById('loginErr').textContent='Contrasena incorrecta';document.getElementById('pwInput').value='';document.getElementById('pwInput').focus();}
 }
-if(sessionStorage.getItem('zpw')==='ok'){
-  document.addEventListener('DOMContentLoaded',function(){document.getElementById('loginScreen').style.display='none';});
-}
-window.addEventListener('load',function(){
-  if(sessionStorage.getItem('zpw')!=='ok'){document.getElementById('pwInput').focus();}
-});
+if(sessionStorage.getItem('zpw')==='ok'){document.addEventListener('DOMContentLoaded',function(){document.getElementById('loginScreen').style.display='none';});}
+window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok'){document.getElementById('pwInput').focus();}});
 </script>
+ 
 <header class="header">
   <div class="hleft">
     <div class="hlogo">Z</div>
     <div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2</div></div>
   </div>
-  <div class="hright"><div>Actualizado: 19/05/2026</div><div style="color:#86EFAC" id="hdrTotal">35 proyectos</div></div>
+  <div class="hright"><div>Actualizado: 20/05/2026</div><div style="color:#86EFAC" id="hdrTotal">35 proyectos</div></div>
 </header>
+ 
 <main class="main">
+ 
+  <!-- ══ PORTAFOLIO PROYECTOS ══ -->
   <div class="kpis" id="kpis"></div>
   <div class="ctrl">
     <input type="text" id="srch" placeholder="Buscar proyecto o pais..." oninput="render()">
@@ -111,15 +142,48 @@ window.addEventListener('load',function(){
     <button class="pill" onclick="setF('pend',this)">Pend. despacho</button>
   </div>
   <div class="plist" id="plist"></div>
+ 
+  <!-- ══ SERVICIOS Y MANTENCIÓN ══ -->
+  <div class="sec-title">Tablero Servicios y Mantención</div>
+  <div class="sec-sub">Carpeta Servicios · Zitron Chile v1 · 65 tareas totales · Actualizado 20/05/2026</div>
+ 
+  <div class="svc-kpis">
+    <div class="skpi"><div class="kl">Total tareas</div><div class="kv" style="color:#378ADD">65</div></div>
+    <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#BA7517">33</div></div>
+    <div class="skpi"><div class="kl">Finalizadas</div><div class="kv" style="color:#1D9E75">32</div></div>
+    <div class="skpi"><div class="kl">Avance global</div><div class="kv" style="color:#1A3A5C">49%</div></div>
+  </div>
+ 
+  <div class="svc-grid">
+    <div class="svc-card">
+      <h3>Tareas por sección</h3>
+      <div id="svc-sections"></div>
+    </div>
+    <div class="svc-card">
+      <h3>Distribución por país (tareas activas)</h3>
+      <div id="svc-countries"></div>
+    </div>
+  </div>
+ 
+  <div class="svc-tasks">
+    <h3>Tareas activas</h3>
+    <div class="stabs" id="svc-tabs"></div>
+    <div id="svc-tasklist"></div>
+  </div>
+ 
   <div class="footer" id="footer"></div>
 </main>
+ 
 <script>
+/* ══════════════════════════════════
+   PORTAFOLIO — datos y lógica
+══════════════════════════════════ */
 var PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 var filt="all";
 var P=[
 {n:"50001524 - ATACAMA KOZAN",p:"Chile",t:52,d:48,pct:92,ph:[["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta",6,6],["Compras",6,6],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",5,5],["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001451 - ZITRON COLOMBIA",p:"Colombia",t:50,d:46,pct:92,ph:[["Kick Off",5,5],["Ing. Servicio",1,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",11,11],["Ing. Diseno",2,2],["CC",1,1],["Bodega entrada",6,6],["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001477 - TRITON MINERA",p:"Nicaragua",t:55,d:49,pct:89,ph:[["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta compras",7,7],["Compras",7,7],["Ing. y Diseño",4,3],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",6,6],["Montaje",7,7],["Logistica",4,3],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
+{n:"50001477 - TRITON MINERA",p:"Nicaragua",t:55,d:49,pct:89,ph:[["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta compras",7,7],["Compras",7,7],["Ing. y Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",6,6],["Montaje",7,7],["Logistica",4,3],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
 {n:"50001514 - CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001515 - CRTG",p:"Chile",t:48,d:39,pct:81,ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",4,4],["Montaje",6,4],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001501 - MIN. LA HACIENDA",p:"Mexico",t:41,d:30,pct:73,ph:[["Kick Off",5,5],["Ing. Servicio",1,0],["Ing. JP",4,4],["Propuesta",6,6],["Compras",5,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",2,2],["Bodega salida",2,2],["Montaje",4,2],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
@@ -145,13 +209,14 @@ var P=[
 {n:"50001534 - ZITRON PERU METRO DE LIMA E04-E05",p:"Peru",t:47,d:15,pct:32,ph:[["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,4],["Propuesta",8,7],["Compras",8,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001499 - EQ. CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,ph:[["Kick Off",5,5],["Ing. Servicio",2,0],["Ing. JP",4,4],["Propuesta",9,4],["Compras",9,2],["Ing. Diseno",4,1],["Bodega entrada",4,0],["Fab. Externa",3,0],["Bodega salida",6,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001532 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:41,d:10,pct:24,ph:[["Kick Off",5,5],["Ing. JP",4,3],["Propuesta",4,2],["Compras",4,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",3,0],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001544 - DMC MINING SERVICES",p:"Chile",t:59,d:12,pct:20,ph:[["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",4,3],["Propuesta compras",8,3],["Compras",8,0],["Ing. y Diseño",4,0],["Bodega entrada",6,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
+{n:"50001544 - DMC MINING SERVICES",p:"Chile",t:59,d:12,pct:20,ph:[["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",4,3],["Propuesta compras",8,3],["Compras",8,0],["Ing. y Diseno",4,0],["Bodega entrada",6,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
 {n:"50001547 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
 {n:"50001546 - XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
 {n:"50001545 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
 {n:"50001543 - ZITRON COLOMBIA EGM",p:"Colombia",t:44,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
 {n:"50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA",p:"Colombia",t:44,d:0,pct:0,ph:[["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",4,0],["Compras",4,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre proyecto",2,0]]}
 ];
+ 
 function col(p){return p>=60?"#1D9E75":p>=30?"#378ADD":p>=10?"#BA7517":"#E24B4A";}
 function bi(p){
   if(p>=60)return{t:"Avanzado",c:"#1D9E75"};
@@ -227,7 +292,7 @@ function render(){
       +'<span class="pcnt">'+x.d+'/'+x.t+' subtareas</span></div>'
       +'<div class="pdet" id="d'+i+'">'+phs+'</div></div>';
   }).join("")||'<div style="text-align:center;padding:40px;color:#6B7280">Sin resultados</div>';
-  document.getElementById("footer").textContent=data.length+" proyectos - Actualizado 19/05/2026";
+  document.getElementById("footer").textContent=data.length+" proyectos - Actualizado 20/05/2026";
 }
 function setF(f,btn){
   filt=f;
@@ -236,6 +301,105 @@ function setF(f,btn){
   render();
 }
 render();
+ 
+/* ══════════════════════════════════
+   SERVICIOS Y MANTENCIÓN — lógica
+══════════════════════════════════ */
+var SVC_TASKS=[
+  {name:"50001549 - ZITRON PERU",section:"Proyectos",assignee:"DAVID BLAZQUEZ",due:"2026-05-07",pais:"Peru",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787977829116"},
+  {name:"50001455-GESVIAL",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-01-09",pais:"",prioridad:"",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802210"},
+  {name:"50001513-ZUBLIN - STRABAG",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-03-03",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075660"},
+  {name:"50001492-ZUBLIN",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-01-14",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075653"},
+  {name:"50001542 - TRITON MINERA",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-04-27",pais:"Nicaragua",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415517"},
+  {name:"50001552 - ABB CHUQUICAMATA",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-05-27",pais:"Chile",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214563704105155"},
+  {name:"50001550 - GEOVITA MAQSA",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-05-20",pais:"Chile",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787977829124"},
+  {name:"50001551 - ZITRON COLOMBIA",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-05-20",pais:"Colombia",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787977829135"},
+  {name:"50001552 - CHUQUICAMATA COMETECSA",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-05-27",pais:"Chile",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787977829143"},
+  {name:"50001556 - XEMORTIZ",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-05-26",pais:"Mexico",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787972061588"},
+  {name:"50001528 - MINERA CAPELA",section:"Revisado en reunion",assignee:"Francisca Ramos",due:"2026-04-08",pais:"Mexico",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415442"},
+  {name:"50001530 - MINERA TIZAPA",section:"Revisado en reunion",assignee:"Francisca Ramos",due:"2026-07-31",pais:"Mexico",prioridad:"Baja",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415456"},
+  {name:"50001482-ZITRON COLOMBIA TUNEL ORIENTE",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-17",pais:"Colombia",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075650"},
+  {name:"50001539 - EL TENIENTE CODELCO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-28",pais:"Chile",prioridad:"Baja",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415510"},
+  {name:"50001535 - CANDELARIA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-05-19",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415474"},
+  {name:"50001536 - HISISA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-10",pais:"",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415487"},
+  {name:"50001529 - MINERA ROBLE",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-08",pais:"Mexico",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415449"},
+  {name:"50001493-GESVIAL",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-01-17",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075654"},
+  {name:"50001537 - SIGMA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-30",pais:"Chile",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415496"},
+  {name:"50001511-AURA INGENIERIA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-02",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075658"},
+  {name:"50001510-MINERA TIZAPA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-02-27",pais:"Mexico",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075657"},
+  {name:"50001521-CODELCO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-11",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075663"},
+  {name:"50001460-ZITRON BRASIL ERO CARAIBA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-30",pais:"Brasil",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075648"},
+  {name:"50001531 - CODELCO ANDINA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-05-15",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415463"},
+  {name:"50001480-TUNEL LO PRADO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-02-10",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075649"},
+  {name:"50001519-AVO 1",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-16",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075662"},
+  {name:"50001353-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802199"},
+  {name:"50001362-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802200"},
+  {name:"50001517-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075661"},
+  {name:"50001487-CODELCO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-02",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075652"},
+  {name:"50001522-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075664"},
+  {name:"50001512-MINERA CENIZAS",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-13",pais:"",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075659"},
+  {name:"50001440-XEMORTIZ",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-02-16",pais:"Mexico",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802207"}
+];
+ 
+var SVC_TODAY=new Date('2026-05-20');
+var SVC_SECTION="Proyectos";
+var SVC_SECTIONS=["Proyectos","Revisado en reunion","En ejecucion"];
+var SVC_LABELS={"Proyectos":"Proyectos","Revisado en reunion":"Revisado en reunion","En ejecucion":"En ejecucion"};
+var SEC_COLORS={"Proyectos":"#185FA5","Revisado en reunion":"#BA7517","En ejecucion":"#1D9E75","Pendientes de fabricacion":"#E24B4A","Finalizados":"#6B7280","sin asignar":"#94A3B8"};
+var FLAGS={Chile:"🇨🇱",Mexico:"🇲🇽",Brasil:"🇧🇷",Peru:"🇵🇪",Colombia:"🇨🇴",Nicaragua:"🇳🇮"};
+ 
+function sbarHtml(label,val,max,color){
+  var pct=max>0?Math.round(val/max*100):0;
+  return '<div class="sbar-row"><span class="sbar-label" title="'+label+'">'+label+'</span>'
+    +'<div class="sbar-track"><div class="sbar-fill" style="width:'+pct+'%;background:'+color+';"></div></div>'
+    +'<span class="sbar-count">'+val+'</span></div>';
+}
+function renderSvcSections(){
+  var rows=[["Finalizados",32],["En ejecucion",21],["Proyectos",10],["Revisado en reunion",2]];
+  document.getElementById("svc-sections").innerHTML=rows.map(function(r){
+    return sbarHtml(r[0],r[1],32,SEC_COLORS[r[0]]||"#888");
+  }).join("");
+}
+function renderSvcCountries(){
+  var cc={};
+  SVC_TASKS.forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});
+  var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
+  var max=sorted[0][1];
+  document.getElementById("svc-countries").innerHTML=sorted.map(function(pair){
+    return sbarHtml((FLAGS[pair[0]]||"🌍")+" "+pair[0],pair[1],max,"#378ADD");
+  }).join("");
+}
+function renderSvcTabs(){
+  document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){
+    var cnt=SVC_TASKS.filter(function(t){return t.section===s;}).length;
+    return '<button class="stab'+(s===SVC_SECTION?" act":"")
+      +'" onclick="setSvcSec(\''+s+'\',this)">'+SVC_LABELS[s]+' ('+cnt+')</button>';
+  }).join("");
+}
+function setSvcSec(s,btn){
+  SVC_SECTION=s;
+  document.querySelectorAll(".stab").forEach(function(b){b.classList.remove("act");});
+  btn.classList.add("act");
+  renderSvcList();
+}
+function renderSvcList(){
+  var po={Alta:0,Media:1,Baja:2,"":3};
+  var tasks=SVC_TASKS.filter(function(t){return t.section===SVC_SECTION;})
+    .sort(function(a,b){return (po[a.prioridad]||3)-(po[b.prioridad]||3);});
+  if(!tasks.length){document.getElementById("svc-tasklist").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin tareas.</p>';return;}
+  document.getElementById("svc-tasklist").innerHTML=tasks.map(function(t){
+    var over=t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;
+    var dt=t.due?new Date(t.due+"T00:00:00").toLocaleDateString("es-CL",{day:"2-digit",month:"short"}):"";
+    var pill=t.prioridad?'<span class="stpill p-'+t.prioridad.toLowerCase()+'">'+t.prioridad+"</span>":'';
+    return '<div class="strow"><span class="stname"><a href="'+t.url+'" target="_blank">'+t.name+'</a></span>'
+      +pill+'<span class="stassign" title="'+t.assignee+'">'+t.assignee+'</span>'
+      +'<span class="stdate'+(over?" ov":"")+'">'+dt+(over?" ⚠":"")+"</span></div>";
+  }).join("");
+}
+renderSvcSections();
+renderSvcCountries();
+renderSvcTabs();
+renderSvcList();
 </script>
 </body>
 </html>
