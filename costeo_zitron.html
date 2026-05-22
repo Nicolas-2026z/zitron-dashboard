@@ -4,178 +4,137 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Base de Datos de Costeo – Zitrón</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --hdr:#0D1B2E;--bg:#EFF3F8;--card:#FFFFFF;--border:#DDE4EE;
-  --blu:#1D4ED8;--blu2:#3B82F6;--grn:#059669;--red:#DC2626;--amb:#D97706;--pur:#6D28D9;
-  --text:#0F172A;--sub:#64748B;--lite:#94A3B8;
-  --shadow:0 1px 4px rgba(0,0,0,.08);
-}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh}
+body{background:#0f1117;color:#e8eaf0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
 button{cursor:pointer;font-family:inherit}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
  
-/* LOGIN */
-#login{display:flex;min-height:100vh;align-items:center;justify-content:center;
-  background:linear-gradient(140deg,#060E1C 0%,#0D1B2E 55%,#1A3A5C 100%);
-  position:fixed;inset:0;z-index:9999;}
-.lbox{background:#fff;border-radius:20px;padding:48px 44px;width:370px;text-align:center;
-  box-shadow:0 32px 80px rgba(0,0,0,.45);}
-.llogo{width:68px;height:68px;background:var(--hdr);border-radius:16px;display:flex;
-  align-items:center;justify-content:center;margin:0 auto 18px;}
-.ltitle{font-size:20px;font-weight:700;color:var(--hdr);margin-bottom:4px;}
-.lsub{font-size:12px;color:var(--sub);margin-bottom:26px;}
-.lbox input{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;
-  font-size:20px;text-align:center;letter-spacing:7px;margin-bottom:12px;outline:none;
-  font-family:'JetBrains Mono',monospace;transition:border-color .2s;}
-.lbox input:focus{border-color:var(--blu);}
-.lbox button{width:100%;padding:12px;background:var(--hdr);color:#fff;border:none;
-  border-radius:10px;font-size:14px;font-weight:600;transition:opacity .15s;}
-.lbox button:hover{opacity:.85;}
-#lerr{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:linear-gradient(135deg,#1a1d2e,#16213e);border:1px solid #2a2d3e;border-radius:20px;padding:44px 40px;width:360px;box-shadow:0 20px 60px #00000060;transition:border-color .3s,box-shadow .3s}
+.login-box.error{border-color:#e74c3c;box-shadow:0 0 30px #e74c3c30;animation:shake .4s}
+.logo-wrap{text-align:center;margin-bottom:32px}
+.logo-img{width:72px;height:72px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;padding:6px;box-shadow:0 4px 20px #0008}
+.login-title{font-size:19px;font-weight:700;color:#e8eaf0}
+.login-sub{font-size:12px;color:#8892b0;margin-top:6px}
+.input-wrap{position:relative;margin-bottom:16px}
+.input-wrap input{width:100%;padding:12px 44px 12px 16px;border-radius:10px;background:#0f1117;border:1px solid #2a2d3e;color:#e8eaf0;font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
+.input-wrap input:focus{border-color:#3498db}
+.input-wrap input.err{border-color:#e74c3c}
+.eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#8892b0;font-size:16px;user-select:none}
+.err-msg{color:#e74c3c;font-size:12px;text-align:center;margin-bottom:12px}
+.btn-login{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#3498db,#1abc9c);color:#fff;font-weight:700;font-size:15px;transition:opacity .2s}
+.btn-login:hover{opacity:.88}
  
-/* HEADER */
-.hdr{background:var(--hdr);color:#fff;height:58px;display:flex;align-items:center;
-  justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;
-  box-shadow:0 2px 10px rgba(0,0,0,.35);}
-.hl{display:flex;align-items:center;gap:12px;}
-.hlogo{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;}
-.htitle{font-size:14px;font-weight:600;}
-.hsub{font-size:10px;opacity:.5;margin-top:1px;}
-.hr{font-size:11px;opacity:.55;text-align:right;line-height:1.8;}
-.hr b{color:#6EE7B7;}
+#header{background:linear-gradient(135deg,#1a1d2e,#16213e);border-bottom:1px solid #2a2d3e;padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.hlogo{width:40px;height:40px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:3px;box-shadow:0 2px 10px #0006}
+.htitle{font-size:17px;font-weight:700;letter-spacing:.3px}
+.hsub{font-size:11px;color:#8892b0;margin-top:1px}
+#btn-back{margin-left:auto;background:rgba(255,255,255,.07);border:1px solid #2a2d3e;color:#8892b0;border-radius:8px;padding:5px 14px;font-size:12px;display:none}
+#btn-back:hover{color:#e8eaf0}
  
-/* MAIN */
-.main{max-width:1200px;margin:0 auto;padding:24px 20px 48px;}
+#main{padding:24px 28px;max-width:1100px;margin:0 auto;animation:fadeIn .25s}
  
-/* SECTION */
-.sec{font-size:12px;font-weight:700;color:var(--hdr);margin:28px 0 14px;
-  display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.05em;}
-.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:16px}
+.cat-card{background:linear-gradient(135deg,#1a1d2e,#16213e);border:1px solid transparent;border-radius:14px;padding:0;overflow:hidden;color:#e8eaf0;text-align:left;transition:all .18s;position:relative}
+.cat-card:hover{transform:translateY(-2px);border-color:var(--acc)}
+.cat-img-wrap{height:100px;overflow:hidden;background:#12152a;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #2a2d3e}
+.cat-img-wrap img{width:100%;height:100%;object-fit:contain;padding:8px}
+.cat-body{padding:14px 16px 16px}
+.cat-icon{font-size:22px;margin-bottom:6px}
+.cat-name{font-weight:700;font-size:14px;margin-bottom:3px}
+.cat-count{font-size:11px;color:#8892b0}
+.cat-acc{position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc)}
  
-/* GRIDS DE CATEGORÍAS */
-.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
-.cat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:0;overflow:hidden;text-align:left;transition:all .18s;
-  box-shadow:var(--shadow);position:relative;}
-.cat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12);border-color:var(--acc);}
-.cat-card::before{content:'';display:block;height:4px;background:var(--acc);}
-.cat-img-wrap{height:100px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center;}
-.cat-img-wrap img{width:100%;height:100%;object-fit:contain;padding:8px;}
-.cat-body{padding:12px 14px 14px;}
-.cat-icon{font-size:20px;margin-bottom:4px;}
-.cat-name{font-weight:700;font-size:13px;color:var(--text);margin-bottom:2px;}
-.cat-count{font-size:11px;color:var(--sub);}
+.mod-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.mod-title{margin:0;font-size:20px;font-weight:700}
+.mod-badge{border-radius:20px;padding:2px 12px;font-size:11px;font-weight:600;margin-left:6px}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.mod-card{background:#1a1d2e;border:1px solid #2a2d3e;border-radius:12px;padding:16px 14px;color:#e8eaf0;text-align:left;transition:all .15s}
+.mod-card:hover{background:#1f2235;border-color:var(--acc)}
+.mod-cname{font-weight:700;font-size:13px;margin-bottom:6px}
+.mod-fecha{font-size:10px;color:#8892b0;margin-bottom:4px}
+.mod-pv{font-size:11px;font-weight:600;color:#2ecc71}
+.mod-ndiam{font-size:10px;color:#8892b0}
  
-/* GRIDS DE MODELOS */
-.mod-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.mod-title{margin:0;font-size:19px;font-weight:700;color:var(--hdr);}
-.mod-badge{border-radius:20px;padding:2px 12px;font-size:11px;font-weight:600;margin-left:6px;}
-.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;}
-.mod-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:14px;text-align:left;transition:all .15s;box-shadow:var(--shadow);}
-.mod-card:hover{border-color:var(--acc);background:#f8fafc;}
-.mod-cname{font-weight:700;font-size:13px;margin-bottom:5px;font-family:'JetBrains Mono',monospace;}
-.mod-fecha{font-size:10px;color:var(--sub);margin-bottom:3px;}
-.mod-pv{font-size:12px;font-weight:700;}
-.mod-ndiam{font-size:10px;color:var(--sub);}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:#8892b0;margin-bottom:18px}
+.breadcrumb .link{cursor:pointer}
+.breadcrumb .link:hover{text-decoration:underline}
  
-/* DETALLE */
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);margin-bottom:18px;}
-.breadcrumb .link{cursor:pointer;font-weight:600;}
-.breadcrumb .link:hover{text-decoration:underline;}
+.detail-img{width:100%;max-height:180px;object-fit:contain;border-radius:12px;margin-bottom:20px;background:#12152a;border:1px solid #2a2d3e;padding:12px}
  
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:20px 24px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:28px;align-items:center;
-  box-shadow:var(--shadow);}
-.info-label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
-.info-val{font-size:15px;font-weight:600;color:var(--text);}
-.info-modelo{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;}
-.info-pv{font-size:22px;font-weight:800;color:var(--grn);}
-.info-clp{font-size:11px;color:var(--sub);margin-top:2px;}
-.info-exp{font-size:11px;color:var(--blu);margin-top:2px;font-weight:600;}
+.info-card{border-radius:16px;padding:20px 24px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:28px;align-items:center}
+.info-label{font-size:11px;color:#8892b0;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.info-val{font-size:15px;font-weight:600}
+.info-modelo{font-size:22px;font-weight:800}
+.info-pv{font-size:22px;font-weight:800;color:#2ecc71}
+.info-clp{font-size:11px;color:#8892b0;margin-top:2px}
+.info-exp{font-size:12px;color:#3498db;margin-top:2px;font-weight:600}
  
-.precios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px;}
-.precio-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:14px 16px;box-shadow:var(--shadow);}
-.precio-lbl{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
-.precio-val{font-size:18px;font-weight:800;}
+.precios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.precio-card{background:#1a1d2e;border-radius:12px;padding:16px 18px;border:1px solid #2a2d3e}
+.precio-lbl{font-size:10px;color:#8892b0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.precio-val{font-size:18px;font-weight:800}
  
-.section-label{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
-  letter-spacing:.06em;margin:18px 0 8px;}
- 
-.detail-img{width:100%;max-height:180px;object-fit:contain;border-radius:10px;
-  margin-bottom:16px;background:var(--card);border:1px solid var(--border);padding:12px;
-  box-shadow:var(--shadow);}
- 
-/* TABLAS */
-.table-wrap{background:var(--card);border-radius:12px;overflow:hidden;
-  border:1px solid var(--border);margin-bottom:16px;box-shadow:var(--shadow);}
-table{width:100%;border-collapse:collapse;}
-thead tr{background:#F1F5FB;}
-th{padding:10px 14px;font-size:10px;color:var(--sub);font-weight:700;
-  text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);}
+.section-label{font-size:13px;font-weight:700;color:#8892b0;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.table-wrap{background:#1a1d2e;border-radius:14px;overflow:hidden;border:1px solid #2a2d3e;margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#16192a}
+th{padding:11px 16px;font-size:11px;color:#8892b0;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
 th.r,td.r{text-align:right}
 th.l,td.l{text-align:left}
-tbody tr{border-top:1px solid #EEF2F7;transition:background .1s}
-tbody tr:hover{background:#F8FAFC}
-td{padding:9px 14px;font-size:13px;color:var(--text);}
-.tfoot-row{border-top:2px solid var(--border)!important;background:#F8FAFC;}
-.tfoot-lbl{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;}
-.tfoot-val{font-size:14px;font-weight:800;text-align:right;}
+tbody tr{border-top:1px solid #2a2d3e;transition:background .1s}
+tbody tr:hover{background:#1f2235}
+td{padding:11px 16px;font-size:13px}
+.tfoot-row{border-top:2px solid #2a2d3e!important;background:#16192a}
+.tfoot-lbl{font-size:12px;font-weight:700;color:#8892b0;text-transform:uppercase}
+.tfoot-val{font-size:15px;font-weight:800;text-align:right}
  
-.btn-back{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-  color:rgba(255,255,255,.8);border-radius:7px;padding:5px 14px;font-size:12px;
-  display:none;margin-left:auto;}
-.btn-back:hover{background:rgba(255,255,255,.2);}
- 
-@media(max-width:700px){.cat-grid,.mod-grid,.precios-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}}
+#app{display:none}
+@media(max-width:700px){.cat-grid,.mod-grid,.precios-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 </style>
 </head>
 <body>
  
 <div id="login">
-  <div class="lbox">
-    <div class="llogo">
-      <svg viewBox="0 0 200 200" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
-        <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
-      </svg>
+  <div class="login-box" id="lbox">
+    <div class="logo-wrap">
+      <div class="logo-img">
+        <svg viewBox="0 0 200 200" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
+          <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
+        </svg>
+      </div>
+      <div class="login-title">Base de Datos de Costeo</div>
+      <div class="login-sub">Ingresa tu clave para continuar</div>
     </div>
-    <div class="ltitle">Base de Datos de Costeo</div>
-    <div class="lsub">Dashboard comercial · Acceso privado</div>
-    <input id="pwi" type="password" placeholder="••••••••" maxlength="40" onkeydown="if(event.key==='Enter')chk()">
-    <button onclick="chk()">Ingresar</button>
-    <div id="lerr"></div>
+    <div class="input-wrap">
+      <input type="password" id="pwd" placeholder="Contraseña" autocomplete="off" onkeydown="if(event.key==='Enter')login()">
+      <span class="eye" id="eyebtn" onclick="toggleEye()">👁</span>
+    </div>
+    <div class="err-msg" id="errmsg" style="display:none">Clave incorrecta. Intenta nuevamente.</div>
+    <button class="btn-login" onclick="login()">Ingresar</button>
   </div>
 </div>
  
-<header class="hdr">
-  <div class="hl">
+<div id="app">
+  <div id="header">
     <div class="hlogo">
-      <svg viewBox="0 0 200 200" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 200" width="34" height="34" xmlns="http://www.w3.org/2000/svg">
         <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
         <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
       </svg>
     </div>
     <div><div class="htitle">Base de Datos de Costeo</div><div class="hsub" id="hstats"></div></div>
-    <button class="btn-back" id="btn-back" onclick="goBack()">← Volver</button>
+    <button id="btn-back" onclick="goBack()">← Inicio</button>
   </div>
-</header>
- 
-<div class="main" id="main"></div>
+  <div id="main"></div>
+</div>
  
 <script>
-function chk(){var v=document.getElementById('pwi').value;
-  if(v==='zitron2026!'){document.getElementById('login').style.display='none';init();}
-  else{document.getElementById('lerr').textContent='Contraseña incorrecta';document.getElementById('pwi').value='';}}
-if(sessionStorage.getItem('zpw')==='ok')document.addEventListener('DOMContentLoaded',function(){document.getElementById('login').style.display='none';init();});
-window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok')document.getElementById('pwi').focus();});
- 
 const ICONS={"Codos":"↩","Guillotinas":"⊟","JZR":"⟳","ZVN":"⬡","Piezas Especiales":"◈","Silenciadores":"⊕","Difusores":"◎","Adaptación a Manga":"⊂","Válvulas Manga":"⊡"};
-const COLORS={"ZVN":"#1D4ED8","JZR":"#059669","Codos":"#D97706","Guillotinas":"#DC2626","Piezas Especiales":"#6D28D9","Silenciadores":"#0891B2","Difusores":"#B45309","Adaptación a Manga":"#1D4ED8","Válvulas Manga":"#BE185D"};
+const COLORS={"ZVN":"#3498db","JZR":"#2ecc71","Codos":"#e67e22","Guillotinas":"#e74c3c","Piezas Especiales":"#9b59b6","Silenciadores":"#1abc9c","Difusores":"#f1c40f","Adaptación a Manga":"#3498db","Válvulas Manga":"#e91e63"};
 const IMGS={
   "ZVN": `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'><rect width='300' height='200' fill='%231a1d2e'/><circle cx='150' cy='100' r='70' fill='none' stroke='%23009ede' stroke-width='3'/><circle cx='150' cy='100' r='50' fill='none' stroke='%23009ede' stroke-width='2'/><circle cx='150' cy='100' r='12' fill='%23009ede'/><g stroke='%23009ede' stroke-width='8' stroke-linecap='round'><line x1='150' y1='50' x2='140' y2='88'/><line x1='197' y1='75' x2='163' y2='95'/><line x1='197' y1='125' x2='163' y2='105'/><line x1='150' y1='150' x2='160' y2='112'/><line x1='103' y1='125' x2='137' y2='105'/><line x1='103' y1='75' x2='137' y2='95'/></g><rect x='70' y='90' width='20' height='20' rx='3' fill='%23009ede' opacity='0.3'/><rect x='210' y='90' width='20' height='20' rx='3' fill='%23009ede' opacity='0.3'/><text x='150' y='185' text-anchor='middle' fill='%23009ede' font-size='13' font-family='Arial'>Ventilador Axial ZVN</text></svg>`,
   "JZR": `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'><rect width='300' height='200' fill='%231a1d2e'/><rect x='40' y='75' width='220' height='50' rx='25' fill='none' stroke='%232ecc71' stroke-width='3'/><rect x='20' y='85' width='30' height='30' rx='4' fill='%232ecc71' opacity='0.4'/><rect x='250' y='85' width='30' height='30' rx='4' fill='%232ecc71' opacity='0.4'/><circle cx='100' cy='100' r='18' fill='none' stroke='%232ecc71' stroke-width='2'/><circle cx='100' cy='100' r='6' fill='%232ecc71'/><circle cx='200' cy='100' r='18' fill='none' stroke='%232ecc71' stroke-width='2'/><circle cx='200' cy='100' r='6' fill='%232ecc71'/><line x1='82' y1='100' x2='118' y2='100' stroke='%232ecc71' stroke-width='1.5' stroke-dasharray='4'/><line x1='182' y1='100' x2='218' y2='100' stroke='%232ecc71' stroke-width='1.5' stroke-dasharray='4'/><text x='150' y='155' text-anchor='middle' fill='%232ecc71' font-size='13' font-family='Arial'>Ventilador Jet JZR</text></svg>`,
@@ -190,12 +149,21 @@ const IMGS={
 const DATA={"ZVN": {"ZVN 1-6": {"fecha": null, "cambio": 750.0, "mano_obra": 1653.33, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 300.0, "precio_unit": 1.25, "valor_total": 375.0}, {"material": "RODETE GEL 6", "cantidad": 1.0, "precio_unit": 700.0, "valor_total": 700.0}, {"material": "Arenado", "cantidad": 7.0, "precio_unit": 8.8, "valor_total": 61.6}, {"material": "Pintura", "cantidad": 7.0, "precio_unit": 14.0, "valor_total": 98.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 100.0, "precio_unit": 1.1, "valor_total": 110.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 49.5}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 80.0, "valor_total": 80.0}, {"material": "Rejillas", "cantidad": 1.0, "precio_unit": 80.0, "valor_total": 80.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 45.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 560.0, "valor_total": 560.0}], "precio_venta": 5273.44, "precio_nacional_clp": 3955077.7, "precio_exportacion_usd": 5273.44, "margen_negociacion": null, "comision_agente": null}, "ZVN 1-7": {"fecha": null, "cambio": 750.0, "mano_obra": 1653.33, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 350.0, "precio_unit": 1.25, "valor_total": 437.5}, {"material": "RODETE GEL 7", "cantidad": 1.0, "precio_unit": 900.0, "valor_total": 900.0}, {"material": "Arenado", "cantidad": 9.0, "precio_unit": 8.8, "valor_total": 79.2}, {"material": "Pintura", "cantidad": 9.0, "precio_unit": 14.0, "valor_total": 126.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 120.0, "precio_unit": 1.1, "valor_total": 132.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 20.0, "precio_unit": 1.1, "valor_total": 66.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 90.0, "valor_total": 90.0}, {"material": "Rejillas", "cantidad": 1.0, "precio_unit": 80.0, "valor_total": 80.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 45.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 2900.0, "valor_total": 2900.0}], "precio_venta": 9215.11, "precio_nacional_clp": 6911329.76, "precio_exportacion_usd": 9700.11, "margen_negociacion": 3.0, "comision_agente": 5.0}, "ZVN 1-9": {"fecha": null, "cambio": 750.0, "mano_obra": 2112.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 400.0, "precio_unit": 2.5, "valor_total": 1000.0}, {"material": "RODETE GEL 9", "cantidad": 1.15, "precio_unit": 1300.0, "valor_total": 1495.0}, {"material": "Arenado", "cantidad": 13.0, "precio_unit": 8.8, "valor_total": 114.4}, {"material": "Pintura", "cantidad": 13.0, "precio_unit": 14.0, "valor_total": 182.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 165.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 25.0, "precio_unit": 1.1, "valor_total": 82.5}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 110.0}, {"material": "Rejillas", "cantidad": 1.0, "precio_unit": 101.0, "valor_total": 101.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 45.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 0.0, "precio_unit": 100.0, "valor_total": 0.0}, {"material": "GRASERAS SKF", "cantidad": 0.0, "precio_unit": 40.0, "valor_total": 0.0}], "precio_venta": 7255.7, "precio_nacional_clp": 5804561.04, "precio_exportacion_usd": 7255.7, "margen_negociacion": null, "comision_agente": null}, "ZVN 1-10": {"fecha": null, "cambio": 750.0, "mano_obra": 2080.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 460.0, "precio_unit": 1.3, "valor_total": 598.0}, {"material": "Rodete ZVN1-10", "cantidad": 1.0, "precio_unit": 2300.0, "valor_total": 2300.0}, {"material": "Arenado", "cantidad": 24.0, "precio_unit": 8.8, "valor_total": 211.2}, {"material": "Pintura", "cantidad": 4.8, "precio_unit": 14.0, "valor_total": 134.4}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 165.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 66.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 110.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 45.0}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 110.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 4680.0, "valor_total": 4680.0}], "precio_venta": 14383.19, "precio_nacional_clp": 10787391.89, "precio_exportacion_usd": 15981.32, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-12": {"fecha": "2020-01-03", "cambio": 750.0, "mano_obra": 2560.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 630.0, "precio_unit": 1.3, "valor_total": 819.0}, {"material": "Rodete ZVN1-12 kw 4P 50 hz N800 Z08", "cantidad": 1.0, "precio_unit": 2900.0, "valor_total": 2900.0}, {"material": "Arenado", "cantidad": 24.0, "precio_unit": 8.8, "valor_total": 211.2}, {"material": "Pintura", "cantidad": 4.8, "precio_unit": 14.0, "valor_total": 134.4}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 198.0}, {"material": "Otros Cilindrado, Anillado Exterior", "cantidad": 315.0, "precio_unit": 1.0, "valor_total": null}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 66.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 132.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 54.0}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 110.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 4900.0, "valor_total": 4900.0}], "precio_venta": 16563.59, "precio_nacional_clp": 12422695.95, "precio_exportacion_usd": 18403.99, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-14": {"fecha": "2020-01-03", "cambio": 750.0, "mano_obra": 2906.67, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 940.0, "precio_unit": 1.3, "valor_total": 1222.0}, {"material": "Rodete ZVN1-12 kw 4P 50 hz N800 Z08", "cantidad": 1.0, "precio_unit": 4000.0, "valor_total": 4000.0}, {"material": "Arenado", "cantidad": 35.0, "precio_unit": 8.8, "valor_total": 308.0}, {"material": "Pintura", "cantidad": 7.0, "precio_unit": 14.0, "valor_total": 196.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 231.0}, {"material": "Otros Cilindrado, Anillado Exterior", "cantidad": 470.0, "precio_unit": 1.0, "valor_total": null}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 154.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 63.0}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 125.0, "valor_total": 125.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 3600.0, "valor_total": 3600.0}], "precio_venta": 17836.37, "precio_nacional_clp": 13377280.41, "precio_exportacion_usd": 19818.19, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-16": {"fecha": "2020-01-03", "cambio": 750.0, "mano_obra": 3549.33, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 1260.0, "precio_unit": 2.5, "valor_total": 3150.0}, {"material": "Rodete ZVN1-16", "cantidad": 1.0, "precio_unit": 4000.0, "valor_total": 4000.0}, {"material": "Arenado", "cantidad": 43.0, "precio_unit": 8.8, "valor_total": 378.4}, {"material": "Pintura", "cantidad": 8.6, "precio_unit": 14.0, "valor_total": 240.8}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 264.0}, {"material": "Otros Cilindrado, Anillado Exterior", "cantidad": 630.0, "precio_unit": 1.0, "valor_total": null}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Otros Menores Embalaje", "cantidad": 0.0, "precio_unit": 110.0, "valor_total": null}, {"material": "Tensor apoyo", "cantidad": 0.0, "precio_unit": 45.0, "valor_total": null}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 140.0, "valor_total": 140.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 10000.0, "valor_total": 10000.0}, {"material": "acelerometro", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 30323.25, "precio_nacional_clp": 22742435.81, "precio_exportacion_usd": 33692.5, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-16 MINA": {"fecha": "2020-01-03", "cambio": 750.0, "mano_obra": 4480.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 1900.0, "precio_unit": 1.25, "valor_total": 2375.0}, {"material": "Rodete ZVN1-18", "cantidad": 1.0, "precio_unit": 10000.0, "valor_total": 10000.0}, {"material": "Arenado", "cantidad": 43.0, "precio_unit": 8.8, "valor_total": 378.4}, {"material": "Pintura", "cantidad": 8.6, "precio_unit": 14.0, "valor_total": 240.8}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 264.0}, {"material": "Otros Cilindrado, Anillado Exterior", "cantidad": 630.0, "precio_unit": 1.0, "valor_total": null}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 176.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 72.0}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 140.0, "valor_total": 140.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 20000.0, "valor_total": 20000.0}], "precio_venta": 52216.45, "precio_nacional_clp": 39162334.46, "precio_exportacion_usd": 58018.27, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-18": {"fecha": "2020-01-03", "cambio": 750.0, "mano_obra": 3800.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 2000.0, "precio_unit": 1.3, "valor_total": 2600.0}, {"material": "Rodete ZVN1-18", "cantidad": 1.0, "precio_unit": 5992.59, "valor_total": 5992.59}, {"material": "Arenado", "cantidad": 80.0, "precio_unit": 8.8, "valor_total": 704.0}, {"material": "Pintura", "cantidad": 20.0, "precio_unit": 14.0, "valor_total": 560.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 297.0}, {"material": "Otros Cilindrado, Anillado Exterior", "cantidad": 630.0, "precio_unit": 1.0, "valor_total": null}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 110.0, "valor_total": 198.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 45.0, "valor_total": 81.0}, {"material": "rejillas", "cantidad": 1.0, "precio_unit": 140.0, "valor_total": 140.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 17600.0, "valor_total": 17600.0}], "precio_venta": 44045.87, "precio_nacional_clp": 33034401.84, "precio_exportacion_usd": 48939.85, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-20": {"fecha": null, "cambio": 750.0, "mano_obra": 6360.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 3000.0, "precio_unit": 1.3, "valor_total": 3900.0}, {"material": "Rodete ZVN1-22", "cantidad": 1.0, "precio_unit": 15000.0, "valor_total": 15000.0}, {"material": "Arenado", "cantidad": 90.0, "precio_unit": 8.0, "valor_total": 720.0}, {"material": "Pintura", "cantidad": 90.0, "precio_unit": 14.0, "valor_total": 1260.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 200.0, "precio_unit": 1.0, "valor_total": 440.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 360.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 40.0, "valor_total": 88.0}, {"material": "Directrices", "cantidad": 1.0, "precio_unit": 880.0, "valor_total": 880.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 14000.0, "valor_total": 14000.0}, {"material": "Acelerometro", "cantidad": 1.0, "precio_unit": 200.0, "valor_total": 200.0}], "precio_venta": 70013.99, "precio_nacional_clp": 36407275.04, "precio_exportacion_usd": 77793.32, "margen_negociacion": 15.0, "comision_agente": 10.0}, "ZVN 1-22": {"fecha": null, "cambio": 750.0, "mano_obra": 6840.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 3400.0, "precio_unit": 1.3, "valor_total": 4420.0}, {"material": "Rodete ZVN1-22", "cantidad": 1.0, "precio_unit": 15000.0, "valor_total": 15000.0}, {"material": "Arenado", "cantidad": 94.0, "precio_unit": 8.0, "valor_total": 752.0}, {"material": "Pintura", "cantidad": 100.0, "precio_unit": 14.0, "valor_total": 1400.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 200.0, "precio_unit": 1.0, "valor_total": 440.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 360.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 40.0, "valor_total": 88.0}, {"material": "Directrices", "cantidad": 1.0, "precio_unit": 880.0, "valor_total": 880.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 54050.0, "valor_total": 54050.0}, {"material": "Acelerometro", "cantidad": 1.0, "precio_unit": 200.0, "valor_total": 200.0}], "precio_venta": 118877.12, "precio_nacional_clp": 61816104.76, "precio_exportacion_usd": 118877.12, "margen_negociacion": 3.0, "comision_agente": null}, "ZVN 1-24": {"fecha": null, "cambio": 750.0, "mano_obra": 8220.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 5000.0, "precio_unit": 1.3, "valor_total": 6500.0}, {"material": "Rodete ZVN1-22", "cantidad": 1.0, "precio_unit": 20000.0, "valor_total": 20000.0}, {"material": "Arenado", "cantidad": 150.0, "precio_unit": 8.0, "valor_total": 1200.0}, {"material": "Pintura", "cantidad": 150.0, "precio_unit": 14.0, "valor_total": 2100.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 200.0, "precio_unit": 1.0, "valor_total": 480.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 360.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 240.0}, {"material": "Tensor apoyo", "cantidad": 1.0, "precio_unit": 40.0, "valor_total": 96.0}, {"material": "Directrices", "cantidad": 1.0, "precio_unit": 880.0, "valor_total": 880.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 35000.0, "valor_total": 35000.0}, {"material": "Acelerometro", "cantidad": 1.0, "precio_unit": 200.0, "valor_total": 200.0}], "precio_venta": 121280.76, "precio_nacional_clp": 63065996.82, "precio_exportacion_usd": 134756.4, "margen_negociacion": 15.0, "comision_agente": 10.0}, "ZVN 1-28": {"fecha": "2020-01-15", "cambio": 750.0, "mano_obra": 9500.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 9000.0, "precio_unit": 1.3, "valor_total": 11700.0}, {"material": "Rodete s/oferta Jose Angel", "cantidad": 1.0, "precio_unit": 13961.22, "valor_total": 13961.22}, {"material": "Arenado", "cantidad": 200.0, "precio_unit": 8.8, "valor_total": 1760.0}, {"material": "Pintura", "cantidad": 50.0, "precio_unit": 14.0, "valor_total": 1400.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 462.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Embalaje", "cantidad": 1.0, "precio_unit": 500.0, "valor_total": 500.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 45000.0, "valor_total": 45000.0}, {"material": "ACELEROMETRO", "cantidad": 2.0, "precio_unit": 150.0, "valor_total": 300.0}], "precio_venta": 116592.93, "precio_nacional_clp": 87444698.15, "precio_exportacion_usd": 129547.7, "margen_negociacion": null, "comision_agente": 10.0}, "ZVN 1-30": {"fecha": "2020-01-15", "cambio": 750.0, "mano_obra": 9500.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 11000.0, "precio_unit": 1.3, "valor_total": 14300.0}, {"material": "Rodete ZVN 1-30 s/ANDINA", "cantidad": 1.0, "precio_unit": 35555.56, "valor_total": 35555.56}, {"material": "Arenado", "cantidad": 280.0, "precio_unit": 8.8, "valor_total": 2464.0}, {"material": "Pintura", "cantidad": 70.0, "precio_unit": 14.0, "valor_total": 1960.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 150.0, "precio_unit": 1.1, "valor_total": 462.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Embalaje", "cantidad": 1.0, "precio_unit": 500.0, "valor_total": 500.0}], "comerciales": [{"material": "MOTOR ELECTRICO", "cantidad": 1.0, "precio_unit": 85536.0, "valor_total": 85536.0}, {"material": "ACELEROMETRO", "cantidad": 2.0, "precio_unit": 150.0, "valor_total": 300.0}], "precio_venta": 206296.63, "precio_nacional_clp": 154722471.85, "precio_exportacion_usd": 229218.48, "margen_negociacion": null, "comision_agente": 10.0}}, "JZR": {"JZR 7": {"fecha": "2020-01-09", "cambio": 700.0, "mano_obra": 1200.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 130.0, "precio_unit": 1.3, "valor_total": 169.0}, {"material": "RODETE JZR 7-30/2 250º - 2H", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Galvanizado", "cantidad": 130.0, "precio_unit": 0.6, "valor_total": 78.0}, {"material": "Pintura", "cantidad": 7.0, "precio_unit": 14.0, "valor_total": 98.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 7.0, "precio_unit": 5.0, "valor_total": 35.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 70.0}, {"material": "Sustentacion + sist. Seguridad + pernos", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Silenciador JAR-7", "cantidad": 1.0, "precio_unit": 722.0, "valor_total": 1444.0}, {"material": "rejilla", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 200.0}], "comerciales": [{"material": "MOTOR ELÉCTRICO", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 4910.0, "precio_nacional_clp": 3437000.0, "precio_exportacion_usd": 5279.57, "margen_negociacion": null, "comision_agente": 7.0}, "JZR 10": {"fecha": "2020-01-09", "cambio": 700.0, "mano_obra": 1285.71, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 200.0, "precio_unit": 1.3, "valor_total": 260.0}, {"material": "RODETE JZR 10 - 250º - 2H", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Galvanizado", "cantidad": 200.0, "precio_unit": 0.6, "valor_total": 120.0}, {"material": "Pintura", "cantidad": 7.0, "precio_unit": 14.0, "valor_total": 98.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 15.0, "precio_unit": 5.0, "valor_total": 75.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 70.0}, {"material": "Sustentacion + sist. Seguridad + pernos", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Silenciador JAR-10", "cantidad": 1.0, "precio_unit": 800.0, "valor_total": 1600.0}], "comerciales": [{"material": "Motor 34kW - 4 polos - IE1 - 250º", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 5244.61, "precio_nacional_clp": 4283101.35, "precio_exportacion_usd": 6798.57, "margen_negociacion": 10.0, "comision_agente": 10.0}, "JZR 12": {"fecha": "2020-01-09", "cambio": 700.0, "mano_obra": 1285.71, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 250.0, "precio_unit": 1.3, "valor_total": 325.0}, {"material": "RODETE JZR 12 - 250º - 2H", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Galvanizado", "cantidad": 250.0, "precio_unit": 0.6, "valor_total": 150.0}, {"material": "Pintura", "cantidad": 10.0, "precio_unit": 14.0, "valor_total": 140.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 10.0, "precio_unit": 5.0, "valor_total": 50.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 70.0}, {"material": "Sustentacion + sist. Seguridad + pernos", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Silenciador JAR-12", "cantidad": 1.0, "precio_unit": 1000.0, "valor_total": 2000.0}], "comerciales": [{"material": "Motor 41kW - 4 polos - IE1 - 250º", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 6005.69, "precio_nacional_clp": 4671096.1, "precio_exportacion_usd": 7414.44, "margen_negociacion": 10.0, "comision_agente": 10.0}, "JZR 14": {"fecha": "2020-01-09", "cambio": 700.0, "mano_obra": 1285.71, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 350.0, "precio_unit": 1.3, "valor_total": 455.0}, {"material": "RODETE JZR 14 - 400º - 2H", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Galvanizado", "cantidad": 350.0, "precio_unit": 0.6, "valor_total": 210.0}, {"material": "Pintura", "cantidad": 12.0, "precio_unit": 14.0, "valor_total": 168.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 12.0, "precio_unit": 5.0, "valor_total": 60.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 70.0}, {"material": "Sustentacion + sist. Seguridad + pernos", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Silenciador JAR-12", "cantidad": 1.0, "precio_unit": 1200.0, "valor_total": 2400.0}], "comerciales": [{"material": "Motor 41kW - 4 polos - IE1 - 250º", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 6939.21, "precio_nacional_clp": 5667020.27, "precio_exportacion_usd": 8995.27, "margen_negociacion": 10.0, "comision_agente": 10.0}, "JZR 16": {"fecha": "2020-01-09", "cambio": 700.0, "mano_obra": 2314.29, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 450.0, "precio_unit": 1.3, "valor_total": 585.0}, {"material": "RODETE JZRi 16 - 400º - 2H", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Galvanizado", "cantidad": 450.0, "precio_unit": 0.6, "valor_total": 270.0}, {"material": "Pintura", "cantidad": 15.0, "precio_unit": 14.0, "valor_total": 210.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 15.0, "precio_unit": 5.0, "valor_total": 75.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 70.0}, {"material": "Sustentacion + sist. Seguridad + pernos", "cantidad": 1.0, "precio_unit": null, "valor_total": null}, {"material": "Silenciador JAR-16", "cantidad": 1.0, "precio_unit": 1870.0, "valor_total": 3740.0}, {"material": "rejilla", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 200.0}], "comerciales": [{"material": "Motor 103kW - 4 polos - IE2 - 400º-2H", "cantidad": 1.0, "precio_unit": null, "valor_total": 0.0}, {"material": "ACELEROMETRO", "cantidad": 1.0, "precio_unit": 150.0, "valor_total": 150.0}], "precio_venta": 10958.49, "precio_nacional_clp": 7670945.95, "precio_exportacion_usd": 11783.33, "margen_negociacion": null, "comision_agente": 7.0}}, "Guillotinas": {"G,200": {"fecha": null, "cambio": 750.0, "mano_obra": 11880.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 2100.0, "precio_unit": 2.5, "valor_total": 5250.0}, {"material": "Arenado", "cantidad": 85.0, "precio_unit": 8.0, "valor_total": 680.0}, {"material": "Pintura", "cantidad": 85.0, "precio_unit": 14.0, "valor_total": 1190.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 85.0, "precio_unit": 1.0, "valor_total": 340.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 320.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}], "comerciales": [{"material": "Accionamiento y comerciales", "cantidad": 1.0, "precio_unit": 5000.0, "valor_total": 6250.0}], "precio_venta": 37517.41, "precio_nacional_clp": 19509055.45, "precio_exportacion_usd": 37517.41, "margen_negociacion": 3.0, "comision_agente": null}, "G,220": {"fecha": null, "cambio": 750.0, "mano_obra": 11880.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 2600.0, "precio_unit": 2.5, "valor_total": 6500.0}, {"material": "Arenado", "cantidad": 100.0, "precio_unit": 8.0, "valor_total": 800.0}, {"material": "Pintura", "cantidad": 100.0, "precio_unit": 14.0, "valor_total": 1400.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 100.0, "precio_unit": 1.0, "valor_total": 400.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 50.0, "precio_unit": 1.0, "valor_total": 450.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}], "comerciales": [{"material": "Accionamiento y comerciales", "cantidad": 1.0, "precio_unit": 5000.0, "valor_total": 6250.0}], "precio_venta": 40229.87, "precio_nacional_clp": 20919531.9, "precio_exportacion_usd": 40229.87, "margen_negociacion": 3.0, "comision_agente": null}}, "Piezas Especiales": {"GV 160": {"fecha": null, "cambio": 750.0, "mano_obra": 11100.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 1500.0, "precio_unit": 2.5, "valor_total": 3750.0}, {"material": "Arenado", "cantidad": 75.0, "precio_unit": 8.0, "valor_total": 600.0}, {"material": "Pintura", "cantidad": 75.0, "precio_unit": 14.0, "valor_total": 1050.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 75.0, "precio_unit": 1.0, "valor_total": 300.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 320.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}], "comerciales": [{"material": "Accionamiento y comerciales", "cantidad": 1.0, "precio_unit": 2000.0, "valor_total": 2500.0}], "precio_venta": 28509.33, "precio_nacional_clp": 14824853.72, "precio_exportacion_usd": 28509.33, "margen_negociacion": 3.0, "comision_agente": null}, "GH 200": {"fecha": null, "cambio": 750.0, "mano_obra": 11880.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 2100.0, "precio_unit": 2.5, "valor_total": 5250.0}, {"material": "Arenado", "cantidad": 85.0, "precio_unit": 8.0, "valor_total": 680.0}, {"material": "Pintura", "cantidad": 85.0, "precio_unit": 14.0, "valor_total": 1190.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 85.0, "precio_unit": 1.0, "valor_total": 340.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 40.0, "precio_unit": 1.0, "valor_total": 320.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}], "comerciales": [{"material": "Accionamiento y comerciales", "cantidad": 1.0, "precio_unit": 5000.0, "valor_total": 6250.0}], "precio_venta": 37517.41, "precio_nacional_clp": 19509055.45, "precio_exportacion_usd": 37517.41, "margen_negociacion": 3.0, "comision_agente": null}, "GH 220": {"fecha": null, "cambio": 750.0, "mano_obra": 11880.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 2600.0, "precio_unit": 2.5, "valor_total": 6500.0}, {"material": "Arenado", "cantidad": 100.0, "precio_unit": 8.0, "valor_total": 800.0}, {"material": "Pintura", "cantidad": 100.0, "precio_unit": 14.0, "valor_total": 1400.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 100.0, "precio_unit": 1.0, "valor_total": 400.0}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 50.0, "precio_unit": 1.0, "valor_total": 450.0}, {"material": "Otros Menores Embalaje", "cantidad": 1.0, "precio_unit": 100.0, "valor_total": 220.0}], "comerciales": [{"material": "Accionamiento y comerciales", "cantidad": 1.0, "precio_unit": 5000.0, "valor_total": 6250.0}], "precio_venta": 40229.87, "precio_nacional_clp": 20919531.9, "precio_exportacion_usd": 40229.87, "margen_negociacion": 3.0, "comision_agente": null}, "DIF 220-290-300 + BULBO": {"fecha": "2020-01-08", "cambio": 750.0, "mano_obra": 10500.0, "materiales": [{"material": "Aceros difusor y piezas", "cantidad": 2800.0, "precio_unit": 2.5, "valor_total": 7000.0}, {"material": "CHAPA PERFORADA 1500x2000", "cantidad": 16.0, "precio_unit": 100.0, "valor_total": 1600.0}, {"material": "LANA DE ROCA", "cantidad": 70.0, "precio_unit": 9.0, "valor_total": 630.0}, {"material": "Arenado", "cantidad": 240.0, "precio_unit": 8.8, "valor_total": 2112.0}, {"material": "Pintura", "cantidad": 240.0, "precio_unit": 14.0, "valor_total": 3360.0}, {"material": "Insumos Soldadura, Corte, Gases", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "Tornilleria/otros", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}], "comerciales": [], "precio_venta": 135.14, "precio_nacional_clp": null, "precio_exportacion_usd": 47564.53, "margen_negociacion": 0.1, "comision_agente": 0.1}}, "Codos": {"2200": {"fecha": "2020-01-08", "cambio": 700.0, "mano_obra": 5142.86, "materiales": [{"material": "Aceros difusor y piezas", "cantidad": 1500.0, "precio_unit": 1.3, "valor_total": 1950.0}, {"material": "Arenado", "cantidad": 65.0, "precio_unit": 8.8, "valor_total": 572.0}, {"material": "Pintura", "cantidad": 65.0, "precio_unit": 14.0, "valor_total": 910.0}, {"material": "Insumos Soldadura, Corte, Gases", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "Tornilleria/otros", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}], "comerciales": [], "precio_venta": 135.14, "precio_nacional_clp": null, "precio_exportacion_usd": 17574.42, "margen_negociacion": 0.1, "comision_agente": 0.1}, "3000": {"fecha": "2020-01-08", "cambio": 750.0, "mano_obra": 6240.0, "materiales": [{"material": "Aceros difusor y piezas", "cantidad": 2200.0, "precio_unit": 1.3, "valor_total": 2860.0}, {"material": "Arenado", "cantidad": 120.0, "precio_unit": 8.8, "valor_total": 1056.0}, {"material": "Pintura", "cantidad": 120.0, "precio_unit": 14.0, "valor_total": 1680.0}, {"material": "Insumos Soldadura, Corte, Gases", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "Tornilleria/otros", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}], "comerciales": [], "precio_venta": 135.14, "precio_nacional_clp": null, "precio_exportacion_usd": 23448.65, "margen_negociacion": 0.1, "comision_agente": 0.1}, "3200": {"fecha": "2020-01-08", "cambio": 700.0, "mano_obra": 7428.57, "materiales": [{"material": "Aceros difusor y piezas", "cantidad": 2400.0, "precio_unit": 1.3, "valor_total": 3120.0}, {"material": "Arenado", "cantidad": 240.0, "precio_unit": 8.8, "valor_total": 2112.0}, {"material": "Pintura", "cantidad": 240.0, "precio_unit": 14.0, "valor_total": 3360.0}, {"material": "Insumos Soldadura, Corte, Gases", "cantidad": 1.2, "precio_unit": 70.0, "valor_total": 504.0}, {"material": "embalaje", "cantidad": 1.2, "precio_unit": 70.0, "valor_total": 504.0}, {"material": "Tornilleria/otros", "cantidad": 1.2, "precio_unit": 70.0, "valor_total": 504.0}], "comerciales": [], "precio_venta": 135.14, "precio_nacional_clp": null, "precio_exportacion_usd": 31491.51, "margen_negociacion": 0.1, "comision_agente": 0.1}, "3600": {"fecha": "2020-01-08", "cambio": 750.0, "mano_obra": 6240.0, "materiales": [{"material": "Aceros difusor y piezas", "cantidad": 4800.0, "precio_unit": 1.3, "valor_total": 6240.0}, {"material": "Arenado", "cantidad": 300.0, "precio_unit": 8.8, "valor_total": 2640.0}, {"material": "Pintura", "cantidad": 300.0, "precio_unit": 14.0, "valor_total": 4200.0}, {"material": "Insumos Soldadura, Corte, Gases", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "embalaje", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}, {"material": "Tornilleria/otros", "cantidad": 1.0, "precio_unit": 70.0, "valor_total": 420.0}], "comerciales": [], "precio_venta": 135.14, "precio_nacional_clp": null, "precio_exportacion_usd": 39845.05, "margen_negociacion": 0.15, "comision_agente": 0.1}, "4000": {"fecha": "preparacio", "cambio": 750.0, "mano_obra": 7392.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 8000.0, "precio_unit": 1.3, "valor_total": 10400.0}, {"material": "Arenado", "cantidad": 230.0, "precio_unit": 8.8, "valor_total": 2024.0}, {"material": "Pintura", "cantidad": 57.5, "precio_unit": 14.0, "valor_total": 3220.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 80.0, "precio_unit": 1.1, "valor_total": 246.4}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Embalaje", "cantidad": 1.0, "precio_unit": 500.0, "valor_total": 500.0}], "comerciales": [], "precio_venta": 34574.04, "precio_nacional_clp": 25930530.41, "precio_exportacion_usd": 37176.39, "margen_negociacion": null, "comision_agente": 7.0}, "4200": {"fecha": "preparacio", "cambio": 840.0, "mano_obra": 6600.0, "materiales": [{"material": "Aceros ventiladores y piezas", "cantidad": 8900.0, "precio_unit": 2.5, "valor_total": 22250.0}, {"material": "Arenado", "cantidad": 250.0, "precio_unit": 8.8, "valor_total": 2200.0}, {"material": "Pintura", "cantidad": 69.0, "precio_unit": 14.0, "valor_total": 3864.0}, {"material": "Insumos Soldadura, Corte, Gases, tornilleria", "cantidad": 90.0, "precio_unit": 1.1, "valor_total": 277.2}, {"material": "Otros Cortes y Piezas Exterior", "cantidad": 15.0, "precio_unit": 1.1, "valor_total": 148.5}, {"material": "Embalaje", "cantidad": 1.0, "precio_unit": 500.0, "valor_total": 500.0}], "comerciales": [], "precio_venta": 52383.34, "precio_nacional_clp": 44002003.78, "precio_exportacion_usd": 56326.17, "margen_negociacion": null, "comision_agente": 7.0}}, "Difusores": {"TOBERA AERODINAMICA": {"fecha": "2019-01-03", "cambio": 680.0, "modelos": [{"diametro": "DIAM. 600MM", "costo_usd": 329.33, "venta_usd_nacional": 445.04, "venta_clp_nacional": 302625.16, "venta_usd_internacional": 445.04}, {"diametro": "DIAM. 700MM", "costo_usd": 340.95, "venta_usd_nacional": 460.74, "venta_clp_nacional": 313306.31, "venta_usd_internacional": 460.74}, {"diametro": "DIAM. 900MM", "costo_usd": 379.73, "venta_usd_nacional": 513.15, "venta_clp_nacional": 348941.26, "venta_usd_internacional": 513.15}, {"diametro": "DIAM. 1000MM", "costo_usd": 407.85, "venta_usd_nacional": 551.15, "venta_clp_nacional": 374784.58, "venta_usd_internacional": 551.15}, {"diametro": "DIAM. 1200MM", "costo_usd": 496.96, "venta_usd_nacional": 671.57, "venta_clp_nacional": 456670.12, "venta_usd_internacional": 671.57}, {"diametro": "DIAM. 1400MM", "costo_usd": 604.25, "venta_usd_nacional": 816.56, "venta_clp_nacional": 555258.37, "venta_usd_internacional": 816.56}, {"diametro": "DIAM. 1600MM", "costo_usd": 432.58, "venta_usd_nacional": 584.57, "venta_clp_nacional": 397505.0, "venta_usd_internacional": 584.57}]}, "TOBERA CONICA": {"fecha": "2019-01-03", "cambio": 800.0, "modelos": [{"diametro": "DIAM. 900MM", "costo_usd": 910.9, "venta_usd_nacional": 1230.94, "venta_clp_nacional": 984755.2, "venta_usd_internacional": 1230.94}, {"diametro": "DIAM. 1000MM", "costo_usd": 921.22, "venta_usd_nacional": 1244.89, "venta_clp_nacional": 995915.69, "venta_usd_internacional": 1244.89}, {"diametro": "DIAM. 1200MM", "costo_usd": 962.66, "venta_usd_nacional": 1300.89, "venta_clp_nacional": 1040712.35, "venta_usd_internacional": 1300.89}, {"diametro": "DIAM. 1400MM", "costo_usd": 1004.1, "venta_usd_nacional": 1356.89, "venta_clp_nacional": 1085509.02, "venta_usd_internacional": 1356.89}, {"diametro": "DIAM. 1600MM", "costo_usd": 1071.82, "venta_usd_nacional": 1448.41, "venta_clp_nacional": 1158727.3, "venta_usd_internacional": 1448.41}, {"diametro": "DIAM. 1800MM", "costo_usd": 1156.05, "venta_usd_nacional": 1562.23, "venta_clp_nacional": 1249783.42, "venta_usd_internacional": 1562.23}, {"diametro": "DIAM. 2000MM", "costo_usd": 2462.3, "venta_usd_nacional": 3327.43, "venta_clp_nacional": 2661943.49, "venta_usd_internacional": 3327.43}, {"diametro": "DIAM. 2200MM", "costo_usd": 2507.69, "venta_usd_nacional": 3388.78, "venta_clp_nacional": 2711021.23, "venta_usd_internacional": 3388.78}, {"diametro": "DIAM. 2500MM", "costo_usd": 2607.75, "venta_usd_nacional": 3523.98, "venta_clp_nacional": 2819183.79, "venta_usd_internacional": 3523.98}, {"diametro": "DIAM. 3000MM", "costo_usd": 3871.36, "venta_usd_nacional": 5231.56, "venta_clp_nacional": 4185250.7, "venta_usd_internacional": 5231.56}, {"diametro": "DIAM. 3300MM", "costo_usd": 4140.2, "venta_usd_nacional": 5594.86, "venta_clp_nacional": 4475888.54, "venta_usd_internacional": 5594.86}]}, "DIFUSORES": {"fecha": "2019-01-03", "cambio": 800.0, "modelos": [{"diametro": "DIAM. 900MM", "costo_usd": 2760.9, "venta_usd_nacional": 4313.9, "venta_clp_nacional": 3451123.15, "venta_usd_internacional": 4793.23}, {"diametro": "DIAM. 1000MM", "costo_usd": 3198.76, "venta_usd_nacional": 4998.06, "venta_clp_nacional": 3998444.01, "venta_usd_internacional": 5553.39}, {"diametro": "DIAM. 1200MM", "costo_usd": 3501.72, "venta_usd_nacional": 5471.44, "venta_clp_nacional": 4377151.25, "venta_usd_internacional": 6079.38}, {"diametro": "DIAM. 1400MM", "costo_usd": 4477.9, "venta_usd_nacional": 6996.72, "venta_clp_nacional": 5597376.31, "venta_usd_internacional": 7774.13}, {"diametro": "DIAM. 1600MM", "costo_usd": 4703.44, "venta_usd_nacional": 7349.12, "venta_clp_nacional": 5879296.46, "venta_usd_internacional": 8165.69}, {"diametro": "DIAM. 1800MM", "costo_usd": 5449.09, "venta_usd_nacional": 8514.21, "venta_clp_nacional": 6811364.79, "venta_usd_internacional": 9460.23}, {"diametro": "DIAM. 2000MM", "costo_usd": 9160.72, "venta_usd_nacional": 14313.63, "venta_clp_nacional": 11450901.68, "venta_usd_internacional": 15904.03}, {"diametro": "DIAM. 2200MM", "costo_usd": 9401.51, "venta_usd_nacional": 14689.87, "venta_clp_nacional": 11751893.41, "venta_usd_internacional": 16322.07}, {"diametro": "DIAM. 2500MM", "costo_usd": 5883.05, "venta_usd_nacional": 9192.27, "venta_clp_nacional": 7353812.26, "venta_usd_internacional": 10213.63}]}}, "Adaptación a Manga": {"TIPO A": {"fecha": "2019-01-03", "cambio": 750.0, "modelos": [{"diametro": "DIAM. 500MM", "costo_usd": 181.61, "venta_usd_nacional": 283.77, "venta_clp_nacional": 212828.69, "venta_usd_internacional": 315.3}, {"diametro": "DIAM. 600MM", "costo_usd": 188.52, "venta_usd_nacional": 294.56, "venta_clp_nacional": 220916.3, "venta_usd_internacional": 327.28}, {"diametro": "DIAM. 700MM", "costo_usd": 195.42, "venta_usd_nacional": 305.34, "venta_clp_nacional": 229003.91, "venta_usd_internacional": 339.27}, {"diametro": "DIAM. 900MM", "costo_usd": 209.22, "venta_usd_nacional": 326.91, "venta_clp_nacional": 245179.14, "venta_usd_internacional": 363.23}, {"diametro": "DIAM. 1000MM", "costo_usd": 260.12, "venta_usd_nacional": 406.44, "venta_clp_nacional": 304829.25, "venta_usd_internacional": 451.6}, {"diametro": "DIAM. 1200MM", "costo_usd": 273.92, "venta_usd_nacional": 428.01, "venta_clp_nacional": 321004.47, "venta_usd_internacional": 475.56}, {"diametro": "DIAM. 1250MM", "costo_usd": 277.37, "venta_usd_nacional": 433.4, "venta_clp_nacional": 325048.28, "venta_usd_internacional": 481.55}, {"diametro": "DIAM. 1400MM", "costo_usd": 331.73, "venta_usd_nacional": 518.32, "venta_clp_nacional": 388742.2, "venta_usd_internacional": 575.91}, {"diametro": "DIAM. 1600MM", "costo_usd": 345.53, "venta_usd_nacional": 539.89, "venta_clp_nacional": 404917.42, "venta_usd_internacional": 599.88}, {"diametro": "DIAM. 1800MM", "costo_usd": 359.33, "venta_usd_nacional": 561.46, "venta_clp_nacional": 421092.65, "venta_usd_internacional": 623.84}, {"diametro": "DIAM. 2000MM", "costo_usd": 668.27, "venta_usd_nacional": 1044.17, "venta_clp_nacional": 783125.9, "venta_usd_internacional": 1160.19}, {"diametro": "DIAM. 2200MM", "costo_usd": 757.67, "venta_usd_nacional": 1183.86, "venta_clp_nacional": 887894.75, "venta_usd_internacional": 1315.4}, {"diametro": "DIAM. 2500MM", "costo_usd": 803.77, "venta_usd_nacional": 1255.9, "venta_clp_nacional": 941923.02, "venta_usd_internacional": 1395.44}, {"diametro": "DIAM. 3200MM", "costo_usd": 911.35, "venta_usd_nacional": 1423.99, "venta_clp_nacional": 1067988.98, "venta_usd_internacional": 1582.21}]}, "TIPO B": {"fecha": "2019-01-03", "cambio": 700.0, "modelos": [{"diametro": "DIAM. 600MM", "costo_usd": 508.44, "venta_usd_nacional": 687.08, "venta_clp_nacional": 480952.73, "venta_usd_internacional": 763.42}, {"diametro": "DIAM. 700MM", "costo_usd": 506.43, "venta_usd_nacional": 684.36, "venta_clp_nacional": 479052.33, "venta_usd_internacional": 760.4}, {"diametro": "DIAM. 900MM", "costo_usd": 535.59, "venta_usd_nacional": 723.77, "venta_clp_nacional": 506638.96, "venta_usd_internacional": 804.19}, {"diametro": "DIAM. 1000MM", "costo_usd": 789.67, "venta_usd_nacional": 1067.12, "venta_clp_nacional": 746985.45, "venta_usd_internacional": 1185.69}, {"diametro": "DIAM. 1200MM", "costo_usd": 902.32, "venta_usd_nacional": 1219.36, "venta_clp_nacional": 853549.11, "venta_usd_internacional": 1354.84}, {"diametro": "DIAM. 1250MM", "costo_usd": 892.57, "venta_usd_nacional": 1206.18, "venta_clp_nacional": 844326.61, "venta_usd_internacional": 1340.2}, {"diametro": "DIAM. 1400MM", "costo_usd": 1225.34, "venta_usd_nacional": 1655.87, "venta_clp_nacional": 1159110.07, "venta_usd_internacional": 1839.86}, {"diametro": "DIAM. 1600MM", "costo_usd": 1277.94, "venta_usd_nacional": 1726.94, "venta_clp_nacional": 1208860.21, "venta_usd_internacional": 1918.83}, {"diametro": "DIAM. 1800MM", "costo_usd": 1335.15, "venta_usd_nacional": 1804.26, "venta_clp_nacional": 1262980.62, "venta_usd_internacional": 2004.73}]}, "TIPO C": {"fecha": "2019-01-03", "cambio": 700.0, "modelos": [{"diametro": "DIAM. 600MM", "costo_usd": 451.97, "venta_usd_nacional": 610.78, "venta_clp_nacional": 427542.72, "venta_usd_internacional": 678.64}, {"diametro": "DIAM. 700MM", "costo_usd": 467.22, "venta_usd_nacional": 631.37, "venta_clp_nacional": 441960.36, "venta_usd_internacional": 701.52}, {"diametro": "DIAM. 900MM", "costo_usd": 533.91, "venta_usd_nacional": 721.5, "venta_clp_nacional": 505047.87, "venta_usd_internacional": 801.66}, {"diametro": "DIAM. 1000MM", "costo_usd": 715.54, "venta_usd_nacional": 966.94, "venta_clp_nacional": 676859.63, "venta_usd_internacional": 1074.38}, {"diametro": "DIAM. 1200MM", "costo_usd": 808.39, "venta_usd_nacional": 1092.42, "venta_clp_nacional": 764693.56, "venta_usd_internacional": 1213.8}, {"diametro": "DIAM. 1250MM", "costo_usd": 811.84, "venta_usd_nacional": 1097.08, "venta_clp_nacional": 767957.54, "venta_usd_internacional": 1218.98}, {"diametro": "DIAM. 1400MM", "costo_usd": 1079.6, "venta_usd_nacional": 1458.92, "venta_clp_nacional": 1021245.05, "venta_usd_internacional": 1621.02}, {"diametro": "DIAM. 1600MM", "costo_usd": 1200.17, "venta_usd_nacional": 1621.86, "venta_clp_nacional": 1135300.6, "venta_usd_internacional": 1802.06}, {"diametro": "DIAM. 1800MM", "costo_usd": 1258.71, "venta_usd_nacional": 1700.96, "venta_clp_nacional": 1190669.66, "venta_usd_internacional": 1889.95}]}, "PANTALON": {"fecha": "2019-01-03", "cambio": 840.0, "modelos": [{"diametro": "DIAM. 700MM", "costo_usd": 1885.63, "venta_usd_nacional": 2548.15, "venta_clp_nacional": 2140442.87, "venta_usd_internacional": 2831.27}, {"diametro": "DIAM. 900MM", "costo_usd": 2084.83, "venta_usd_nacional": 2817.33, "venta_clp_nacional": 2366561.29, "venta_usd_internacional": 3130.37}, {"diametro": "DIAM. 1000MM", "costo_usd": 2096.36, "venta_usd_nacional": 2832.92, "venta_clp_nacional": 2379651.12, "venta_usd_internacional": 3147.69}, {"diametro": "DIAM. 1200MM", "costo_usd": 2272.96, "venta_usd_nacional": 3071.56, "venta_clp_nacional": 2580112.66, "venta_usd_internacional": 3412.85}, {"diametro": "DIAM. 1400MM", "costo_usd": 2324.44, "venta_usd_nacional": 3141.14, "venta_clp_nacional": 2638555.27, "venta_usd_internacional": 3490.15}, {"diametro": "DIAM. 4200MM", "costo_usd": 10309.0, "venta_usd_nacional": 13931.08, "venta_clp_nacional": 11702109.83, "venta_usd_internacional": 15478.98}, {"diametro": "DIAM. 700MM", "costo_usd": null, "venta_usd_nacional": null, "venta_clp_nacional": null, "venta_usd_internacional": null}, {"diametro": "DIAM. 900MM", "costo_usd": null, "venta_usd_nacional": null, "venta_clp_nacional": null, "venta_usd_internacional": null}, {"diametro": "DIAM. 1000MM", "costo_usd": 2099.27, "venta_usd_nacional": 2836.85, "venta_clp_nacional": 2382956.76, "venta_usd_internacional": 3152.06}, {"diametro": "DIAM. 1200MM", "costo_usd": 2210.26, "venta_usd_nacional": 2986.84, "venta_clp_nacional": 2508945.41, "venta_usd_internacional": 3318.71}, {"diametro": "DIAM. 1400MM", "costo_usd": null, "venta_usd_nacional": null, "venta_clp_nacional": null, "venta_usd_internacional": 1.4}]}}, "Válvulas Manga": {"valvulas": {"fecha": "2019-01-03", "cambio": 750.0, "modelos": [{"diametro": "T", "costo_usd": 1312.1, "venta_usd_nacional": 1773.11, "venta_clp_nacional": 1329829.47, "venta_usd_internacional": 1773.11}, {"diametro": "Y", "costo_usd": 1378.81, "venta_usd_nacional": 1863.25, "venta_clp_nacional": 1397440.74, "venta_usd_internacional": 1863.25}]}}, "Silenciadores": {"FAR60-100": {"fecha": null, "cambio": 750.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR70-100": {"fecha": null, "cambio": 680.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR90-100": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR100-100": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR120-200": {"fecha": null, "cambio": 750.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR140-200": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR160-200": {"fecha": null, "cambio": 680.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR180-200": {"fecha": null, "cambio": 520.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR200-200": {"fecha": null, "cambio": 750.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR230-200": {"fecha": null, "cambio": 750.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "FAR250-250": {"fecha": null, "cambio": 520.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 18": {"fecha": null, "cambio": 750.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 21,1-4": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 25,1-4": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 27,1-4": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 32": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 33": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 35": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}, "VAV 37": {"fecha": null, "cambio": 700.0, "materiales": [], "comerciales": [], "precio_venta": null, "precio_nacional_clp": null, "precio_exportacion_usd": null}}};
  
 const cats=Object.keys(DATA);
-let curCat=null,curMod=null;
+let curCat=null,curMod=null,showPwd=false;
  
 function fmt(v,dec=0){if(v==null||isNaN(v))return"—";return new Intl.NumberFormat("es-CL",{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+function toggleEye(){showPwd=!showPwd;document.getElementById('pwd').type=showPwd?'text':'password';document.getElementById('eyebtn').textContent=showPwd?'🙈':'👁';}
+ 
+function login(){
+  const v=document.getElementById('pwd').value;
+  if(v==='zitron2026!'){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';init();}
+  else{const b=document.getElementById('lbox'),i=document.getElementById('pwd'),e=document.getElementById('errmsg');
+    b.classList.add('error');i.classList.add('err');e.style.display='block';
+    document.getElementById('pwd').value='';
+    setTimeout(()=>{b.classList.remove('error');i.classList.remove('err');e.style.display='none';},2000);}
+}
  
 function init(){
-  sessionStorage.setItem('zpw','ok');
   const total=cats.reduce((s,c)=>s+Object.keys(DATA[c]).length,0);
   document.getElementById('hstats').textContent=cats.length+' categorías · '+total+' modelos';
   renderCats();
@@ -204,17 +172,18 @@ function init(){
 function renderCats(){
   curCat=null;curMod=null;
   document.getElementById('btn-back').style.display='none';
-  let h='<div class="sec">📦 Categorías de producto</div><div class="cat-grid">';
+  let h='<div style="font-size:13px;color:#8892b0;margin-bottom:16px">Selecciona una categoría de producto</div><div class="cat-grid">';
   cats.forEach(c=>{
-    const col=COLORS[c]||'#1D4ED8';
+    const col=COLORS[c]||'#3498db';
     const n=Object.keys(DATA[c]).length;
-    const img=IMGS[c]?`<div class="cat-img-wrap"><img src="${IMGS[c]}" alt="${c}"></div>`:'';
-    h+=`<button class="cat-card" style="--acc:${col}" onclick="renderMods('${c.replace(/'/g,"\'")}')">
+    const img=IMGS[c]?`<div class="cat-img-wrap"><img src="${IMGS[c]}" alt="${c}" onerror="this.parentElement.style.display='none'"></div>`:'';
+    h+=`<button class="cat-card" style="--acc:${col};border-color:${col}30" onclick="renderMods('${c.replace(/'/g,"\'")}')">
+      <div class="cat-acc"></div>
       ${img}
       <div class="cat-body">
         <div class="cat-icon">${ICONS[c]||'◆'}</div>
         <div class="cat-name">${c}</div>
-        <div class="cat-count">${n} modelos disponibles</div>
+        <div class="cat-count">${n} modelos</div>
       </div>
     </button>`;
   });
@@ -224,34 +193,31 @@ function renderCats(){
 function renderMods(cat){
   curCat=cat;curMod=null;
   document.getElementById('btn-back').style.display='block';
-  const col=COLORS[cat]||'#1D4ED8';
+  const col=COLORS[cat]||'#3498db';
   const mods=Object.keys(DATA[cat]);
-  let h=`<div class="sec">📋 ${cat}</div>
-    <div class="mod-header">
-      <h2 class="mod-title">${cat}</h2>
-      <span class="mod-badge" style="background:${col}18;color:${col}">${mods.length} modelos</span>
-    </div>
-    <div class="mod-grid">`;
+  let h=`<div class="mod-header">
+    <span style="font-size:22px">${ICONS[cat]||'◆'}</span>
+    <h2 class="mod-title">${cat}</h2>
+    <span class="mod-badge" style="background:${col}22;color:${col}">${mods.length} modelos</span>
+  </div><div class="mod-grid">`;
   mods.forEach(mod=>{
-    const d=DATA[cat][mod];
-    const hasDiam=d.modelos&&d.modelos.length>0;
+    const d=DATA[cat][mod],hasDiam=d.modelos&&d.modelos.length>0;
     const safe=mod.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     h+=`<button class="mod-card" style="--acc:${col}" onclick="renderDetalle('${cat.replace(/'/g,"\'")}','${safe}')">
       <div class="mod-cname" style="color:${col}">${mod}</div>
       ${d.fecha?`<div class="mod-fecha">📅 ${d.fecha}</div>`:''}
-      ${d.precio_venta?`<div class="mod-pv" style="color:var(--grn)">USD ${fmt(d.precio_venta,2)}</div>`:''}
+      ${d.precio_venta?`<div class="mod-pv">USD ${fmt(d.precio_venta,2)}</div>`:''}
       ${hasDiam?`<div class="mod-ndiam">${d.modelos.length} diámetros</div>`:''}
     </button>`;
   });
-  h+='</div>';
-  document.getElementById('main').innerHTML=h;
+  document.getElementById('main').innerHTML=h+'</div>';
 }
  
 function goBack(){if(curMod)renderMods(curCat);else renderCats();}
  
 function renderDetalle(cat,mod){
   curMod=mod;
-  const col=COLORS[cat]||'#1D4ED8';
+  const col=COLORS[cat]||'#3498db';
   const d=DATA[cat][mod];
   const hasMat=d.materiales&&d.materiales.length>0;
   const hasCom=d.comerciales&&d.comerciales.length>0;
@@ -260,21 +226,18 @@ function renderDetalle(cat,mod){
   const totalCom=hasCom?d.comerciales.reduce((s,m)=>s+(m.valor_total||0),0):0;
  
   let h=`<div class="breadcrumb">
-    <span class="link" style="color:${col}" onclick="renderMods('${cat.replace(/'/g,"\'")}'">${cat}</span>
-    <span>›</span>
-    <span style="font-weight:600;color:var(--text)">${mod}</span>
+    <span class="link" style="color:${col}" onclick="renderMods('${cat.replace(/'/g,"\'")}')"> ${cat}</span>
+    <span>›</span><span style="color:#e8eaf0;font-weight:600">${mod}</span>
   </div>`;
  
-  // Imagen del producto
-  if(IMGS[cat]) h+=`<img class="detail-img" src="${IMGS[cat]}" alt="${cat}">`;
+  if(IMGS[cat]) h+=`<img class="detail-img" src="${IMGS[cat]}" alt="${cat}" onerror="this.style.display='none'">`;
  
-  // Info general
-  h+=`<div class="info-card">
+  h+=`<div class="info-card" style="background:linear-gradient(135deg,#1a1d2e,#1f2235);border:1px solid ${col}50">
     <div><div class="info-label">Modelo</div><div class="info-modelo" style="color:${col}">${mod}</div></div>
     ${d.fecha?`<div><div class="info-label">Fecha Costeo</div><div class="info-val">${d.fecha}</div></div>`:''}
     ${d.cambio?`<div><div class="info-label">Cambio CLP/USD</div><div class="info-val">$${fmt(d.cambio)}</div></div>`:''}
-    ${d.mano_obra?`<div><div class="info-label">Mano de Obra</div><div class="info-val" style="color:var(--pur,#6D28D9)">USD ${fmt(d.mano_obra,2)}</div></div>`:''}
-    ${d.precio_venta?`<div style="margin-left:auto;text-align:right">
+    ${d.mano_obra?`<div><div class="info-label">Mano de Obra</div><div class="info-val" style="color:#9b59b6">USD ${fmt(d.mano_obra,2)}</div></div>`:''}
+    ${d.precio_venta?`<div style="margin-left:auto">
       <div class="info-label">Precio Venta</div>
       <div class="info-pv">USD ${fmt(d.precio_venta,2)}</div>
       ${d.precio_nacional_clp?`<div class="info-clp">CLP ${fmt(d.precio_nacional_clp)}</div>`:''}
@@ -282,73 +245,63 @@ function renderDetalle(cat,mod){
     </div>`:''}
   </div>`;
  
-  // Tarjetas de precios
   if(d.precio_nacional_clp||d.precio_exportacion_usd){
     h+=`<div class="precios-grid">`;
-    if(d.precio_venta) h+=`<div class="precio-card"><div class="precio-lbl">💰 Precio Venta</div><div class="precio-val" style="color:var(--grn)">USD ${fmt(d.precio_venta,2)}</div></div>`;
-    if(d.precio_nacional_clp) h+=`<div class="precio-card"><div class="precio-lbl">🇨🇱 Precio Nacional</div><div class="precio-val" style="color:var(--amb)">CLP ${fmt(d.precio_nacional_clp)}</div></div>`;
-    if(d.precio_exportacion_usd) h+=`<div class="precio-card"><div class="precio-lbl">✈️ Exportación</div><div class="precio-val" style="color:var(--blu)">USD ${fmt(d.precio_exportacion_usd,2)}</div></div>`;
-    if(d.margen_negociacion&&d.margen_negociacion>1) h+=`<div class="precio-card"><div class="precio-lbl">📊 Margen Negociación</div><div class="precio-val" style="color:var(--amb)">${d.margen_negociacion}%</div></div>`;
-    if(d.comision_agente&&d.comision_agente>1) h+=`<div class="precio-card"><div class="precio-lbl">🤝 Comisión Agente</div><div class="precio-val" style="color:var(--pur,#6D28D9)">${d.comision_agente}%</div></div>`;
+    if(d.precio_venta) h+=`<div class="precio-card"><div class="precio-lbl">💰 Precio Venta</div><div class="precio-val" style="color:#2ecc71">USD ${fmt(d.precio_venta,2)}</div></div>`;
+    if(d.precio_nacional_clp) h+=`<div class="precio-card"><div class="precio-lbl">🇨🇱 Precio Nacional</div><div class="precio-val" style="color:#f1c40f">CLP ${fmt(d.precio_nacional_clp)}</div></div>`;
+    if(d.precio_exportacion_usd) h+=`<div class="precio-card"><div class="precio-lbl">✈️ Exportación</div><div class="precio-val" style="color:#3498db">USD ${fmt(d.precio_exportacion_usd,2)}</div></div>`;
+    if(d.margen_negociacion&&d.margen_negociacion>1) h+=`<div class="precio-card"><div class="precio-lbl">📊 Margen Negociación</div><div class="precio-val" style="color:#e67e22">${d.margen_negociacion}%</div></div>`;
+    if(d.comision_agente&&d.comision_agente>1) h+=`<div class="precio-card"><div class="precio-lbl">🤝 Comisión Agente</div><div class="precio-val" style="color:#9b59b6">${d.comision_agente}%</div></div>`;
     h+=`</div>`;
   }
  
-  // Materiales
   if(hasMat){
     h+=`<div class="section-label">Materiales</div><div class="table-wrap"><table>
       <thead><tr><th class="l">Material</th><th class="r">Cantidad</th><th class="r">Precio Unit. USD</th><th class="r">Valor Total USD</th></tr></thead><tbody>`;
     d.materiales.forEach(m=>{
-      h+=`<tr>
-        <td class="l" style="font-weight:500">${m.material}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${fmt(m.cantidad,2)}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${m.precio_unit?fmt(m.precio_unit,2):'—'}</td>
-        <td class="r" style="font-weight:600;font-family:'JetBrains Mono',monospace;color:${m.valor_total?'var(--text)':'var(--lite)'}">${m.valor_total?fmt(m.valor_total,2):'—'}</td>
-      </tr>`;
+      h+=`<tr><td class="l" style="font-weight:500">${m.material}</td>
+        <td class="r" style="color:#8892b0">${fmt(m.cantidad,2)}</td>
+        <td class="r" style="color:#8892b0">${m.precio_unit?fmt(m.precio_unit,2):'—'}</td>
+        <td class="r" style="font-weight:600;color:${m.valor_total?'#e8eaf0':'#555'}">${m.valor_total?fmt(m.valor_total,2):'—'}</td></tr>`;
     });
     h+=`</tbody><tfoot><tr class="tfoot-row">
-      <td colspan="3" class="l tfoot-lbl" style="padding:9px 14px">Total Materiales</td>
-      <td class="tfoot-val" style="padding:9px 14px;color:${col}">${fmt(totalMat,2)}</td>
+      <td colspan="3" class="l tfoot-lbl" style="padding:11px 16px">Total Materiales</td>
+      <td class="tfoot-val" style="padding:11px 16px;color:${col}">${fmt(totalMat,2)}</td>
     </tr></tfoot></table></div>`;
   }
  
-  // Comerciales
   if(hasCom){
     h+=`<div class="section-label">Comerciales</div><div class="table-wrap"><table>
       <thead><tr><th class="l">Ítem</th><th class="r">Cantidad</th><th class="r">Precio Unit. USD</th><th class="r">Valor Total USD</th></tr></thead><tbody>`;
     d.comerciales.forEach(m=>{
-      h+=`<tr>
-        <td class="l" style="font-weight:600;color:var(--amb)">${m.material}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${fmt(m.cantidad,2)}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${m.precio_unit?fmt(m.precio_unit,2):'—'}</td>
-        <td class="r" style="font-weight:600;font-family:'JetBrains Mono',monospace;color:${m.valor_total?'var(--text)':'var(--lite)'}">${m.valor_total?fmt(m.valor_total,2):'—'}</td>
-      </tr>`;
+      h+=`<tr><td class="l" style="font-weight:500;color:#e67e22">${m.material}</td>
+        <td class="r" style="color:#8892b0">${fmt(m.cantidad,2)}</td>
+        <td class="r" style="color:#8892b0">${m.precio_unit?fmt(m.precio_unit,2):'—'}</td>
+        <td class="r" style="font-weight:600;color:${m.valor_total?'#e8eaf0':'#555'}">${m.valor_total?fmt(m.valor_total,2):'—'}</td></tr>`;
     });
     h+=`</tbody><tfoot><tr class="tfoot-row">
-      <td colspan="3" class="l tfoot-lbl" style="padding:9px 14px">Total Comerciales</td>
-      <td class="tfoot-val" style="padding:9px 14px;color:var(--amb)">${fmt(totalCom,2)}</td>
+      <td colspan="3" class="l tfoot-lbl" style="padding:11px 16px">Total Comerciales</td>
+      <td class="tfoot-val" style="padding:11px 16px;color:#e67e22">${fmt(totalCom,2)}</td>
     </tr></tfoot></table></div>`;
   }
  
-  // Diámetros
   if(hasDiam){
     h+=`<div class="section-label">Precios por Diámetro</div><div class="table-wrap"><table>
       <thead><tr><th class="l">Diámetro</th><th class="r">Costo USD</th><th class="r">Venta USD Nacional</th><th class="r">Venta CLP Nacional</th><th class="r">Venta USD Intl.</th></tr></thead><tbody>`;
     d.modelos.filter(m=>m.costo_usd||m.venta_usd_nacional).forEach(m=>{
-      h+=`<tr>
-        <td class="l" style="font-weight:700;color:${col};font-family:'JetBrains Mono',monospace">${m.diametro}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${fmt(m.costo_usd,2)}</td>
-        <td class="r" style="font-weight:700;color:var(--grn);font-family:'JetBrains Mono',monospace">${fmt(m.venta_usd_nacional,2)}</td>
-        <td class="r" style="color:var(--sub);font-family:'JetBrains Mono',monospace">${fmt(m.venta_clp_nacional)}</td>
-        <td class="r" style="color:var(--blu);font-family:'JetBrains Mono',monospace">${fmt(m.venta_usd_internacional,2)}</td>
-      </tr>`;
+      h+=`<tr><td class="l" style="font-weight:600;color:${col}">${m.diametro}</td>
+        <td class="r" style="color:#8892b0">${fmt(m.costo_usd,2)}</td>
+        <td class="r" style="font-weight:600;color:#2ecc71">${fmt(m.venta_usd_nacional,2)}</td>
+        <td class="r" style="color:#8892b0">${fmt(m.venta_clp_nacional)}</td>
+        <td class="r" style="color:#3498db">${fmt(m.venta_usd_internacional,2)}</td></tr>`;
     });
     h+=`</tbody></table></div>`;
   }
  
   if(!hasMat&&!hasDiam&&d.precio_venta){
-    h+=`<div class="table-wrap" style="padding:28px;text-align:center">
-      <div class="info-label">Precio de Venta</div>
-      <div style="font-size:32px;font-weight:800;color:var(--grn);font-family:'JetBrains Mono',monospace">USD ${fmt(d.precio_venta,2)}</div>
+    h+=`<div style="background:#1a1d2e;border-radius:14px;padding:28px;border:1px solid #2a2d3e;text-align:center">
+      <div style="font-size:12px;color:#8892b0;margin-bottom:8px">PRECIO DE VENTA</div>
+      <div style="font-size:32px;font-weight:800;color:#2ecc71">USD ${fmt(d.precio_venta,2)}</div>
     </div>`;
   }
  
@@ -357,32 +310,3 @@ function renderDetalle(cat,mod){
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
