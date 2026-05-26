@@ -4,133 +4,290 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Portafolio Proyectos — Zitron</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js">
-
-function toggleFml(btn){
-  const p=document.getElementById('fmlPanel');
-  const a=btn.querySelector('.fml-arr');
-  p.classList.toggle('open');
-  a.textContent=p.classList.contains('open')?'▾':'▸';
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f2240;--navy2:#162d4f;--navy3:#1e3a62;
+  --blue:#2563eb;--blue3:#3b82f6;
+  --bg:#f0f4f8;--text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --green:#16a34a;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;
+  --font:"IBM Plex Sans",sans-serif;--mono:"IBM Plex Mono",monospace;
 }
-
-function renderFormulas(vals){
-  const v = vals;
-  const clsSpi = v.spit>=1?'fml-ok':v.spit>=0.7?'fml-warn':'fml-bad';
-  const clsSv  = v.svt>=0?'fml-ok':'fml-bad';
-  const clsSlip= v.daysSlip<=0?'fml-ok':v.daysSlip<=14?'fml-warn':'fml-bad';
-  const clsProb= v.prob>=70?'fml-ok':v.prob>=40?'fml-warn':'fml-bad';
-  const hrsD   = (42/5).toFixed(1); // 8.4h/día
-  const hrsT   = 8;                 // turno kick off
-  const hrsK   = v.nKick>0?(hrsT/v.nKick).toFixed(2):hrsT;
-
-  const rows = [
-    {
-      tag:'PV sem',
-      formula:'42h ÷ N tareas activas',
-      calc:'KickOff = '+hrsT+'h ÷ '+v.nKick+' tareas = '+hrsK+'h/tarea · Resto = días lab × '+hrsD+'h/día',
-      desc:'Horas planificadas distribuidas entre tareas activas cada semana · Total proyecto: '+v.totalPV.toFixed(0)+' hrs',
-      result:v.totalPV.toFixed(0)+' hrs',
-      cls:'fml-neu'
-    },
-    {
-      tag:'EV sem',
-      formula:'PV sem × % avance tarea',
-      calc:'EV acum hoy = '+v.evAcumHoy.toFixed(1)+' hrs de '+v.totalPV.toFixed(0)+' hrs totales',
-      desc:'Horas realmente ganadas · campo "Avance Tarea" de Asana por cada subtarea activa',
-      result:v.pctEVhoy.toFixed(1)+'%',
-      cls:'fml-neu'
-    },
-    {
-      tag:'PV hoy',
-      formula:'Σ PV semanas hasta hoy',
-      calc:v.pvAcumHoy.toFixed(1)+' hrs acumuladas planificadas hasta hoy',
-      desc:'Cuánto debería haberse avanzado según el cronograma hasta la fecha de hoy',
-      result:v.pctPVhoy.toFixed(1)+'%',
-      cls:'fml-neu'
-    },
-    {
-      tag:'AT',
-      formula:'semanas desde KickOff hasta hoy',
-      calc:fmt(v.psKick)+' → hoy = '+v.atWeeks.toFixed(1)+' semanas reales transcurridas',
-      desc:'Tiempo real del calendario · no depende del avance, solo del reloj',
-      result:'S'+v.atWeeks.toFixed(1),
-      cls:'fml-neu'
-    },
-    {
-      tag:'ES',
-      formula:'semana donde PV acum = EV acum',
-      calc:'PV acum en S'+v.esWeeks.toFixed(2)+' ≈ '+v.evAcumHoy.toFixed(1)+' hrs = EV actual → ES = S'+v.esWeeks.toFixed(2),
-      desc:'Semana del cronograma equivalente a tu avance real · interpolada sobre la curva PV',
-      result:'S'+v.esWeeks.toFixed(2),
-      cls:'fml-neu'
-    },
-    {
-      tag:'SV(t)',
-      formula:'ES − AT',
-      calc:v.esWeeks.toFixed(2)+' − '+v.atWeeks.toFixed(2)+' = '+(v.svt>0?'+':'')+v.svt.toFixed(2)+' semanas',
-      desc:v.svt>=0?'Adelantado: avanzaste más de lo que el plan esperaba a esta altura':'Atrasado: avanzaste menos de lo que el plan esperaba a esta altura',
-      result:(v.svt>0?'+':'')+v.svt.toFixed(2)+'w',
-      cls:clsSv
-    },
-    {
-      tag:'SPI(t)',
-      formula:'ES ÷ AT',
-      calc:v.esWeeks.toFixed(2)+' ÷ '+v.atWeeks.toFixed(2)+' = '+(v.spit===99?'∞':v.spit.toFixed(2)),
-      desc:v.spit>=1?'Eficiencia alta — avanzas más rápido que el plan':
-           v.spit>=0.7?'Eficiencia media — recuperable con esfuerzo':
-           'Eficiencia baja — requiere acción urgente · por cada semana real solo avanzas '+v.spit.toFixed(2)+' semanas del plan',
-      result:v.spit===99?'∞':v.spit.toFixed(2),
-      cls:clsSpi
-    },
-    {
-      tag:'EAC',
-      formula:'Duración total ÷ SPI(t)',
-      calc:v.rowsLen+' sem ÷ '+(v.spit===99?'∞':v.spit.toFixed(2))+' = '+Math.round(v.eacWeeks)+' semanas estimadas → '+fmt(v.eacDate),
-      desc:'Duración proyectada si el equipo continúa al mismo ritmo actual hasta el final',
-      result:Math.round(v.eacWeeks)+' sem',
-      cls:clsSlip
-    },
-    {
-      tag:'Fecha EAC',
-      formula:'KickOff + EAC semanas',
-      calc:fmt(v.psKick)+' + '+Math.round(v.eacWeeks)+'sem = '+fmt(v.eacDate)+'  ·  Contractual: '+fmt(v.peDue),
-      desc:v.daysSlip>0?'+'+v.daysSlip+' días de retraso estimado vs entrega contractual':
-           v.daysSlip<0?Math.abs(v.daysSlip)+' días antes de la entrega contractual':
-           'Terminaría exactamente en la fecha contractual',
-      result:v.daysSlip>0?'+'+v.daysSlip+'d':v.daysSlip<0?v.daysSlip+'d':'en fecha',
-      cls:clsSlip
-    },
-    {
-      tag:'P(fecha)',
-      formula:'f(SPI, días restantes)',
-      calc:'SPI='+(v.spit===99?'∞':v.spit.toFixed(2))+' · '+Math.max(Math.round((v.peDue-TODAY)/86400000),0)+'d hasta contractual'+(v.peDue<TODAY&&v.pctEVhoy<100?' · fecha vencida → máx 15%':''),
-      desc:'Probabilidad de terminar en o antes de la fecha contractual · se penaliza si la fecha ya venció',
-      result:v.prob+'%',
-      cls:clsProb
-    },
-  ];
-
-  const tbody = document.getElementById('fmlTable');
-  if(!tbody) return;
-  tbody.innerHTML = rows.map(r=>`
-    <tr>
-      <td style="width:80px"><span class="fml-tag">${r.tag}</span></td>
-      <td style="width:160px"><span class="fml-formula">${r.formula}</span></td>
-      <td style="width:300px"><span class="fml-calc">${r.calc}</span></td>
-      <td><span class="fml-desc">${r.desc}</span></td>
-      <td style="width:80px;text-align:right"><span class="fml-result ${r.cls}">${r.result}</span></td>
-    </tr>`).join('');
-}
-
-function diasLab(ini,fin){
-  let c=0,cur=new Date(ini);
-  while(cur<=fin){if(cur.getDay()>0&&cur.getDay()<6)c++;cur=new Date(cur.getTime()+86400000);}
-  return Math.max(c,1);
-}
-function diasLabSem(ti,tf,ws,we){
-  const a=new Date(Math.max(ti,ws)),b=new Date(Math.min(tf,we));
-  if(a>b)return 0;return diasLab(a,b);
-}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}
+ 
+/* LOGIN */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 50%,#0f2240 100%)}
+.login-card{background:#fff;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.logo{width:52px;height:52px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}
+.lt{font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.ls{font-size:12px;color:var(--muted);margin-bottom:28px}
+.linput{width:100%;border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;letter-spacing:2px;text-align:center;transition:border-color .15s;margin-bottom:12px}
+.linput:focus{border-color:var(--blue)}
+.lbtn{width:100%;background:var(--navy);border:none;color:#fff;font-size:14px;font-weight:600;padding:12px;border-radius:8px;cursor:pointer}
+.lbtn:hover{background:var(--navy3)}
+.lhint{font-size:11px;color:var(--muted2);margin-top:14px}
+.lerr{color:var(--red);font-size:11px;margin-top:8px}
+ 
+/* SEARCH */
+.sw{display:none;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 60%,#0f2240 100%);padding:0 0 3rem}
+.stb{background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.08);padding:14px 28px;display:flex;align-items:center;justify-content:space-between}
+.stb .brand{font-family:var(--mono);font-size:13px;color:#fff;font-weight:600;letter-spacing:1px}
+.stb .logout{font-size:11px;color:rgba(255,255,255,.5);cursor:pointer}
+.shero{text-align:center;padding:3rem 2rem 2rem}
+.shero h1{font-size:26px;font-weight:600;color:#fff;margin-bottom:6px}
+.shero p{font-size:12px;color:rgba(255,255,255,.5)}
+.sbox-w{display:flex;justify-content:center;margin:1.5rem 0}
+.sbox{display:flex;width:100%;max-width:520px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.sbox input{flex:1;border:none;background:transparent;color:var(--text);font-family:var(--mono);font-size:14px;padding:13px 18px;outline:none}
+.sbox input::placeholder{color:var(--muted2);font-size:13px;letter-spacing:0}
+.sbox button{background:var(--navy);color:#fff;border:none;font-size:13px;font-weight:600;padding:0 22px;cursor:pointer}
+.sbox button:hover{background:var(--navy3)}
+.serr{color:#fca5a5;font-size:11px;text-align:center;margin-top:8px;font-family:var(--mono)}
+.cswrap{max-width:960px;margin:1.5rem auto 0;padding:0 24px}
+.cstitle{font-size:10px;color:rgba(255,255,255,.35);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.cp{font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);cursor:pointer;background:rgba(255,255,255,.05);transition:all .15s}
+.cp:hover{border-color:rgba(255,255,255,.5);color:#fff}
+ 
+/* DASHBOARD */
+.dw{display:none;min-height:100vh;background:var(--bg)}
+.dtb{background:var(--navy);padding:12px 28px;display:flex;align-items:center;justify-content:space-between}
+.dtb .brand{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:1px}
+.bbtn{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.6);background:none;border:1px solid rgba(255,255,255,.2);padding:5px 14px;border-radius:4px;cursor:pointer}
+.bbtn:hover{color:#fff}
+.dbody{max-width:1320px;margin:0 auto;padding:20px 28px}
+ 
+/* FORMULA PANEL */
+.fml-toggle{font-family:var(--mono);font-size:10px;color:var(--muted2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;border:1px solid var(--border);background:var(--bg);padding:4px 14px;border-radius:20px;transition:all .15s;user-select:none}
+.fml-toggle:hover{color:var(--blue);border-color:var(--blue3)}
+.fml-panel{display:none;background:#fff;border:1px solid var(--border);border-left:3px solid var(--blue3);border-radius:10px;padding:0;margin-bottom:14px;overflow:hidden}
+.fml-panel.open{display:block}
+.fml-title{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+.fml-table{width:100%;border-collapse:collapse}
+.fml-table tr{border-bottom:1px solid var(--border)}
+.fml-table tr:last-child{border-bottom:none}
+.fml-table tr:hover td{background:#f8fafc}
+.fml-table td{padding:8px 14px;vertical-align:middle;font-size:11px}
+.fml-tag{font-family:var(--mono);font-weight:700;font-size:11px;color:var(--blue);background:rgba(37,99,235,.07);padding:2px 8px;border-radius:4px;white-space:nowrap;display:inline-block}
+.fml-formula{font-family:var(--mono);font-size:11px;color:var(--text)}
+.fml-desc{font-size:11px;color:var(--muted)}
+ 
+/* PROJ HEADER */
+.ph{background:var(--navy);border-radius:12px;padding:18px 22px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+.ph h2{font-size:17px;font-weight:600;color:#fff;margin-bottom:4px}
+.ph .meta{font-size:11px;color:rgba(255,255,255,.5);font-family:var(--mono);line-height:1.9}
+.ph .meta span{color:rgba(255,255,255,.8)}
+.badge{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-ok{background:rgba(22,163,74,.2);color:#86efac;border:1px solid rgba(22,163,74,.3)}
+.b-warn{background:rgba(217,119,6,.2);color:#fcd34d;border:1px solid rgba(217,119,6,.3)}
+.b-bad{background:rgba(220,38,38,.2);color:#fca5a5;border:1px solid rgba(220,38,38,.3)}
+.b-info{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+ 
+/* DATE CARDS */
+.dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:14px}
+.dc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.dc .dl{font-family:var(--mono);font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.dc .dv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)}
+.dc .ds{font-size:10px;color:var(--muted);margin-top:2px}
+ 
+/* KPIs */
+.kr{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c)}
+.kl{font-family:var(--mono);font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.kv{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--c);line-height:1}
+.ks{font-size:10px;color:var(--muted);margin-top:3px}
+.kf{font-family:var(--mono);font-size:9px;color:var(--muted2);margin-top:3px;opacity:.7}
+ 
+/* PROB */
+.pc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.pn{font-family:var(--mono);font-size:48px;font-weight:700;line-height:1}
+.pi h4{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.pi p{font-size:11px;color:var(--muted);line-height:1.7}
+.pbar{height:6px;background:var(--border);border-radius:3px;width:160px;overflow:hidden;margin-top:7px}
+.pbarf{height:6px;border-radius:3px}
+ 
+/* CHART */
+.cc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 18px 12px;margin-bottom:14px}
+.cc h3{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.cdesc{font-size:11px;color:var(--muted);margin-bottom:14px}
+.cw{position:relative;height:340px}
+.leg{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.lgi{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.lgl{width:22px;height:2px;border-radius:1px}
+.lgd{width:22px;height:0;border-top:2px dashed}
+ 
+/* TABLES */
+.tc{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.th{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted2);padding:8px 11px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 11px;border-bottom:1px solid var(--border);font-size:11px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.mono{font-family:var(--mono)}
+.chip{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600}
+.c-ok{background:#dcfce7;color:#15803d} .c-bad{background:#fee2e2;color:#b91c1c}
+.c-warn{background:#fef3c7;color:#b45309} .c-gray{background:#f1f5f9;color:#64748b}
+ 
+/* LOADER */
+.loader{display:none;position:fixed;inset:0;background:rgba(15,34,64,.7);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loader.on{display:flex}
+.spin{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loader p{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.7)}
+</style>
+</head>
+<body>
+ 
+<div class="loader" id="loader"><div class="spin"></div><p>Cargando...</p></div>
+ 
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">Z</div>
+    <div class="lt">Portafolio Proyectos</div>
+    <div class="ls">Zitron Acceso privado</div>
+    <input class="linput" type="password" id="pwd" placeholder="Contrasena" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Ingresar</button>
+    <div class="lhint">Solicita la contrasena al administrador</div>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+ 
+<!-- SEARCH -->
+<div class="sw" id="sw">
+  <div class="stb">
+    <div class="brand">// PORTAFOLIO CONSOLIDADO · ZITRON</div>
+    <div class="logout" onclick="logout()">Cerrar sesión</div>
+  </div>
+  <div class="shero">
+    <h1>Buscar Pedido</h1>
+    <p>Curva S por horas semanales · Kick Off = 8h turno · Resto = días laborales × 8.4h/día · EV = PV × %avance</p>
+  </div>
+  <div class="sbox-w">
+    <div class="sbox">
+      <input type="text" id="si" placeholder="Nº pedido: 50001477 · 50001532 · TRITON · DMC"
+             onkeydown="if(event.key==='Enter')buscar()" autocomplete="off">
+      <button onclick="buscar()">Buscar →</button>
+    </div>
+  </div>
+  <div class="serr" id="serr"></div>
+  <div class="cswrap">
+    <div class="cstitle">Proyectos del portafolio — click para cargar</div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+ 
+<!-- DASHBOARD -->
+<div class="dw" id="dw">
+  <div class="dtb">
+    <div class="brand">// CURVA S · HORAS SEMANALES · EARNED SCHEDULE · ZITRON</div>
+    <button class="bbtn" onclick="goSearch()">← Volver</button>
+  </div>
+  <div class="dbody">
+    <!-- FORMULA TOGGLE -->
+    <div class="fml-toggle" onclick="toggleFml(this)">
+      📐 &nbsp;Ver fórmulas de cálculo &nbsp;<span class="fml-arr">▸</span>
+    </div>
+    <div class="fml-panel" id="fmlPanel">
+      <div class="fml-title">Fórmulas de cálculo — Curva S &amp; Earned Schedule</div>
+      <table class="fml-table">
+        <tr><td style="width:80px"><span class="fml-tag">PV</span></td><td style="width:160px"><span class="fml-formula">hrs/sem × días lab</span></td><td><span class="fml-desc">Horas planificadas por semana. KickOff = 8h turno ÷ N tareas. Resto = días laborales activos × 8.4h/día (42h÷5días).</span></td></tr>
+        <tr><td><span class="fml-tag">EV</span></td><td><span class="fml-formula">PV sem × % avance</span></td><td><span class="fml-desc">Horas ganadas reales. Horas de cada tarea activa × su avance en campo "Avance Tarea" de Asana (0=sin iniciar, 1=terminado).</span></td></tr>
+        <tr><td><span class="fml-tag">ES</span></td><td><span class="fml-formula">interpolación PV = EV</span></td><td><span class="fml-desc">Semana del cronograma donde el PV acumulado equivale al EV acumulado actual. Interpolado linealmente entre semanas.</span></td></tr>
+        <tr><td><span class="fml-tag">AT</span></td><td><span class="fml-formula">semanas reales</span></td><td><span class="fml-desc">Semanas transcurridas desde el KickOff hasta hoy. El reloj real del proyecto, no depende del avance.</span></td></tr>
+        <tr><td><span class="fml-tag">SV(t)</span></td><td><span class="fml-formula">ES − AT</span></td><td><span class="fml-desc">Variación de cronograma en semanas. Positivo = adelantado. Negativo = atrasado.</span></td></tr>
+        <tr><td><span class="fml-tag">SPI(t)</span></td><td><span class="fml-formula">ES ÷ AT</span></td><td><span class="fml-desc">Índice de desempeño. &gt;1 eficiente, &lt;1 atrasado, =1 en tiempo exacto.</span></td></tr>
+        <tr><td><span class="fml-tag">EAC</span></td><td><span class="fml-formula">Duración total ÷ SPI(t)</span></td><td><span class="fml-desc">Semanas totales estimadas al ritmo actual. Ejemplo: 28 sem ÷ 0.73 = 38.4 semanas proyectadas.</span></td></tr>
+        <tr><td><span class="fml-tag">Fecha EAC</span></td><td><span class="fml-formula">KickOff + EAC semanas</span></td><td><span class="fml-desc">Fecha estimada de cierre. Si es posterior a la entrega contractual, el proyecto llegará tarde.</span></td></tr>
+        <tr><td><span class="fml-tag">P(fecha)</span></td><td><span class="fml-formula">f(SPI, días restantes)</span></td><td><span class="fml-desc">Probabilidad de terminar en fecha contractual. Cae a ≤15% automáticamente si la fecha ya venció.</span></td></tr>
+      </table>
+    </div>
+ 
+    <div class="ph" id="ph"></div>
+    <div class="dg" id="dg"></div>
+    <div class="kr" id="kr"></div>
+    <div class="pc" id="pc"></div>
+    <div class="cc">
+      <h3>Curva S — % Avance acumulado · Horas planificadas vs ganadas</h3>
+      <div class="cdesc">PV planificado (azul punteado) · EV real (verde sólido) · ES Earned Schedule (naranja) · Rojo = entrega contractual</div>
+      <div class="cw"><canvas id="chartS"></canvas></div>
+      <div class="leg">
+        <div class="lgi"><span class="lgd" style="border-color:#2563eb"></span><span>PV — % planificado acumulado</span></div>
+        <div class="lgi"><span class="lgl" style="background:#16a34a"></span><span>EV — % real ganado (PV × % avance)</span></div>
+        <div class="lgi"><span class="lgl" style="background:#d97706"></span><span>ES — semana equiv. donde PV acum = EV acum</span></div>
+        <div class="lgi"><span class="lgd" style="border-color:#dc2626;border-style:dotted"></span><span>Fecha contractual de entrega</span></div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="th">Tabla semanal — PV · EV · % acumulados · ES · SPI(t) · SV(t)</div>
+      <div style="overflow-x:auto">
+        <table><thead><tr>
+          <th>Sem</th><th>Fecha</th><th>N tareas</th>
+          <th>PV sem (h)</th><th>EV sem (h)</th>
+          <th>PV acum (h)</th><th>EV acum (h)</th>
+          <th>% PV</th><th>% EV</th>
+          <th>ES (sem)</th><th>AT (sem)</th>
+          <th>SV(t)</th><th>SPI(t)</th><th>Estado</th>
+        </tr></thead><tbody id="tbs"></tbody></table>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="th">Detalle subtareas — fechas · avance</div>
+      <table><thead><tr>
+        <th>Fase</th><th>Subtarea</th><th>Inicio</th><th>Entrega</th><th>Avance</th><th>Estatus</th>
+      </tr></thead><tbody id="tbt"></tbody></table>
+    </div>
+  </div>
+</div>
+ 
+<script>
+const PWD='zitron2026!';
+const HRS_TURNO=8;
+const HRS_DIA=42/5;
+const TODAY=new Date('2026-05-25'); TODAY.setHours(0,0,0,0);
+ 
+const CATALOGO=[
+  {gid:'1215118022011721',name:"50001554 - MAPIM",due:'2026-08-05',kickoff:'2026-05-11',finReal:'2026-08-31'},
+  {gid:'1214969047721199',name:"50001553 - ZITRON ARIS OT4326",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-11-12'},
+  {gid:'1214969047720950',name:"50001553 - ZITRON ARIS OT4327",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-08-07'},
+  {gid:'1214969284200793',name:"50001553 - ZITRON ARIS OT4323",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-08-07'},
+  {gid:'1214922603742599',name:"50001555 - ZITRON ARIS COLOMBIA",due:'2026-08-03',kickoff:'2026-05-11',finReal:'2026-11-02'},
+  {gid:'1214892476594825',name:"50001544 - DMC MINING SERVICES",due:'2026-08-15',kickoff:'2026-04-16',finReal:'2026-08-03'},
+  {gid:'1214787972061369',name:"50001547 - XEMORTIZ AM. GOLD",due:'2026-07-01',kickoff:'2026-04-27',finReal:'2026-10-22'},
+  {gid:'1214739697907723',name:"50001546 - XEMORTIZ",due:'2026-06-26',kickoff:'2026-05-04',finReal:'2026-08-21'},
+  {gid:'1214563704105168',name:"50001545 - XEMORTIZ FRISCO A",due:'2026-06-26',kickoff:'2026-05-04',finReal:'2026-08-21'},
+  {gid:'1214508463084754',name:"50001543 - ZITRON EGM",due:'2026-06-16',kickoff:'2026-05-04',finReal:'2026-08-14'},
+  {gid:'1214137717389412',name:"50001541 - XEMORTIZ FRISCO B",due:'2026-06-22',kickoff:'2026-04-20',finReal:'2026-08-06'},
+  {gid:'1213963037596622',name:"50001532 - XEMORTIZ AM. GOLD 2",due:'2026-06-22',kickoff:'2026-04-16',finReal:'2026-08-03'},
+  {gid:'1213997266064436',name:"50001466 - ZITRON PERU PODEROSA",due:'2026-05-25',kickoff:'2026-04-14',finReal:'2026-11-06'},
+  {gid:'1213881596172396',name:"50001534 - ZITRON PERU METRO E04",due:'2026-08-03',kickoff:'2026-03-30',finReal:'2026-10-19'},
+  {gid:'1213832650589314',name:"50001525 - ZITRON PERU METRO E07",due:'2026-07-16',kickoff:'2026-03-30',finReal:'2026-10-19'},
+  {gid:'1213377149548665',name:"50001485 - CALABRESSE METRO SD",due:'2026-04-21',kickoff:'2025-11-25',finReal:'2026-06-12'},
+  {gid:'1213377149548798',name:"50001498 - CALABRESSE POZOS",due:'2026-05-07',kickoff:'2025-12-08',finReal:'2026-06-16'},
+  {gid:'1213391174146526',name:"50001516 - TUNEL LA BANDERA",due:'2026-07-16',kickoff:'2026-03-02',finReal:'2026-08-25'},
+  {gid:'1213377149548590',name:"50001477 - TRITON MINERA",due:'2026-04-10',kickoff:'2025-11-05',finReal:'2026-05-14'},
+  {gid:'1213377149548731',name:"50001490 - ZITRON PERU PV04",due:'2026-04-20',kickoff:'2025-12-02',finReal:'2026-06-08'},
+  {gid:'1213400421980747',name:"50001504 - ZITRON CODESTABLE A",due:'2026-04-14',kickoff:'2026-03-30',finReal:'2026-10-19'},
+  {gid:'1213377149548924',name:"50001504 - ZITRON CODESTABLE B",due:'2026-04-14',kickoff:'2025-12-26',finReal:'2026-06-19'},
+  {gid:'1213391072478428',name:"50001415 - ZITRON PERU METRO E05",due:'2026-03-16',kickoff:'2025-11-10',finReal:'2026-06-11'},
+  {gid:'1213244147627519',name:"50001506 - ZITRON COLOMBIA EPM",due:'2026-04-10',kickoff:'2026-01-02',finReal:'2026-07-09'},
+  {gid:'1213377149548388',name:"50001309 - ZITRON COLOMBIA BUGA",due:'2026-05-26',kickoff:'2026-01-09',finReal:'2026-07-02'},
+  {gid:'1213391072478496',name:"50001451 - ZITRON COLOMBIA",due:'2026-03-02',kickoff:'2025-08-22',finReal:'2026-04-24'},
+  {gid:'1213234368822465',name:"50001500 - EQ MIN LA HACIENDA A",due:'2026-02-14',kickoff:'2025-12-11',finReal:'2026-03-19'},
+  {gid:'1213193352022841',name:"50001497 - XEMORTIZ IMMSA BBR",due:'2026-06-15',kickoff:'2025-12-15',finReal:'2026-06-25'},
+  {gid:'1213244147627934',name:"50001499 - EQ CHAPARRAL A",due:'2026-05-10',kickoff:'2025-12-10',finReal:'2026-06-22'},
+  {gid:'1213377149548988',name:"50001446 - MINERA FRESNILLO",due:'2026-04-21',kickoff:'2025-12-22',finReal:'2026-06-26'},
+  {gid:'1213458785834993',name:"50001518 - EQ CHAPARRAL B",due:'2026-08-13',kickoff:'2026-03-02',finReal:'2026-09-07'},
+  {gid:'1213955236952392',name:"50001533 - GESVIAL",due:'2026-05-04',kickoff:'2026-03-24',finReal:'2026-09-30'},
+  {gid:'1213185599076077',name:"50001514 - CRTG A",due:'2026-03-05',kickoff:'2026-02-04',finReal:'2026-05-19'},
+  {gid:'1213234368821945',name:"50001515 - CRTG B",due:'2026-03-05',kickoff:'2026-02-05',finReal:'2026-07-23'},
+];
+ 
 const DEMO={
   '1215118022011721':{fases:[
     {fase:"Kick Off meeting",subtasks:[
@@ -2849,71 +3006,40 @@ const DEMO={
     ]},
   ]},
 };
-
-const CATALOGO=[
-  {gid:'1215118022011721',name:"50001554 - MAPIM",due:'2026-08-05',kickoff:'2026-05-11',finReal:'2026-08-31'},
-  {gid:'1214969047721199',name:"50001553 - ZITRON ARIS OT4326",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-11-12'},
-  {gid:'1214969047720950',name:"50001553 - ZITRON ARIS OT4327",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-08-07'},
-  {gid:'1214969284200793',name:"50001553 - ZITRON ARIS OT4323",due:'2026-07-18',kickoff:'2026-05-06',finReal:'2026-08-07'},
-  {gid:'1214922603742599',name:"50001555 - ZITRON ARIS COLOMBIA",due:'2026-08-03',kickoff:'2026-05-11',finReal:'2026-11-02'},
-  {gid:'1214892476594825',name:"50001544 - DMC MINING SERVICES",due:'2026-08-15',kickoff:'2026-04-16',finReal:'2026-08-03'},
-  {gid:'1214787972061369',name:"50001547 - XEMORTIZ AM. GOLD",due:'2026-07-01',kickoff:'2026-04-27',finReal:'2026-10-22'},
-  {gid:'1214739697907723',name:"50001546 - XEMORTIZ",due:'2026-06-26',kickoff:'2026-05-04',finReal:'2026-08-21'},
-  {gid:'1214563704105168',name:"50001545 - XEMORTIZ FRISCO A",due:'2026-06-26',kickoff:'2026-05-04',finReal:'2026-08-21'},
-  {gid:'1214508463084754',name:"50001543 - ZITRON EGM",due:'2026-06-16',kickoff:'2026-05-04',finReal:'2026-08-14'},
-  {gid:'1214137717389412',name:"50001541 - XEMORTIZ FRISCO B",due:'2026-06-22',kickoff:'2026-04-20',finReal:'2026-08-06'},
-  {gid:'1213963037596622',name:"50001532 - XEMORTIZ AM. GOLD 2",due:'2026-06-22',kickoff:'2026-04-16',finReal:'2026-08-03'},
-  {gid:'1213997266064436',name:"50001466 - ZITRON PERU PODEROSA",due:'2026-05-25',kickoff:'2026-04-14',finReal:'2026-11-06'},
-  {gid:'1213881596172396',name:"50001534 - ZITRON PERU METRO E04",due:'2026-08-03',kickoff:'2026-03-30',finReal:'2026-10-19'},
-  {gid:'1213832650589314',name:"50001525 - ZITRON PERU METRO E07",due:'2026-07-16',kickoff:'2026-03-30',finReal:'2026-10-19'},
-  {gid:'1213377149548665',name:"50001485 - CALABRESSE METRO SD",due:'2026-04-21',kickoff:'2025-11-25',finReal:'2026-06-12'},
-  {gid:'1213377149548798',name:"50001498 - CALABRESSE POZOS",due:'2026-05-07',kickoff:'2025-12-08',finReal:'2026-06-16'},
-  {gid:'1213391174146526',name:"50001516 - TUNEL LA BANDERA",due:'2026-07-16',kickoff:'2026-03-02',finReal:'2026-08-25'},
-  {gid:'1213377149548590',name:"50001477 - TRITON MINERA",due:'2026-04-10',kickoff:'2025-11-05',finReal:'2026-05-14'},
-  {gid:'1213377149548731',name:"50001490 - ZITRON PERU PV04",due:'2026-04-20',kickoff:'2025-12-02',finReal:'2026-06-08'},
-  {gid:'1213400421980747',name:"50001504 - ZITRON CODESTABLE A",due:'2026-04-14',kickoff:'2026-03-30',finReal:'2026-10-19'},
-  {gid:'1213377149548924',name:"50001504 - ZITRON CODESTABLE B",due:'2026-04-14',kickoff:'2025-12-26',finReal:'2026-06-19'},
-  {gid:'1213391072478428',name:"50001415 - ZITRON PERU METRO E05",due:'2026-03-16',kickoff:'2025-11-10',finReal:'2026-06-11'},
-  {gid:'1213244147627519',name:"50001506 - ZITRON COLOMBIA EPM",due:'2026-04-10',kickoff:'2026-01-02',finReal:'2026-07-09'},
-  {gid:'1213377149548388',name:"50001309 - ZITRON COLOMBIA BUGA",due:'2026-05-26',kickoff:'2026-01-09',finReal:'2026-07-02'},
-  {gid:'1213391072478496',name:"50001451 - ZITRON COLOMBIA",due:'2026-03-02',kickoff:'2025-08-22',finReal:'2026-04-24'},
-  {gid:'1213234368822465',name:"50001500 - EQ MIN LA HACIENDA A",due:'2026-02-14',kickoff:'2025-12-11',finReal:'2026-03-19'},
-  {gid:'1213193352022841',name:"50001497 - XEMORTIZ IMMSA BBR",due:'2026-06-15',kickoff:'2025-12-15',finReal:'2026-06-25'},
-  {gid:'1213244147627934',name:"50001499 - EQ CHAPARRAL A",due:'2026-05-10',kickoff:'2025-12-10',finReal:'2026-06-22'},
-  {gid:'1213377149548988',name:"50001446 - MINERA FRESNILLO",due:'2026-04-21',kickoff:'2025-12-22',finReal:'2026-06-26'},
-  {gid:'1213458785834993',name:"50001518 - EQ CHAPARRAL B",due:'2026-08-13',kickoff:'2026-03-02',finReal:'2026-09-07'},
-  {gid:'1213955236952392',name:"50001533 - GESVIAL",due:'2026-05-04',kickoff:'2026-03-24',finReal:'2026-09-30'},
-  {gid:'1213185599076077',name:"50001514 - CRTG A",due:'2026-03-05',kickoff:'2026-02-04',finReal:'2026-05-19'},
-  {gid:'1213234368821945',name:"50001515 - CRTG B",due:'2026-03-05',kickoff:'2026-02-05',finReal:'2026-07-23'},
-];
-
+ 
+ 
+ 
+ 
+ 
+const D=s=>{const d=new Date(s);d.setHours(0,0,0,0);return d;};
+const Dd=(a,b)=>(b-a)/86400000;
+const Dw=(a,b)=>(b-a)/604800000;
+const fmt=dt=>`${dt.getDate().toString().padStart(2,'0')}/${(dt.getMonth()+1).toString().padStart(2,'0')}/${dt.getFullYear()}`;
+const fmts=dt=>`${dt.getDate().toString().padStart(2,'0')}/${(dt.getMonth()+1).toString().padStart(2,'0')}`;
+ 
+function diasLab(ini,fin){
+  let c=0,cur=new Date(ini);
+  while(cur<=fin){if(cur.getDay()>0&&cur.getDay()<6)c++;cur=new Date(cur.getTime()+86400000);}
+  return Math.max(c,1);
+}
+function diasLabSem(ti,tf,ws,we){
+  const a=new Date(Math.max(ti,ws)),b=new Date(Math.min(tf,we));
+  if(a>b)return 0;return diasLab(a,b);
+}
 function lunEs(dt){const d=new Date(dt);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
-
-// ═══════════════════════════════════════════════════
-// ALGORITMO CURVA S — EXACTO AL EXCEL
-// Kick Off: HRS_TURNO(8h) / N_kickoff tareas, solo en su semana
-// Resto: (días_lab_semana / días_lab_total) × (días_lab_total × HRS_DIA)
-//      = días_lab_semana × HRS_DIA  (simplificado)
-// PV_sem = suma hrs de tareas activas esa semana
-// EV_sem = suma (hrs × avance)
-// ═══════════════════════════════════════════════════
+ 
 function calcCurva(fases,kickoffStr,finRealStr){
   const allSubs=fases.flatMap(f=>f.subtasks.map(s=>({...s,fase:f.fase})));
   const nKick=allSubs.filter(s=>s.kickoff).length||1;
-  const hrsKick=HRS_TURNO/nKick; // 1.6 para 5 tareas
-
-  // Pre-calcular horas totales por tarea
+  const hrsKick=HRS_TURNO/nKick;
   allSubs.forEach(s=>{
     const ti=D(s.ini),tf=D(s.fin);
     s._dl=diasLab(ti,tf);
     s._hrsTotal=s.kickoff?hrsKick:s._dl*HRS_DIA;
   });
-
-  // Semanas
   const psKick=D(kickoffStr),peReal=D(finRealStr);
   const semanas=[];let ws=new Date(lunEs(psKick));
   while(ws<=new Date(peReal.getTime()+7*86400000)){semanas.push(new Date(ws));ws=new Date(ws.getTime()+7*86400000);}
-
   const rows=[];
   for(let i=0;i<semanas.length;i++){
     const ws2=semanas[i],we=new Date(ws2.getTime()+6*86400000);
@@ -2931,7 +3057,6 @@ function calcCurva(fases,kickoffStr,finRealStr){
     });
     rows.push({idx:i+1,ws:ws2,n,pv:Math.round(pv*10)/10,ev:Math.round(ev*10)/10});
   }
-
   const totalPV=rows.reduce((s,r)=>s+r.pv,0);
   let pa=0,ea=0;
   rows.forEach(r=>{pa+=r.pv;ea+=r.ev;
@@ -2941,7 +3066,7 @@ function calcCurva(fases,kickoffStr,finRealStr){
   });
   return{rows,totalPV,allSubs,hrsKick};
 }
-
+ 
 function calcES(rows,evAcumHoy,totalPV){
   const pctEV=totalPV>0?evAcumHoy/totalPV*100:0;
   if(pctEV<=0)return 0;
@@ -2955,10 +3080,7 @@ function calcES(rows,evAcumHoy,totalPV){
   }
   return rows.length;
 }
-
-// ═══════════════════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════════════════
+ 
 function login(){
   if(document.getElementById('pwd').value===PWD){
     document.getElementById('loginWrap').style.display='none';
@@ -2968,7 +3090,7 @@ function login(){
 }
 function logout(){document.getElementById('sw').style.display='none';document.getElementById('loginWrap').style.display='flex';document.getElementById('pwd').value='';}
 document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
-
+ 
 function buildChips(){
   const c=document.getElementById('chips');c.innerHTML='';
   CATALOGO.forEach(p=>{
@@ -2978,7 +3100,7 @@ function buildChips(){
     c.appendChild(el);
   });
 }
-
+ 
 function buscar(){
   const q=document.getElementById('si').value.trim().toLowerCase();
   document.getElementById('serr').textContent='';
@@ -2986,38 +3108,40 @@ function buscar(){
   const m=CATALOGO.filter(p=>p.name.toLowerCase().includes(q)||p.gid.includes(q));
   if(!m.length){document.getElementById('serr').textContent=`No encontrado: "${q}"`;return;}
   const proj=m[0];
-  if(!DEMO[proj.gid]){document.getElementById('serr').textContent='Datos de este proyecto aún no cargados — pronto disponible.';return;}
+  if(!DEMO[proj.gid]){document.getElementById('serr').textContent='Datos de este proyecto no disponibles.';return;}
   renderDash(proj,DEMO[proj.gid].fases);
 }
-function goSearch(){document.getElementById('dw').style.display='none';document.getElementById('sw').style.display='block';if(chartInst){chartInst.destroy();chartInst=null;}}
-
-// ═══════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════
+ 
+function goSearch(){
+  document.getElementById('dw').style.display='none';
+  document.getElementById('sw').style.display='block';
+  if(chartInst){chartInst.destroy();chartInst=null;}
+}
+ 
+function toggleFml(btn){
+  const p=document.getElementById('fmlPanel');
+  const a=btn.querySelector('.fml-arr');
+  p.classList.toggle('open');
+  a.textContent=p.classList.contains('open')?'▾':'▸';
+}
+ 
 let chartInst=null;
+ 
 function renderDash(proj,fases){
   const {rows,totalPV,allSubs,hrsKick}=calcCurva(fases,proj.kickoff,proj.finReal);
   const psKick=D(proj.kickoff),peDue=D(proj.due),peReal=D(proj.finReal);
-
-  // Semana actual
   const rowsHoy=rows.filter(r=>r.ws<=TODAY);
   const rHoy=rowsHoy.length?rowsHoy[rowsHoy.length-1]:rows[0];
   const evAcumHoy=rHoy.evA,pvAcumHoy=rHoy.pvA;
   const pctEVhoy=rHoy.pctEV,pctPVhoy=rHoy.pctPV;
   const atWeeks=Math.max(Dw(psKick,TODAY),0);
-
-  // ES, SPI(t), SV(t)
   const esWeeks=calcES(rows,evAcumHoy,totalPV);
   const svt=parseFloat((esWeeks-atWeeks).toFixed(2));
   const spit=atWeeks>0?parseFloat((esWeeks/atWeeks).toFixed(2)):pctEVhoy>0?99:0;
-
-  // EAC
   const totalWeeks=rows.length;
   const eacWeeks=spit>0&&spit<90?totalWeeks/spit:totalWeeks;
   const eacDate=new Date(psKick.getTime()+eacWeeks*7*86400000);
   const daysSlip=Math.round(Dd(peDue,eacDate));
-
-  // Probabilidad
   let prob=50;
   if(pctEVhoy>=100)prob=100;
   else if(spit<=0)prob=20;
@@ -3032,7 +3156,7 @@ function renderDash(proj,fases){
   const isOverdue=peDue<TODAY&&pctEVhoy<100;
   const stTxt=pctEVhoy>=100?'Terminado':isOverdue?'Vencido':svt>=0?'Adelantado':'Atrasado';
   const stCls=pctEVhoy>=100?'b-info':isOverdue?'b-bad':svt>=0?'b-ok':'b-warn';
-
+ 
   document.getElementById('ph').innerHTML=`
     <div>
       <h2>${proj.name}</h2>
@@ -3046,72 +3170,63 @@ function renderDash(proj,fases){
       </div>
     </div>
     <span class="badge ${stCls}">${stTxt}</span>`;
-
+ 
   document.getElementById('dg').innerHTML=`
     <div class="dc"><div class="dl">📌 Inicio Kick Off</div><div class="dv">${fmt(psKick)}</div><div class="ds">Turno 8h total · ${hrsKick.toFixed(2)}h/tarea</div></div>
     <div class="dc"><div class="dl">🏁 Entrega contractual</div><div class="dv" style="color:${peDue<TODAY?'#dc2626':'#16a34a'}">${fmt(peDue)}</div><div class="ds">${peDue<TODAY?'⚠ VENCIDA':'✓ En plazo'}</div></div>
-    <div class="dc"><div class="dl">🔚 Fin real proyecto</div><div class="dv">${fmt(peReal)}</div><div class="ds">Última subtarea del proyecto</div></div>
+    <div class="dc"><div class="dl">🔚 Fin real proyecto</div><div class="dv">${fmt(peReal)}</div><div class="ds">Última subtarea planificada</div></div>
     <div class="dc"><div class="dl">📊 EAC estimado</div><div class="dv" style="color:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#0f172a'}">${fmt(eacDate)}</div><div class="ds">${daysSlip>0?`+${daysSlip}d vs contractual`:daysSlip<0?`${Math.abs(daysSlip)}d antes`:'En fecha'}</div></div>`;
-
-  // metodologia oculta
-
+ 
   document.getElementById('kr').innerHTML=`
-    <div class="kpi" style="--c:#16a34a"><div class="kl">EV — Hrs ganadas</div><div class="kv">${evAcumHoy.toFixed(0)}h</div><div class="ks">${pctEVhoy}%</div><div class="kf">PV sem × %avance</div></div>
-    <div class="kpi" style="--c:#2563eb"><div class="kl">PV — Hrs planificadas</div><div class="kv">${pvAcumHoy.toFixed(0)}h</div><div class="ks">${pctPVhoy}%</div><div class="kf">días lab × 8.4h</div></div>
-    <div class="kpi" style="--c:${svt>=0?'#16a34a':'#dc2626'}"><div class="kl">SV(t)</div><div class="kv">${svt>0?'+':''}${svt}w</div><div class="ks">${svt>=0?'adelantado':'atrasado'}</div><div class="kf">ES − AT</div></div>
+    <div class="kpi" style="--c:#16a34a"><div class="kl">EV — Hrs ganadas</div><div class="kv">${evAcumHoy.toFixed(0)}h</div><div class="ks">${pctEVhoy.toFixed(1)}%</div><div class="kf">PV sem × %avance</div></div>
+    <div class="kpi" style="--c:#2563eb"><div class="kl">PV — Hrs planificadas</div><div class="kv">${pvAcumHoy.toFixed(0)}h</div><div class="ks">${pctPVhoy.toFixed(1)}%</div><div class="kf">días lab × 8.4h</div></div>
+    <div class="kpi" style="--c:${svt>=0?'#16a34a':'#dc2626'}"><div class="kl">SV(t)</div><div class="kv">${svt>0?'+':''}${svt.toFixed(2)}w</div><div class="ks">${svt>=0?'adelantado':'atrasado'}</div><div class="kf">ES − AT</div></div>
     <div class="kpi" style="--c:${spit>=1?'#16a34a':spit>=0.7?'#d97706':'#dc2626'}"><div class="kl">SPI(t)</div><div class="kv">${spit===99?'∞':spit.toFixed(2)}</div><div class="ks">${spit>=1?'alta efic.':spit>=0.7?'media':'baja'}</div><div class="kf">ES / AT</div></div>
     <div class="kpi" style="--c:#7c3aed"><div class="kl">ES</div><div class="kv">S${esWeeks.toFixed(1)}</div><div class="ks">sem. equiv.</div><div class="kf">PV acum = EV acum</div></div>
     <div class="kpi" style="--c:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#2563eb'}"><div class="kl">EAC</div><div class="kv">S${Math.round(eacWeeks)}</div><div class="ks">${fmts(eacDate)}</div><div class="kf">${daysSlip!==0?(daysSlip>0?'+':'')+daysSlip+'d vs contractual':'en fecha'}</div></div>`;
-
+ 
   document.getElementById('pc').innerHTML=`
     <div><div class="pn" style="color:${pc}">${prob}%</div>
     <div style="font-size:11px;color:var(--muted);margin-top:4px">prob. terminar en fecha contractual</div>
     <div class="pbar"><div class="pbarf" style="width:${prob}%;background:${pc}"></div></div></div>
     <div class="pi"><h4>Evaluación del cronograma</h4><p>
-      <b>SPI(t)=${spit===99?'∞':spit.toFixed(2)}</b> → ${spit>=1?'Ritmo superior al plan':spit>=0.7?'Ritmo moderado, recuperable':'Ritmo bajo, requiere acción'}<br>
-      <b>Horas ganadas:</b> ${evAcumHoy.toFixed(1)} / ${totalPV.toFixed(0)} hrs (${pctEVhoy}%)<br>
+      <b>SPI(t) = ${spit===99?'∞':spit.toFixed(2)}</b> → ${spit>=1?'Ritmo superior al plan':spit>=0.7?'Ritmo moderado, recuperable':'Ritmo bajo, requiere acción'}<br>
+      <b>Horas ganadas:</b> ${evAcumHoy.toFixed(1)} / ${totalPV.toFixed(0)} hrs (${pctEVhoy.toFixed(1)}%)<br>
       <b>Días hasta entrega contractual:</b> ${Math.max(Math.round(Dd(TODAY,peDue)),0)} días (${fmt(peDue)})<br>
       <b>EAC:</b> ${fmt(eacDate)} ${daysSlip!==0?`(${daysSlip>0?'+':''}${daysSlip}d vs contractual)`:''}<br>
       <b>Trabajo restante:</b> ${(totalPV-evAcumHoy).toFixed(0)} hrs en ${Math.max(Math.round(Dd(TODAY,peReal)),0)} días
     </p></div>`;
-
-  // GRÁFICO
+ 
   const dueIdx=rows.findIndex(r=>r.ws>=peDue);
   const dueI=dueIdx>=0?dueIdx:rows.length-1;
   const todayI=rowsHoy.length-1;
-
   if(chartInst){chartInst.destroy();}
   chartInst=new Chart(document.getElementById('chartS'),{
     type:'line',
-    data:{
-      labels:rows.map(r=>`S${r.idx} ${fmts(r.ws)}`),
-      datasets:[
-        {label:'PV %',data:rows.map(r=>r.pctPV),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,borderDash:[6,4],tension:0.3,pointRadius:2,fill:true,spanGaps:false},
-        {label:'EV %',data:rows.map(r=>r.ws<=TODAY?r.pctEV:null),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.06)',borderWidth:2.5,tension:0.2,pointRadius:2,fill:true,spanGaps:false},
-        {label:'ES',data:rows.map((r,i)=>i<=todayI?pctEVhoy:null),borderColor:'#d97706',backgroundColor:'transparent',borderWidth:2,borderDash:[3,3],tension:0,pointRadius:0,spanGaps:false},
-      ]
-    },
+    data:{labels:rows.map(r=>`S${r.idx} ${fmts(r.ws)}`),datasets:[
+      {label:'PV %',data:rows.map(r=>r.pctPV),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,borderDash:[6,4],tension:0.3,pointRadius:2,fill:true,spanGaps:false},
+      {label:'EV %',data:rows.map(r=>r.ws<=TODAY?r.pctEV:null),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.06)',borderWidth:2.5,tension:0.2,pointRadius:2,fill:true,spanGaps:false},
+      {label:'ES',data:rows.map((r,i)=>i<=todayI?pctEVhoy:null),borderColor:'#d97706',backgroundColor:'transparent',borderWidth:2,borderDash:[3,3],tension:0,pointRadius:0,spanGaps:false},
+    ]},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
-        tooltip:{backgroundColor:'#0f172a',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#f8fafc',bodyColor:'#94a3b8',
+        tooltip:{backgroundColor:'#0f172a',borderColor:'rgba(255,255,255,.1)',borderWidth:1,
+          titleColor:'#f8fafc',bodyColor:'#94a3b8',
           titleFont:{family:'IBM Plex Mono',size:10},bodyFont:{family:'IBM Plex Mono',size:10},
-          callbacks:{title:items=>items[0].label,
+          callbacks:{
+            title:items=>items[0].label,
             label:ctx=>{
               if(ctx.parsed.y===null)return null;
               const r=rows[ctx.dataIndex];
               if(ctx.datasetIndex===0)return `PV: ${ctx.parsed.y}% (${r.pvA.toFixed(0)} hrs acum)`;
               if(ctx.datasetIndex===1)return `EV: ${ctx.parsed.y}% (${r.evA.toFixed(0)} hrs acum)`;
-              return `ES: S${esWeeks.toFixed(1)} (semana donde PV=EV)`;
+              return `ES: S${esWeeks.toFixed(1)}`;
             }
           }
-        },
-        annotation:{annotations:{
-          tl:{type:'line',xMin:todayI,xMax:todayI,borderColor:'rgba(100,116,139,.5)',borderWidth:1,borderDash:[4,4],label:{display:true,content:'HOY',color:'#64748b',font:{size:8,family:'IBM Plex Mono'},position:'start'}},
-          dl:{type:'line',xMin:dueI,xMax:dueI,borderColor:'rgba(220,38,38,.6)',borderWidth:1.5,borderDash:[3,3],label:{display:true,content:'ENTREGA',color:'#dc2626',font:{size:8,family:'IBM Plex Mono'},position:'end'}},
-        }}
+        }
       },
       scales:{
         x:{ticks:{color:'#94a3b8',font:{size:8,family:'IBM Plex Mono'},maxRotation:45,autoSkip:true,maxTicksLimit:20},grid:{color:'rgba(0,0,0,.03)'},
@@ -3121,8 +3236,7 @@ function renderDash(proj,fases){
       }
     }
   });
-
-  // TABLA SEMANAL
+ 
   const tbs=document.getElementById('tbs');tbs.innerHTML='';
   rows.filter(r=>r.ws<=TODAY).forEach(r=>{
     const atW=parseFloat(Dw(psKick,r.ws).toFixed(1));
@@ -3149,15 +3263,13 @@ function renderDash(proj,fases){
       <td><span class="chip ${svW>=0?'c-ok':'c-warn'}">${svW>=0?'Adelantado':'Atrasado'}</span></td>`;
     tbs.appendChild(tr);
   });
-
-  // TABLA SUBTAREAS
+ 
   const tbt=document.getElementById('tbt');tbt.innerHTML='';
   fases.forEach(f=>{f.subtasks.forEach(s=>{
     const av=s.av||0;
     const ti=D(s.ini),tf=D(s.fin);
     const dl=s.kickoff?1:diasLab(ti,tf);
     const hrsT=s.kickoff?hrsKick:dl*HRS_DIA;
-    const evHrs=Math.round(hrsT*av*10)/10;
     const stC=av>=1?'c-ok':av>0?'c-warn':'c-gray';
     const stT=av>=1?'Terminada':av>0?'En curso':'Sin iniciar';
     const tr=document.createElement('tr');
@@ -3166,8 +3278,6 @@ function renderDash(proj,fases){
       <td>${s.name}</td>
       <td class="mono" style="color:var(--muted);font-size:10px">${s.ini}</td>
       <td class="mono" style="color:var(--muted);font-size:10px">${s.fin}</td>
-      <td class="mono" style="text-align:center">${s.kickoff?'1 turno':dl}</td>
-      <td class="mono" style="color:#2563eb;text-align:right">${hrsT.toFixed(1)}h</td>
       <td>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
@@ -3176,151 +3286,14 @@ function renderDash(proj,fases){
           <span class="mono" style="font-size:10px;color:${av>=1?'#16a34a':av>0?'#d97706':'var(--muted2)'}">${Math.round(av*100)}%</span>
         </div>
       </td>
-      <td class="mono" style="color:#16a34a;text-align:right">${evHrs.toFixed(1)}h</td>
       <td><span class="chip ${stC}">${stT}</span></td>`;
     tbt.appendChild(tr);
   });});
-
-  // Render formulas with real project values
-  renderFormulas({
-    evReal: pctEVhoy,
-    pvToday: pctPVhoy,
-    totalPV, evAcumHoy, pvAcumHoy,
-    pctEVhoy, pctPVhoy,
-    atWeeks: parseFloat(atWeeks.toFixed(2)),
-    esWeeks: parseFloat(esWeeks.toFixed(2)),
-    svt, spit,
-    eacWeeks, eacDate, daysSlip, prob,
-    hrsKick, nKick: allSubs.filter(s=>s.kickoff).length||1,
-    rowsLen: rows.length,
-    psKick, peDue, peReal
-  });
-
+ 
   document.getElementById('sw').style.display='none';
   document.getElementById('dw').style.display='block';
   window.scrollTo(0,0);
 }
-
-
-function toggleFml(btn){
-  const p=document.getElementById('fmlPanel');
-  const a=btn.querySelector('.fml-arr');
-  p.classList.toggle('open');
-  a.textContent=p.classList.contains('open')?'▾':'▸';
-}
-
-function renderFormulas(vals){
-  // vals = {evReal, pvToday, totalPV, evAcumHoy, pvAcumHoy,
-  //         pctEVhoy, pctPVhoy, atWeeks, esWeeks, svt, spit,
-  //         eacWeeks, eacDate, daysSlip, prob, hrsKick,
-  //         psKick, peDue, peReal, rowsLen}
-  const v = vals;
-  const fmt2 = n => Math.round(n*100)/100;
-  const fmtPct = n => n.toFixed(1)+'%';
-  const fmtW = n => n.toFixed(2)+' sem';
-  const clsSpi = v.spit>=1?'fml-ok':v.spit>=0.7?'fml-warn':'fml-bad';
-  const clsSv  = v.svt>=0?'fml-ok':'fml-bad';
-  const clsSlip= v.daysSlip<=0?'fml-ok':v.daysSlip<=14?'fml-warn':'fml-bad';
-  const clsProb= v.prob>=70?'fml-ok':v.prob>=40?'fml-warn':'fml-bad';
-
-  const rows = [
-    {
-      tag:'PV sem',
-      formula:`42h ÷ N tareas activas`,
-      calc:`KickOff = ${HRS_TURNO}h ÷ ${v.nKick} tareas = ${(HRS_TURNO/v.nKick).toFixed(2)}h/tarea · Resto = días lab × ${HRS_DIA.toFixed(1)}h/día`,
-      desc:'Horas planificadas distribuidas entre tareas activas cada semana',
-      result:`${v.totalPV.toFixed(0)} hrs total`,
-      cls:'fml-neu'
-    },
-    {
-      tag:'EV sem',
-      formula:'PV sem × % avance tarea',
-      calc:`EV acum hoy = ${v.evAcumHoy.toFixed(1)} hrs de ${v.totalPV.toFixed(0)} hrs totales`,
-      desc:'Horas realmente ganadas · campo "Avance Tarea" de Asana por cada subtarea',
-      result:fmtPct(v.pctEVhoy),
-      cls:'fml-neu'
-    },
-    {
-      tag:'PV hoy',
-      formula:'Σ PV semanas hasta hoy',
-      calc:`${v.pvAcumHoy.toFixed(1)} hrs acumuladas = ${fmtPct(v.pctPVhoy)} del total`,
-      desc:'Cuánto debería haberse avanzado según el plan hasta hoy',
-      result:fmtPct(v.pctPVhoy),
-      cls:'fml-neu'
-    },
-    {
-      tag:'AT',
-      formula:'semanas desde KickOff hasta hoy',
-      calc:`${fmt(v.psKick)} → ${fmt(TODAY)} = ${v.atWeeks.toFixed(1)} semanas reales`,
-      desc:'Tiempo real transcurrido · el reloj del proyecto',
-      result:`S${v.atWeeks.toFixed(1)}`,
-      cls:'fml-neu'
-    },
-    {
-      tag:'ES',
-      formula:'semana donde PV acum = EV acum',
-      calc:`S${v.esWeeks.toFixed(2)} es donde PV acum = ${v.evAcumHoy.toFixed(1)} hrs (EV hoy)`,
-      desc:'Qué semana del plan equivale a tu avance real · interpolado sobre la curva PV',
-      result:`S${v.esWeeks.toFixed(2)}`,
-      cls:'fml-neu'
-    },
-    {
-      tag:'SV(t)',
-      formula:'ES − AT',
-      calc:`${v.esWeeks.toFixed(2)} − ${v.atWeeks.toFixed(2)} = ${v.svt>0?'+':''}${v.svt.toFixed(2)} semanas`,
-      desc:v.svt>=0?'Adelantado: el trabajo hecho equivale a una semana futura del plan':'Atrasado: el trabajo hecho equivale a una semana pasada del plan',
-      result:`${v.svt>0?'+':''}${v.svt.toFixed(2)}w`,
-      cls:clsSv
-    },
-    {
-      tag:'SPI(t)',
-      formula:'ES ÷ AT',
-      calc:`${v.esWeeks.toFixed(2)} ÷ ${v.atWeeks.toFixed(2)} = ${v.spit===99?'∞':v.spit.toFixed(2)}`,
-      desc:v.spit>=1?'Eficiencia alta — avanzas más rápido que el plan':
-           v.spit>=0.7?'Eficiencia media — recuperable con esfuerzo':
-           'Eficiencia baja — requiere acción urgente',
-      result:v.spit===99?'∞':v.spit.toFixed(2),
-      cls:clsSpi
-    },
-    {
-      tag:'EAC',
-      formula:'Duración total ÷ SPI(t)',
-      calc:`${v.rowsLen} sem ÷ ${v.spit===99?'∞':v.spit.toFixed(2)} = ${Math.round(v.eacWeeks)} semanas → ${fmt(v.eacDate)}`,
-      desc:'Duración proyectada si continúas al mismo ritmo actual',
-      result:`${Math.round(v.eacWeeks)} sem`,
-      cls:clsSlip
-    },
-    {
-      tag:'Fecha EAC',
-      formula:'KickOff + EAC semanas',
-      calc:`${fmt(v.psKick)} + ${Math.round(v.eacWeeks)}sem = ${fmt(v.eacDate)} · Contractual: ${fmt(v.peDue)}`,
-      desc:v.daysSlip>0?`+${v.daysSlip} días de retraso vs entrega contractual`:
-           v.daysSlip<0?`${Math.abs(v.daysSlip)} días antes de la entrega contractual`:
-           'Terminaría exactamente en la fecha contractual',
-      result:v.daysSlip>0?`+${v.daysSlip}d`:v.daysSlip<0?`${v.daysSlip}d`:'en fecha',
-      cls:clsSlip
-    },
-    {
-      tag:'P(fecha)',
-      formula:'f(SPI, días restantes)',
-      calc:`SPI=${v.spit===99?'∞':v.spit.toFixed(2)} · ${Math.max(Math.round(Dd(TODAY,v.peDue)),0)}d hasta contractual · ${v.peDue<TODAY&&v.pctEVhoy<100?'fecha vencida → máx 15%':'probabilidad calculada'}`,
-      desc:'Probabilidad de terminar en o antes de la fecha contractual · disminuye si la fecha ya venció',
-      result:`${v.prob}%`,
-      cls:clsProb
-    },
-  ];
-
-  const tbody = document.getElementById('fmlTable');
-  tbody.innerHTML = rows.map(r=>`
-    <tr>
-      <td style="width:80px"><span class="fml-tag">${r.tag}</span></td>
-      <td style="width:180px"><span class="fml-formula">${r.formula}</span></td>
-      <td style="width:280px"><span class="fml-calc">${r.calc}</span></td>
-      <td><span class="fml-desc">${r.desc}</span></td>
-      <td style="width:80px;text-align:right"><span class="fml-result ${r.cls}">${r.result}</span></td>
-    </tr>`).join('');
-}
-
 </script>
 </body>
 </html>
