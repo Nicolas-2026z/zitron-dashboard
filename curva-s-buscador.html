@@ -3124,6 +3124,14 @@ function goSearch(){
   if(chartInst){chartInst.destroy();chartInst=null;}
 }
  
+ 
+function isoWeek(dt){
+  const d=new Date(dt); d.setHours(0,0,0,0);
+  const day=d.getDay()===0?7:d.getDay();
+  const thu=new Date(d.getTime()+(4-day)*86400000);
+  const jan4=new Date(thu.getFullYear(),0,4);
+  return 1+Math.round((thu-jan4)/604800000);
+}
 function toggleFml(btn){
   const p=document.getElementById('fmlPanel');
   const a=btn.querySelector('.fml-arr');
@@ -3181,7 +3189,7 @@ function renderDash(proj,fases){
     <div class="dc"><div class="dl">📌 Inicio Kick Off</div><div class="dv">${fmt(psKick)}</div><div class="ds">Turno 8h total · ${hrsKick.toFixed(2)}h/tarea</div></div>
     <div class="dc"><div class="dl">🏁 Entrega contractual</div><div class="dv" style="color:${peDue<TODAY?'#dc2626':'#16a34a'}">${fmt(peDue)}</div><div class="ds">${peDue<TODAY?'⚠ VENCIDA':'✓ En plazo'}</div></div>
     <div class="dc"><div class="dl">🔚 Fin real proyecto</div><div class="dv">${fmt(peReal)}</div><div class="ds">Última subtarea planificada</div></div>
-    <div class="dc"><div class="dl">📊 EAC estimado</div><div class="dv" style="color:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#0f172a'}">${fmt(eacDate)}</div><div class="ds">${daysSlip>0?`+${daysSlip}d vs contractual`:daysSlip<0?`${Math.abs(daysSlip)}d antes`:'En fecha'}</div></div>`;
+    <div class="dc"><div class="dl">📊 EAC estimado</div><div class="dv" style="color:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#0f172a'}">${fmt(eacDate)} · S${isoWeek(eacDate)}</div><div class="ds">${daysSlip>0?`+${daysSlip}d vs contractual`:daysSlip<0?`${Math.abs(daysSlip)}d antes`:'En fecha'}</div></div>`;
  
   document.getElementById('kr').innerHTML=`
     <div class="kpi" style="--c:#16a34a"><div class="kl">EV — Hrs ganadas</div><div class="kv">${evAcumHoy.toFixed(0)}h</div><div class="ks">${pctEVhoy.toFixed(1)}%</div><div class="kf">PV sem × %avance</div></div>
@@ -3189,7 +3197,8 @@ function renderDash(proj,fases){
     <div class="kpi" style="--c:${svt>=0?'#16a34a':'#dc2626'}"><div class="kl">SV(t)</div><div class="kv">${svt>0?'+':''}${svt.toFixed(2)}w</div><div class="ks">${svt>=0?'adelantado':'atrasado'}</div><div class="kf">ES − AT</div></div>
     <div class="kpi" style="--c:${spit>=1?'#16a34a':spit>=0.7?'#d97706':'#dc2626'}"><div class="kl">SPI(t)</div><div class="kv">${spit===99?'∞':spit.toFixed(2)}</div><div class="ks">${spit>=1?'alta efic.':spit>=0.7?'media':'baja'}</div><div class="kf">ES / AT</div></div>
     <div class="kpi" style="--c:#7c3aed"><div class="kl">ES</div><div class="kv">S${esWeeks.toFixed(1)}</div><div class="ks">sem. equiv.</div><div class="kf">PV acum = EV acum</div></div>
-    <div class="kpi" style="--c:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#2563eb'}"><div class="kl">EAC</div><div class="kv">S${Math.round(eacWeeks)}</div><div class="ks">${fmts(eacDate)}</div><div class="kf">${daysSlip!==0?(daysSlip>0?'+':'')+daysSlip+'d vs contractual':'en fecha'}</div></div>`;
+    <div class="kpi" style="--c:${daysSlip>0?'#dc2626':daysSlip<0?'#16a34a':'#2563eb'}"><div class="kl">EAC</div><div class="kv">S${isoWeek(eacDate)}</div><div class="ks">${fmts(eacDate)} · ${eacDate.getFullYear()}</div><div class="kf">${daysSlip!==0?(daysSlip>0?'+':'')+daysSlip+'d vs contractual':'en fecha'}</div></div>
+    <div class="kpi" style="--c:#64748b"><div class="kl">Semana hoy</div><div class="kv">S${isoWeek(TODAY)}</div><div class="ks">${fmts(TODAY)} · ${TODAY.getFullYear()}</div><div class="kf">semana ISO calendario</div></div>`;
  
   document.getElementById('pc').innerHTML=`
     <div><div class="pn" style="color:${pc}">${prob}%</div>
