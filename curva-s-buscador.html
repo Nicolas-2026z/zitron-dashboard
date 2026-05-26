@@ -3038,7 +3038,8 @@ function calcCurva(fases,kickoffStr,finRealStr){
     s._hrsTotal=s.kickoff?hrsKick:s._dl*HRS_DIA;
   });
   const psKick=D(kickoffStr),peReal=D(finRealStr);
-  const semanas=[];let ws=new Date(lunEs(psKick));
+  // S1 empieza en el KickOff real, no en el lunes de esa semana
+  const semanas=[];let ws=new Date(psKick);
   while(ws<=new Date(peReal.getTime()+7*86400000)){semanas.push(new Date(ws));ws=new Date(ws.getTime()+7*86400000);}
   const rows=[];
   for(let i=0;i<semanas.length;i++){
@@ -3055,7 +3056,12 @@ function calcCurva(fases,kickoffStr,finRealStr){
         pv+=hrs;ev+=hrs*(s.av||0);n++;
       }
     });
-    rows.push({idx:i+1,ws:ws2,n,pv:Math.round(pv*10)/10,ev:Math.round(ev*10)/10});
+    // Semana ISO del calendario
+    const _wd=ws2.getDay()===0?7:ws2.getDay();
+    const _thu=new Date(ws2.getTime()+(4-_wd)*86400000);
+    const _jan4=new Date(_thu.getFullYear(),0,4);
+    const _isoW=1+Math.round((_thu-_jan4)/604800000);
+    rows.push({idx:i+1,ws:ws2,n,pv:Math.round(pv*10)/10,ev:Math.round(ev*10)/10,sw:_isoW});
   }
   const totalPV=rows.reduce((s,r)=>s+r.pv,0);
   let pa=0,ea=0;
@@ -3165,7 +3171,7 @@ function renderDash(proj,fases){
         🏁 Entrega contractual: <span>${fmt(peDue)}</span> &nbsp;·&nbsp;
         🔚 Fin real: <span>${fmt(peReal)}</span><br>
         ⏱ Duración: <span>S${rows.length} semanas (${Math.round(Dd(psKick,peReal))} días)</span> &nbsp;·&nbsp;
-        📊 Semana actual: <span>S${rowsHoy.length} de S${rows.length}</span> &nbsp;·&nbsp;
+        📊 Semana actual: <span>S${rowsHoy.length?rowsHoy[rowsHoy.length-1].sw:''} de S${rows[rows.length-1].sw}</span> &nbsp;·&nbsp;
         📋 Total PV: <span>${totalPV.toFixed(0)} hrs</span>
       </div>
     </div>
@@ -3203,7 +3209,7 @@ function renderDash(proj,fases){
   if(chartInst){chartInst.destroy();}
   chartInst=new Chart(document.getElementById('chartS'),{
     type:'line',
-    data:{labels:rows.map(r=>`S${r.idx} ${fmts(r.ws)}`),datasets:[
+    data:{labels:rows.map(r=>`S${r.sw} ${fmts(r.ws)}`),datasets:[
       {label:'PV %',data:rows.map(r=>r.pctPV),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,borderDash:[6,4],tension:0.3,pointRadius:2,fill:true,spanGaps:false},
       {label:'EV %',data:rows.map(r=>r.ws<=TODAY?r.pctEV:null),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.06)',borderWidth:2.5,tension:0.2,pointRadius:2,fill:true,spanGaps:false},
       {label:'ES',data:rows.map((r,i)=>i<=todayI?pctEVhoy:null),borderColor:'#d97706',backgroundColor:'transparent',borderWidth:2,borderDash:[3,3],tension:0,pointRadius:0,spanGaps:false},
