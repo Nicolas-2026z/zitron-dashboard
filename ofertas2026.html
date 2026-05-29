@@ -1,102 +1,154 @@
+
+raw
+Ofertas zitron 2026 v4 · HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ofertas Zitron 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--hdr:#0D1B2E;--bg:#EFF3F8;--card:#FFFFFF;--border:#DDE4EE;--blu:#1D4ED8;--blu2:#3B82F6;--grn:#059669;--red:#DC2626;--amb:#D97706;--pur:#6D28D9;--grn2:#10B981;--text:#0F172A;--sub:#64748B;--lite:#94A3B8;--grn-l:#ECFDF5;--red-l:#FEF2F2;--parc-l:#FFF7ED;--shadow:0 1px 4px rgba(0,0,0,.08);}
+:root{
+  --bg:#0A0F1E;--bg2:#0F1729;--card:#131D30;--card2:#1A2540;
+  --border:#1E2D47;--border2:#253558;
+  --blu:#3B82F6;--blu2:#60A5FA;--blu3:#1D4ED8;
+  --grn:#10B981;--grn2:#34D399;
+  --red:#EF4444;--red2:#FCA5A5;
+  --amb:#F59E0B;--amb2:#FCD34D;
+  --pur:#8B5CF6;--pur2:#A78BFA;
+  --txt:#F1F5F9;--sub:#64748B;--lite:#334155;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,.4);--sh2:0 4px 16px rgba(0,0,0,.5);
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
-#login{display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(140deg,#060E1C 0%,#0D1B2E 55%,#1A3A5C 100%);position:fixed;inset:0;z-index:9999;}
-.lbox{background:#fff;border-radius:20px;padding:48px 44px;width:370px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.45);}
-.llogo{width:68px;height:68px;background:var(--hdr);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
-.ltitle{font-size:20px;font-weight:700;color:var(--hdr);margin-bottom:4px;}
-.lsub{font-size:12px;color:var(--sub);margin-bottom:26px;}
-.lbox input{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:20px;text-align:center;letter-spacing:7px;margin-bottom:12px;outline:none;font-family:'JetBrains Mono',monospace;transition:border-color .2s;}
+body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13px;}
+/* LOGIN */
+#login{display:flex;min-height:100vh;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 60% 40%,#0D1B3E 0%,#060C1A 70%);
+  position:fixed;inset:0;z-index:9999;}
+.lbox{background:var(--card);border:1px solid var(--border2);border-radius:20px;
+  padding:44px 40px;width:360px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.7);}
+.llogo{width:64px;height:64px;background:linear-gradient(135deg,#0D1B2E,#1A3A5C);
+  border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.ltitle{font-size:20px;font-weight:700;margin-bottom:4px;}
+.lsub{font-size:11px;color:var(--sub);margin-bottom:28px;}
+.lbox input{width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:10px;font-size:20px;text-align:center;letter-spacing:6px;margin-bottom:12px;
+  outline:none;font-family:var(--mono);color:var(--txt);transition:border-color .2s;}
 .lbox input:focus{border-color:var(--blu);}
-.lbox button{width:100%;padding:12px;background:var(--hdr);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
-.lbox button:hover{opacity:.85;}
-#lerr{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
-.hdr{background:var(--hdr);color:#fff;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.35);}
-.hl{display:flex;align-items:center;gap:12px;}
-.hlogo{background:rgba(255,255,255,.12);padding:5px 11px;border-radius:8px;display:flex;align-items:center;}
+.lbox button{width:100%;padding:12px;background:var(--blu3);color:#fff;border:none;
+  border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+.lbox button:hover{opacity:.88;}
+#lerr{color:var(--red);font-size:11px;margin-top:8px;min-height:16px;}
+/* HEADER */
+.hdr{background:var(--card);border-bottom:1px solid var(--border);height:56px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  position:sticky;top:0;z-index:100;box-shadow:var(--sh2);}
+.hl{display:flex;align-items:center;gap:10px;}
 .htitle{font-size:14px;font-weight:600;}
-.hsub{font-size:10px;opacity:.5;margin-top:1px;}
-.hr{font-size:11px;opacity:.55;text-align:right;line-height:1.8;}
-.hr b{color:#6EE7B7;}
-.main{max-width:1280px;margin:0 auto;padding:22px 18px 48px;}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--blu));}
-.kpi-lbl{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
-.kpi-val{font-size:28px;font-weight:700;color:var(--acc,var(--blu));line-height:1;}
-.kpi-sub{font-size:10px;color:var(--lite);margin-top:5px;}
-.sec{font-size:12px;font-weight:700;color:var(--hdr);margin:24px 0 12px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.05em;}
+.hsub{font-size:10px;color:var(--sub);margin-top:1px;}
+.hr{font-size:10px;color:var(--sub);text-align:right;line-height:1.9;}
+.hbadge{display:inline-flex;align-items:center;gap:5px;background:var(--card2);
+  border:1px solid var(--border2);border-radius:20px;padding:3px 10px;
+  font-size:11px;color:var(--blu2);font-family:var(--mono);font-weight:600;}
+/* LAYOUT */
+.main{max-width:1400px;margin:0 auto;padding:20px 18px 60px;}
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:22px;}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--acc,var(--blu));}
+.kpi-lbl{font-size:9px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.kpi-val{font-size:28px;font-weight:700;color:var(--acc,var(--blu));font-family:var(--mono);line-height:1;}
+.kpi-sub{font-size:9px;color:var(--lite);margin-top:5px;}
+/* SECTION */
+.sec{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
+  letter-spacing:.1em;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
 .sec::after{content:'';flex:1;height:1px;background:var(--border);}
+/* GRIDS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
-@media(max-width:800px){.g2,.g3{grid-template-columns:1fr;}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);}
-.ctitle{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
-.xtbl{width:100%;border-collapse:collapse;font-size:12px;}
-.xtbl thead th{background:#F1F5FB;padding:7px 10px;text-align:center;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--border);}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr;}}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.ctitle{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+/* MINI TABLE */
+.xtbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.xtbl thead th{background:var(--card2);padding:6px 8px;font-size:9px;font-weight:700;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--border);text-align:center;}
 .xtbl thead th:first-child{text-align:left;}
-.xtbl tbody td{padding:6px 10px;border:1px solid #EEF2F7;text-align:center;vertical-align:middle;}
-.xtbl tbody td:first-child{text-align:left;color:var(--sub);font-size:11px;}
-.xtbl tfoot td{padding:7px 10px;border:1px solid var(--border);text-align:center;font-weight:700;background:#F8FAFC;font-size:12px;}
+.xtbl tbody td{padding:5px 8px;border:1px solid var(--border);text-align:center;vertical-align:middle;}
+.xtbl tbody td:first-child{text-align:left;color:var(--sub);}
+.xtbl tfoot td{padding:6px 8px;border:1px solid var(--border);text-align:center;
+  font-weight:700;background:var(--card2);}
 .xtbl tfoot td:first-child{text-align:left;}
-.num-pos{color:var(--grn);font-weight:700;}
-.num-neg{color:var(--red);font-weight:700;}
-.num-neu{color:var(--sub);}
-.cell-ent{color:var(--blu);font-weight:600;}
-.cell-sal{color:var(--grn);font-weight:600;}
-.week-badge{display:inline-block;background:#EFF6FF;color:var(--blu);font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;}
-.chart-box{position:relative;}
-.chart-box canvas{max-height:200px;}
-.pbar{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
-.pbar-lbl{font-size:12px;min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pbar-track{flex:1;height:16px;background:#EEF2F7;border-radius:4px;overflow:hidden;position:relative;}
-.pbar-total{height:100%;border-radius:4px;background:var(--blu2);opacity:.3;position:absolute;top:0;left:0;}
-.pbar-env{height:100%;border-radius:4px;background:var(--grn);position:absolute;top:0;left:0;}
-.pbar-nums{font-size:11px;color:var(--sub);white-space:nowrap;min-width:55px;text-align:right;}
-.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.filters input{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;outline:none;width:220px;background:#fff;}
+.c-e{color:#60A5FA;font-weight:600;} .c-s{color:#34D399;font-weight:600;}
+.c-pos{color:#34D399;font-weight:600;} .c-neg{color:#EF4444;font-weight:600;} .c-neu{color:var(--sub);}
+.wbadge{background:var(--card2);color:var(--pur2);font-size:9px;font-weight:600;
+  padding:1px 6px;border-radius:4px;font-family:var(--mono);}
+/* BARS */
+.pbar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.pbar-lbl{font-size:11px;min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pbar-track{flex:1;height:14px;background:var(--bg2);border-radius:3px;overflow:hidden;position:relative;}
+.pbar-total{height:100%;background:var(--blu3);opacity:.4;position:absolute;top:0;left:0;border-radius:3px;}
+.pbar-env{height:100%;background:var(--grn);position:absolute;top:0;left:0;border-radius:3px;}
+.pbar-nums{font-size:10px;color:var(--sub);white-space:nowrap;min-width:50px;text-align:right;font-family:var(--mono);}
+/* TOGGLE */
+.tgl-wrap{display:flex;gap:4px;margin-bottom:12px;}
+.tgl{padding:3px 10px;border-radius:6px;border:1px solid var(--border2);font-size:10px;
+  cursor:pointer;color:var(--sub);background:var(--card);font-family:var(--sans);}
+.tgl.act{background:var(--blu3);color:#fff;border-color:var(--blu3);}
+/* FILTERS */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.filters input{padding:7px 12px;background:var(--card);border:1px solid var(--border2);
+  border-radius:8px;font-size:12px;outline:none;width:240px;color:var(--txt);font-family:var(--sans);}
 .filters input:focus{border-color:var(--blu);}
-.fpill{padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;cursor:pointer;color:var(--sub);font-weight:500;}
-.fpill.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
-.dtbl{width:100%;border-collapse:collapse;font-size:11.5px;}
-.dtbl thead th{background:#F1F5FB;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,.06);}
-.dtbl tbody tr{border-bottom:1px solid #F1F5F9;}
-.dtbl tbody tr:hover{background:#F8FAFC;}
+.filters input::placeholder{color:var(--sub);}
+.fpill{padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--card);
+  font-size:10px;cursor:pointer;color:var(--sub);font-weight:600;font-family:var(--sans);transition:all .15s;}
+.fpill:hover{border-color:var(--blu);color:var(--blu2);}
+.fpill.act{background:var(--blu3);color:#fff;border-color:var(--blu3);}
+/* DETAIL TABLE */
+.dtbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.dtbl-scroll{overflow-y:auto;overflow-x:auto;max-height:60vh;}
+.dtbl{width:100%;border-collapse:collapse;font-size:11.5px;min-width:1200px;}
+.dtbl thead th{background:var(--card2);padding:8px 10px;font-size:9px;font-weight:700;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);
+  white-space:nowrap;position:sticky;top:0;z-index:10;}
+.dtbl tbody tr{border-bottom:1px solid var(--border);}
+.dtbl tbody tr:hover{background:var(--card2);}
 .dtbl tbody td{padding:7px 10px;vertical-align:middle;}
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
-.b-env{background:var(--grn-l);color:#065F46;}
-.b-pend{background:var(--red-l);color:#991B1B;}
-.b-parc{background:var(--parc-l);color:#92400E;}
-.nro{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--pur);}
-.tdname{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tdname a{color:var(--blu);text-decoration:none;}
-.tdname a:hover{text-decoration:underline;}
-.tfoot-txt{font-size:11px;color:var(--sub);padding:8px 2px;}
-.faltante-cell{font-size:10px;max-width:180px;}
-.chip{display:inline-block;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;margin:1px;}
-.chip-ok{background:#D1FAE5;color:#065F46;}
-.chip-no{background:#FEE2E2;color:#991B1B;}
-.chip-na{background:#F1F5F9;color:#64748B;}
-.tgl-wrap{display:flex;gap:5px;margin-bottom:12px;}
-.tgl{padding:4px 12px;border-radius:7px;border:1px solid var(--border);font-size:11px;cursor:pointer;color:var(--sub);background:#fff;}
-.tgl.act{background:var(--hdr);color:#fff;border-color:var(--hdr);}
-.new-row{background:#F0FDF4 !important;}
-.new-row td{border-bottom:1px solid #BBF7D0 !important;}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;
+  padding:2px 8px;border-radius:20px;white-space:nowrap;font-family:var(--mono);}
+.b-env{background:rgba(16,185,129,.15);color:#34D399;border:1px solid rgba(16,185,129,.25);}
+.b-parc{background:rgba(245,158,11,.12);color:#FCD34D;border:1px solid rgba(245,158,11,.2);}
+.b-prog{background:rgba(59,130,246,.12);color:#60A5FA;border:1px solid rgba(59,130,246,.2);}
+.b-pend{background:rgba(100,116,139,.1);color:var(--sub);border:1px solid var(--border2);}
+.b-rev{background:rgba(139,92,246,.12);color:#A78BFA;border:1px solid rgba(139,92,246,.2);}
+.b-urg{background:rgba(239,68,68,.15);color:#FCA5A5;border:1px solid rgba(239,68,68,.25);animation:pulse 1.5s infinite;}
+.b-revisar{background:rgba(245,158,11,.12);color:#FCD34D;border:1px solid rgba(245,158,11,.2);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.nro{font-family:var(--mono);font-size:10px;font-weight:600;color:#A78BFA;}
+.chip{display:inline-block;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600;margin:1px;font-family:var(--mono);}
+.chip-ok{background:rgba(16,185,129,.15);color:#34D399;}
+.chip-no{background:rgba(100,116,139,.1);color:var(--sub);}
+.chip-na{background:rgba(139,92,246,.1);color:#A78BFA;}
+.tdname{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tfoot-txt{font-size:10px;color:var(--sub);padding:8px 4px;}
+.prio-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px;}
+.p1{background:#EF4444;} .p2{background:#F59E0B;} .p3{background:#60A5FA;} .p4{background:var(--sub);}
+.notas-cell{font-size:9px;color:var(--sub);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chart-wrap{position:relative;height:180px;}
+.today-row td{background:rgba(59,130,246,.06)!important;}
 </style>
 </head>
 <body>
 <div id="login">
   <div class="lbox">
     <div class="llogo">
-      <svg viewBox="0 0 200 200" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 200" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
         <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
         <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
       </svg>
@@ -118,27 +170,30 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
  
 <header class="hdr">
   <div class="hl">
-    <div class="hlogo">
-      <svg viewBox="0 0 200 200" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
-        <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
-      </svg>
-    </div>
-    <div><div class="htitle">Ofertas Zitron 2026</div><div class="hsub">Proyecto Asana · Consolidado comercial</div></div>
+    <svg viewBox="0 0 200 200" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
+      <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
+      <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
+    </svg>
+    <div><div class="htitle">Ofertas Zitron 2026</div><div class="hsub">Asana + Excel · 29/05/2026</div></div>
   </div>
-  <div class="hr"><div>Actualizado: 28/05/2026</div><div><b id="hbadge">73 ofertas</b></div></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="hbadge">77 entradas · 39 enviadas</span>
+    <div class="hr"><div>Actualizado: 29/05/2026</div><div style="color:#34D399;font-weight:600">Asana sync ✓</div></div>
+  </div>
 </header>
  
 <main class="main">
 <div class="kpis">
-  <div class="kpi" style="--acc:#1D4ED8"><div class="kpi-lbl">Total ofertas</div><div class="kpi-val">73</div><div class="kpi-sub">secciones en Asana</div></div>
-  <div class="kpi" style="--acc:#059669"><div class="kpi-lbl">Enviadas</div><div class="kpi-val">38</div><div class="kpi-sub">consolidado ✓</div></div>
-  <div class="kpi" style="--acc:#D97706"><div class="kpi-lbl">Parciales</div><div class="kpi-val">1</div><div class="kpi-sub">en progreso</div></div>
-  <div class="kpi" style="--acc:#DC2626"><div class="kpi-lbl">Pendientes</div><div class="kpi-val">34</div><div class="kpi-sub">sin enviar</div></div>
-  <div class="kpi" style="--acc:#D97706"><div class="kpi-lbl">% Avance global</div><div class="kpi-val">52%</div><div class="kpi-sub">enviadas / total</div></div>
+  
+  <div class="kpi" style="--acc:#60A5FA"><div class="kpi-lbl">Entradas</div><div class="kpi-val">77</div><div class="kpi-sub">registradas</div></div>
+  <div class="kpi" style="--acc:#10B981"><div class="kpi-lbl">Enviadas</div><div class="kpi-val">39</div><div class="kpi-sub">consolidadas ✓</div></div>
+  <div class="kpi" style="--acc:#F59E0B"><div class="kpi-lbl">Parciales</div><div class="kpi-val" id="k-parc">—</div><div class="kpi-sub">técnica enviada</div></div>
+  <div class="kpi" style="--acc:#8B5CF6"><div class="kpi-lbl">En Progreso</div><div class="kpi-val" id="k-prog">—</div><div class="kpi-sub">revisión / asignadas</div></div>
+  <div class="kpi" style="--acc:#64748B"><div class="kpi-lbl">Pendientes</div><div class="kpi-val" id="k-pend">—</div><div class="kpi-sub">sin iniciar</div></div>
+  <div class="kpi" style="--acc:#EF4444"><div class="kpi-lbl">🚨 Urgentes</div><div class="kpi-val" id="k-urg">—</div><div class="kpi-sub">atención inmediata</div></div>
 </div>
  
-<div class="sec">📊 Resumen oferta — movimientos</div>
+<div class="sec">📊 Movimientos</div>
 <div class="g2">
   <div class="card">
     <div class="ctitle">Movimientos por período</div>
@@ -146,46 +201,51 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
       <button class="tgl act" onclick="setTbl('dia',this)">Por día</button>
       <button class="tgl" onclick="setTbl('sem',this)">Por semana</button>
     </div>
-    <div id="tbl-movimientos"></div>
+    <div id="tbl-mov" style="overflow-y:auto;max-height:300px;"></div>
   </div>
   <div class="card">
-    <div class="ctitle">Resumen por semana</div>
-    <div id="tbl-semanas"></div>
-    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
-      <div class="ctitle">Ofertas por país</div>
-      <div id="pais-bars"></div>
+    <div class="ctitle">Por país</div>
+    <div id="pais-bars"></div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+      <div class="ctitle">Por responsable</div>
+      <div id="asig-bars"></div>
     </div>
   </div>
 </div>
  
-<div class="sec">📈 Gráficos de flujo</div>
 <div class="g3">
-  <div class="card chart-box"><div class="ctitle">Entradas y salidas por día</div><canvas id="ch-dia"></canvas></div>
-  <div class="card chart-box"><div class="ctitle">Entradas y salidas por semana</div><canvas id="ch-sem"></canvas></div>
-  <div class="card chart-box"><div class="ctitle">Acumulado entradas vs salidas</div><canvas id="ch-cum"></canvas></div>
+  <div class="card"><div class="ctitle">Entradas y salidas por día</div><div class="chart-wrap"><canvas id="ch-dia"></canvas></div></div>
+  <div class="card"><div class="ctitle">Entradas y salidas por semana</div><div class="chart-wrap"><canvas id="ch-sem"></canvas></div></div>
+  <div class="card"><div class="ctitle">Acumulado entradas vs salidas</div><div class="chart-wrap"><canvas id="ch-cum"></canvas></div></div>
 </div>
  
 <div class="sec">📋 Detalle de ofertas</div>
 <div class="filters">
-  <input id="srch" type="text" placeholder="Buscar oferta, cliente, país...">
+  <input id="srch" type="text" placeholder="Buscar oferta, cliente, país, notas...">
   <button class="fpill act" onclick="setF('all',this)">Todas</button>
   <button class="fpill" onclick="setF('env',this)">✓ Enviadas</button>
   <button class="fpill" onclick="setF('parc',this)">◑ Parciales</button>
+  <button class="fpill" onclick="setF('prog',this)">▷ En Progreso</button>
   <button class="fpill" onclick="setF('pend',this)">● Pendientes</button>
-  <button class="fpill" onclick="setF('new',this)">🆕 Nuevas</button>
-  <button class="fpill" onclick="setF('cl',this)">🇨🇱 Chile</button>
-  <button class="fpill" onclick="setF('pe',this)">🇵🇪 Perú</button>
-  <button class="fpill" onclick="setF('mx',this)">🇲🇽 México</button>
-  <button class="fpill" onclick="setF('ar',this)">🇦🇷 Argentina</button>
-  <button class="fpill" onclick="setF('co',this)">🇨🇴 Colombia</button>
+  <button class="fpill" onclick="setF('urg',this)">🚨 Urgentes</button>
+  <button class="fpill" onclick="setF('p1',this)">P1</button>
+  <button class="fpill" onclick="setF('p2',this)">P2</button>
+  <button class="fpill" onclick="setF('p3',this)">P3</button>
+  <button class="fpill" onclick="setF('cl',this)">🇨🇱</button>
+  <button class="fpill" onclick="setF('pe',this)">🇵🇪</button>
+  <button class="fpill" onclick="setF('mx',this)">🇲🇽</button>
+  <button class="fpill" onclick="setF('co',this)">🇨🇴</button>
+  <button class="fpill" onclick="setF('ar',this)">🇦🇷</button>
+  <button class="fpill" onclick="setF('sa',this)">Sin asignar</button>
+  <button class="fpill" onclick="setF('new',this)">🆕 Hoy</button>
 </div>
-<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);">
-  <div style="overflow-y:auto;overflow-x:auto;max-height:62vh;">
-    <table class="dtbl" style="width:100%;min-width:1000px;">
+<div class="dtbl-wrap">
+  <div class="dtbl-scroll">
+    <table class="dtbl">
       <thead><tr>
-        <th>N° Oferta</th><th>Descripción</th><th>País</th><th>Cliente</th>
-        <th>Estado</th><th>Tareas</th><th>Sub ✓</th>
-        <th>F. Creación</th><th>F. Salida</th><th>Responsable</th>
+        <th>P</th><th>N° Oferta</th><th>Descripción</th><th>País</th><th>Cliente</th>
+        <th>Estado</th><th>Asana ✓</th><th>F.Entrada</th><th>F.Límite</th><th>F.Salida</th>
+        <th>Responsable</th><th>Notas</th>
       </tr></thead>
       <tbody id="dtbl-body"></tbody>
     </table>
@@ -196,259 +256,175 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-var OFFERS=[
-// Pre-tracking
-{"nro":"26CL0005","sec":"26CL0005 - MOTOR INDUC 630kW WEG","desc":"MOTOR INDUC 630kW 400V 111A 994rpm WEG","pais":"Chile","cli":"Codelco","assignee":"","created_at":"2026-04-29","fecha_sal":"2026-03-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214395292684272","ing_done":true,"proy_done":true,"cons_done":true},
-// ── Semana 17 ──
-{"nro":"26AR0002","sec":"26AR0002 - Estudio Lunahuasi","desc":"Ventiladores tubos exploración","pais":"Argentina","cli":"Lunahuasi","assignee":"","created_at":"2026-04-28","fecha_sal":"2026-04-23","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214386129953526","ing_done":true,"proy_done":true,"cons_done":true},
-// ── Semana 18 ──
-{"nro":"26PE0010","sec":"26PE0010 - VENTILADORES AXIALES 10K-100K CFM","desc":"Oferta Capex Poderosa - Ventiladores Axiales","pais":"Peru","cli":"PODEROSA","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-27","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971192","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"2370-24-PE","sec":"2370-24-PE24-PE - Suministro ventiladores y manga NCC Perú","desc":"Suministro ventiladores y manga - Túnel Nueva Carretera Central","pais":"Peru","cli":"OSSA","assignee":"Carlos Pérez","created_at":"2026-04-27","fecha_sal":"2026-03-24","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971207","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"2370-24-PE","sec":"2370-24-PE - OFERTA EN PERÚ (NCC)","desc":"OFERTA EN PERÚ (NCC)","pais":"Peru","cli":"Acciona","assignee":"Carlos Pérez","created_at":"2026-04-27","fecha_sal":"2026-02-20","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971237","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26NI004","sec":"26NI004 - Solicitud oferta - Repuestos Zitron","desc":"Rele Borna - Partes de Repuestos Zitron","pais":"Nicaragua","cli":"TRITON MINERA","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-27","fecha_sal":"2026-04-30","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971253","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26PE0001","sec":"26PE0001 - BROCAL CODOS","desc":"Ductos y accesorios","pais":"Peru","cli":"BROCAL","assignee":"Carlos Pérez","created_at":"2026-04-27","fecha_sal":"2026-05-07","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971269","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26MX0031","sec":"26MX0031 - Nuevo Proyecto Arian Silver - Guanajuatillo","desc":"Ventilador - Guanajuatillo","pais":"Mexico","cli":"Arian Silver","assignee":"DAVID BLAZQUEZ","created_at":"2026-04-27","fecha_sal":"2026-04-30","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971333","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26EC0001","sec":"26EC0001 - RL1338-OfertaVentiladores","desc":"Extension L1 Metro Quito","pais":"Ecuador","cli":"Typsa","assignee":"Carlos Pérez","created_at":"2026-04-27","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971319","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0036","sec":"26CL0036 - PWP-413 Ventiladores P500 y P4600","desc":"Aclaracion Oferta técnica P500 y P4600","pais":"Chile","cli":"CODELCO","assignee":"Hernan Roberto Gutierrez Barrientos","created_at":"2026-04-27","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971347","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0046","sec":"26CL0046 - GARANTIA EQUIPOS","desc":"Garantia Equipos","pais":"Chile","cli":"Geovita","assignee":"Carlos Pérez","created_at":"2026-04-27","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971360","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0017","sec":"26CL0017 VDF DR 1272","desc":"Tablero SS 90 kW","pais":"Chile","cli":"DMC","assignee":"DAVID BLAZQUEZ","created_at":"2026-04-27","fecha_sal":"2026-05-05","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971373","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0022","sec":"26CL0022 - Oferta Ventiladores Jet Fan","desc":"Oferta Ventiladores Jet Fan","pais":"Chile","cli":"IDOM","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-27","fecha_sal":"2026-02-25","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214299938971286","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"25CL2554","sec":"25CL2554 - Minera Chipana REV 1","desc":"Ventiladores principales","pais":"","cli":"Minera Chipana","assignee":"DAVID BLAZQUEZ","created_at":"2026-04-28","fecha_sal":"2026-05-13","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214372713261021","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26MX0027","sec":"26MX0027 - AGNICO EAGLE","desc":"Ductos y accesorios","pais":"Mexico","cli":"Agnico Eagle","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-28","fecha_sal":"2026-05-06","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214372714902240","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0047","sec":"26CL0047 - COTIZACION DE VENTILADORES AXIALES","desc":"Ventiladores reforzadores","pais":"Chile","cli":"PanAmerican La Florida","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-28","fecha_sal":"2026-05-06","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214358215800341","ing_done":true,"proy_done":true,"cons_done":true},
-// ── Semana 18 – 29-abr ──
-{"nro":"26PE0013","sec":"26PE0013 - COTIZAR VENTILADOR MINERO GLORE PERU","desc":"Yaruchagua 10/90","pais":"Peru","cli":"Glore Perú","assignee":"Hernan Roberto Gutierrez Barrientos","created_at":"2026-04-29","fecha_sal":"2026-05-27","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214398046352814","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26PE0018","sec":"26PE0018 - Orden de Compra 4510085177","desc":"6 ventiladores 9-90","pais":"Peru","cli":"Alpayana","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-29","fecha_sal":"2026-04-29","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214398492075459","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0028","sec":"26CL0028 - Oferta Pendiente Reparación AVO2","desc":"Reparacion ventilador y tablero","pais":"Chile","cli":"AVO II","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-04-29","fecha_sal":"2026-05-04","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396036668594","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0052","sec":"26CL0052 - EQUIPOS DE VENTILACION INDUSTRIAL","desc":"EQUIPOS DE VENTILACION INDUSTRIAL","pais":"Chile","cli":"El Teniente","assignee":"","created_at":"2026-04-29","fecha_sal":"2026-05-05","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396714263901","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0049","sec":"26CL0049 - Dimensiones Ventilación Punta del COBRE","desc":"Dimensiones Ventilación Punta del COBRE","pais":"Chile","cli":"Pu cobre","assignee":"DAVID BLAZQUEZ","created_at":"2026-04-29","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214396952540026","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0044","sec":"26CL0044 - Ventilación Tren Santiago-Batuco","desc":"Ventilación Tren Santiago-Batuco","pais":"Chile","cli":"AED","assignee":"DAVID BLAZQUEZ","created_at":"2026-04-29","fecha_sal":"2026-04-02","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214397240424391","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0038","sec":"26CL0038 - LIC VENTILADORES AUXILIARES DCH","desc":"LIC VENTILADORES AUXILIARES DE INYECCIÓN Y EXTRACCIÓN, DCH.","pais":"Chile","cli":"Codelco","assignee":"","created_at":"2026-04-29","fecha_sal":"2026-03-27","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214397813984470","ing_done":false,"proy_done":false,"cons_done":false},
-// ── Semana 19 ──
-{"nro":"26CL0037","sec":"26CL0037 - atacama kozan","desc":"atacama kozan","pais":"Chile","cli":"ATACAMA KOZAN","assignee":"","created_at":"2026-05-04","fecha_sal":"2026-05-04","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214494787364061","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0048","sec":"26CL0048 - TÚNEL LO RUIZ (INDRA)","desc":"Ventilacion definitiva Tunel Lo Ruiz - INDRA","pais":"Chile","cli":"INDRA","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-04","fecha_sal":"2026-05-13","estado":"Enviada","faltante":"","completadas":6,"total":6,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214497323636894","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0011","sec":"26CL0011 - GRUPO MINERO LAS CENIZAS","desc":"GRUPO MINERO LAS CENIZAS - OC184347","pais":"Chile","cli":"LAS CENIZAS","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-04","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214501194276694","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0022","sec":"26CL0022 - COTIZACION RUTA 57 SANTIAGO-COLINA-LOS ANDES","desc":"COTIZACION RUTA 57 SANTIAGO - COLINA - LOS ANDES","pais":"Chile","cli":"SACYR","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-04","fecha_sal":"2026-04-27","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214498079367742","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26PE0019","sec":"26PE0019 - Metro de Lima PV4-7 (ramal IV)","desc":"Metro de Lima PV4-7 (ramal IV)","pais":"Peru","cli":"Metro de Lima","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-04","fecha_sal":"2026-04-21","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214506707879901","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"25PE0036","sec":"25PE0036 - Ventilador Eléctrico VE-294","desc":"Reparacion ventilador","pais":"Peru","cli":"PODEROSA","assignee":"Hernan Roberto Gutierrez Barrientos","created_at":"2026-05-04","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214508468957583","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0054","sec":"25cl0054 - Visita Minera Arqueros","desc":"Ventilador auxiliar ZVN 1-9-45/2","pais":"Chile","cli":"Minera Arqueros","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-06","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565160385301","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26AR0003","sec":"26AR0003 - SOLICITUD DE COTIZACION VENTILADORES","desc":"dos ventiladores","pais":"Argentina","cli":"Minera Gualcamayo","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-06","fecha_sal":"2026-05-12","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565171056375","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0055","sec":"26CL0055 - Cotización servicio REQ-111E","desc":"Reparacion Ventilador 222442-VEN-01","pais":"Chile","cli":"Chuquicamata","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-06","fecha_sal":"2026-05-07","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214565462428703","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26MX0037","sec":"26MX0037 - 13521206 VENTILADOR 200HP","desc":"Ventilador ZVN 1-14","pais":"Mexico","cli":"Concheño / Frisco","assignee":"Carlos Pérez","created_at":"2026-05-07","fecha_sal":"2026-05-06","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214596972085525","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0015","sec":"26CL0015 - LICITACION PUBLICA LINEA 9 METRO SANTIAGO","desc":"LICITACION PUBLICA INTERNACIONAL - VENTILACION FORZADA LINEA 9 METRO SANTIAGO","pais":"Chile","cli":"Metro Santiago linea 9","assignee":"","created_at":"2026-05-08","fecha_sal":"2026-04-20","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628387415927","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26PE0017","sec":"26PE0017 - COTIZACION VENTILADORES - ARCATA","desc":"Ventiladores Auxiliares - Arcata","pais":"Peru","cli":"SIERRA MINERA CARAZ S.A.C","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-08","fecha_sal":"2026-05-07","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628697359418","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26MX0038","sec":"26MX0038 - Cotizacion de Rodete Zitron: Concheño","desc":"Rodete repuesto monobloque Gel 9","pais":"Mexico","cli":"Concheño / Frisco","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-08","fecha_sal":"2026-05-20","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628684237369","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0056","sec":"26CL0056 - Reparación ventiladores Van 110","desc":"Reparación ventiladores Van 110 mas otro","pais":"Chile","cli":"PAN AMERICAN SILVER","assignee":"","created_at":"2026-05-08","fecha_sal":"2026-05-05","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628896631461","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CO0013","sec":"26CO0013 - Propuesta construcción silenciadores","desc":"Propuesta construcción silenciadores","pais":"Colombia","cli":"aris mining","assignee":"Carlos Pérez","created_at":"2026-05-08","fecha_sal":"2026-04-19","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214628713404935","ing_done":false,"proy_done":false,"cons_done":false},
-// ── Semana 20 ──
-{"nro":"1092-18-PE","sec":"1092-18-PE - Ficha técnica JZRi 12/45-4 Systra","desc":"Ficha técnica JZRi 12/45-4 - solo técnico","pais":"Peru","cli":"Systra","assignee":"Hernan Roberto Gutierrez Barrientos","created_at":"2026-05-13","fecha_sal":"2026-05-15","estado":"Enviada","faltante":"","completadas":1,"total":1,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075","ing_done":null,"proy_done":null,"cons_done":true},
-{"nro":"26CL0053","sec":"26CL0053 - (Subtramo 2A y 2B) Línea 9 - CRTG","desc":"(Subtramo 2A y 2B) Línea 9 - CRTG","pais":"Chile","cli":"CRTG","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-04-28","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214739965237812","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0057","sec":"26CL0057 - Solicita Cotización de Herramientas VDF","desc":"Solicita Cotización de Herramientas VDF","pais":"Chile","cli":"Codelco","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-05-06","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749017926618","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CO0015","sec":"26CO0015 - Cotización ventiladores ZVN EMS","desc":"Cotización ventiladores ZVN 1-6-11 y 25 EMS","pais":"Colombia","cli":"EMS","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-05-06","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214746222096654","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26AR0004","sec":"26AR0004 - Licitación Línea F Subte Buenos Aires","desc":"Licitación Línea F Subte Buenos Aires - Roggio/Ghella","pais":"Argentina","cli":"Roggio/Ghella","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-05-05","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214746269956092","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26PE0011","sec":"26PE0011 - Revisión Oferta Técnica ACCIONA","desc":"Revisión Oferta Técnica y económica ACCIONA","pais":"Peru","cli":"ACCIONA","assignee":"Carlos Pérez","created_at":"2026-05-12","fecha_sal":"2026-05-07","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749309523658","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0051","sec":"26CL0051 - Ventilador Zitron dañado","desc":"Ventilador Zitron dañado","pais":"Chile","cli":"DMC","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-05-07","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749561538950","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26MX0042","sec":"26MX0042 - Proyecto de Torex Reguladores","desc":"Proyecto de Torex Reguladores","pais":"Mexico","cli":"TOREX GOLD","assignee":"","created_at":"2026-05-12","fecha_sal":"2026-05-08","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214750004949607","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0025","sec":"26CL0025 - Candelaria por Ductería","desc":"Candelaria por Ductería","pais":"Chile","cli":"CANDELARIA","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-12","fecha_sal":"2026-05-11","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214752359624680","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0046","sec":"26CL0046 - GARANTIA EQUIPOS ZVN1-10-55","desc":"Reparacion ZVN 1-10-55/2","pais":"Chile","cli":"Geovita","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-12","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214749560651096","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0048","sec":"26CL0048 - TÚNEL LO RUIZ (SICE)","desc":"Ventilacion definitiva Tunel Lo Ruiz - SICE","pais":"Chile","cli":"SICE","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-12","fecha_sal":"2026-05-13","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214792056521239","ing_done":true,"proy_done":true,"cons_done":true},
-// ── Semana 20 – 13-may ──
-{"nro":"26CL0043","sec":"26CL0043 - Ventilacion definitiva AVO 2","desc":"Ventilacion definitiva AVO 2","pais":"Chile","cli":"AVO 2","assignee":"","created_at":"2026-05-13","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214780521668803","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26MX0028","sec":"26MX0028 - XCARET Tunel de viento","desc":"XCARET Tunel de viento","pais":"Mexico","cli":"XCARET","assignee":"","created_at":"2026-05-13","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214780810332064","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26MX0036","sec":"26MX0036 - Oferta nueva Torex","desc":"3 ZVN 10-75 / 3 ZVN 12-150","pais":"Mexico","cli":"Torex","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-13","fecha_sal":"2026-05-27","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781205722401","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CO0016","sec":"26CO0016 - Recambios álabes ventiladores principales","desc":"Alabes de recambio","pais":"Colombia","cli":"ARIS MARMATO","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-13","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781122284833","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CO0017","sec":"26CO0017 - Secundarios Marmato","desc":"Secundarios 4 ZVN 7-45","pais":"Colombia","cli":"ARIS MARMATO","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-13","fecha_sal":"2026-05-26","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781208969106","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0058","sec":"26CL0058 - Cotización Ventilador PDES","desc":"ZVN 1-28-850/6","pais":"Chile","cli":"PDES","assignee":"DAVID BLAZQUEZ","created_at":"2026-05-13","fecha_sal":"2026-05-28","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781175641240","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0061","sec":"26CL0061 - COTIZACION VENTILADORES","desc":"COTIZACION VENTILADORES","pais":"Chile","cli":"DMC","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-13","fecha_sal":"2026-05-12","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781395387195","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26PE0014","sec":"26PE0014 - 7 VENTILADORES ZITRON TALLER AEI","desc":"7 VENTILADORES ZITRON TALLER AEI","pais":"Peru","cli":"AEI","assignee":"","created_at":"2026-05-13","fecha_sal":"2026-04-17","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214781459785041","ing_done":false,"proy_done":false,"cons_done":false},
-// ── Semana 21 ──
-{"nro":"25PE0013","sec":"25PE0013 - Servicio Alquiler 05 Ventiladores adicionales","desc":"5 Ventiladores extras - Huaron adicional","pais":"Peru","cli":"PAN AMERICAN SILVER","assignee":"","created_at":"2026-05-18","fecha_sal":"2026-05-18","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214913426305444","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CR0001","sec":"26CR0001 - mina bellavista","desc":"mina bellavista","pais":"Costa rica","cli":"MINA BELLAVISTA","assignee":"","created_at":"2026-05-18","fecha_sal":"2026-05-18","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214913549337088","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0062","sec":"26CL0062 - MODELO MP","desc":"MODELO MP","pais":"Chile","cli":"MINA PATAGUA","assignee":"","created_at":"2026-05-20","fecha_sal":"2026-05-20","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214984160538225","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26MX0048","sec":"26MX0048 - Cotización refacciones ventiladores zitron","desc":"Cotización refacciones ventiladores zitron","pais":"Mexico","cli":"Fresnillo","assignee":"","created_at":"2026-05-20","fecha_sal":"2026-05-20","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214984279414394","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0063","sec":"26CL0063 - Codelco Andina Inyector N°1","desc":"Codelco Andina Inyector N°1 31710-VEN-001","pais":"Chile","cli":"CODELCO","assignee":"","created_at":"2026-05-20","fecha_sal":"2026-05-20","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214984682367723","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26PE0022","sec":"26PE0022 - Cotización ventiladores axiales Mina Marañón","desc":"Ventilacion minera","pais":"Peru","cli":"PODEROSA","assignee":"Francisca Alejandra Ramos Aravales","created_at":"2026-05-20","fecha_sal":"2026-05-25","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214984426264457","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CL0064","sec":"26CL0064 - Cotización Ventilador Túnel 1","desc":"Cotización Ventilador Túnel 1","pais":"Chile","cli":"Mina Marañón","assignee":"","created_at":"2026-05-20","fecha_sal":"2026-05-20","estado":"Parcial","faltante":"Proyecto, Consolidado","completadas":1,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1214986526936033","ing_done":true,"proy_done":false,"cons_done":false},
-{"nro":"26CL0059","sec":"26CL0059 - Ventilación Licitacion Diamante (A)","desc":"Ventilación Licitacion Diamante (A)","pais":"Chile","cli":"Diamante","assignee":"","created_at":"2026-05-22","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215089782335149","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0059","sec":"26CL0059 - Ventilación Licitacion Diamante (B)","desc":"Ventilación Licitacion Diamante (B)","pais":"Chile","cli":"Diamante","assignee":"","created_at":"2026-05-22","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215090045895409","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0059","sec":"26CL0059 - Ventilación Licitacion Diamante (C)","desc":"Ventilación Licitacion Diamante (C)","pais":"Chile","cli":"Diamante","assignee":"","created_at":"2026-05-22","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215090045958673","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26MX0049","sec":"26MX0049 - 054-24//OC5630..090 y 5630..119","desc":"054-24//OC5630..090 y 5630..119//50001499-4227 y 50001499-4218","pais":"Mexico","cli":"—","assignee":"","created_at":"2026-05-22","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215105901792738","ing_done":false,"proy_done":false,"cons_done":false},
-// ── Semana 22 ──
-{"nro":"26NI0005","sec":"26NI0005 - hemco 10233811","desc":"HEMCO Nicaragua - hemco 10233811","pais":"Nicaragua","cli":"HEMCO","assignee":"","created_at":"2026-05-26","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215140120815897","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0065","sec":"26CL0065 - Cotización Ventilador + Partidor","desc":"Cotización Ventilador + Partidor","pais":"Chile","cli":"—","assignee":"","created_at":"2026-05-26","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215141448133248","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26MX0041","sec":"26MX0041 - Nueva Solicitud Sta Bárbara","desc":"Enviada oferta Técnica","pais":"Mexico","cli":"Santa Barbara","assignee":"","created_at":"2026-05-27","fecha_sal":"2026-05-27","estado":"Enviada","faltante":"","completadas":3,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215171201946566","ing_done":true,"proy_done":true,"cons_done":true},
-{"nro":"26CO0012","sec":"26CO0012 - COTIZACIÓN VENTILADORES","desc":"COTIZACIÓN VENTILADORES","pais":"Colombia","cli":"—","assignee":"Carlos Pérez","created_at":"2026-05-28","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215228358430198","ing_done":false,"proy_done":false,"cons_done":false},
-{"nro":"26CL0053","sec":"26CL0053 - SOLICITUD COTIZACION VENTILADORES METRO SANTIAGO","desc":"SOLICITUD COTIZACION VENTILADORES LICITACION METRO DE SANTIAGO","pais":"Chile","cli":"Metro de Santiago","assignee":"","created_at":"2026-05-28","fecha_sal":"","estado":"Pendiente","faltante":"Ingeniería, Proyecto, Consolidado","completadas":0,"total":3,"url":"https://app.asana.com/1/402967058777498/project/1214299938971075/task/1215212959884640","ing_done":false,"proy_done":false,"cons_done":false}
-];
+var D={"offers":[{"nro":"26CL0005","desc":"Motor INDUC 630kW WEG","pais":"Chile","cli":"Codelco","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"18-03-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26AR0002","desc":"Ventiladores tubos exploración","pais":"Argentina","cli":"Lunahuasi","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"23-04-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26PE0010","desc":"Oferta Capex ventiladores axiales","pais":"Peru","cli":"Poderosa","estado":"Enviada","status_xl":"Asignado → Enviada","f_ent":"","f_lim":"","f_sal":"18-05-2026","asig":"Fran","notas":"","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"2370-24-PE.A","desc":"Ventilacion de obra NCC","pais":"Peru","cli":"Acciona","estado":"Pendiente","status_xl":"Modificar alcance","f_ent":"","f_lim":"","f_sal":"","asig":"Carlos","notas":"","prio":1,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"2370-24-PE.B","desc":"Ventilacion de obra NCC – transporte","pais":"Peru","cli":"OSSA","estado":"En Revisión","status_xl":"Revision incluir transporte manga","f_ent":"","f_lim":"","f_sal":"","asig":"Carlos","notas":"","prio":1,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26NI0004","desc":"Rele Borna – Repuestos Zitron","pais":"Nicaragua","cli":"Triton Minera","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"30-04-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26PE0001","desc":"Ductos y accesorios","pais":"Peru","cli":"Brocal","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"07-05-2026","f_sal":"07-05-2026","asig":"Carlos","notas":"Con paquete de planos","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26MX0031","desc":"Ventilador Guanajuatillo","pais":"Mexico","cli":"Arian Silver","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"30-04-2026","asig":"David","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26EC0001","desc":"Extension L1 Metro Quito","pais":"Ecuador","cli":"Typsa","estado":"Enviada","status_xl":"Oferta técnica enviada","f_ent":"","f_lim":"","f_sal":"26-05-2026","asig":"Carlos","notas":"Enviado a Juan Oferta tecnica","prio":2,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0036","desc":"Aclaración Oferta técnica P500/P4600","pais":"Chile","cli":"CODELCO","estado":"Enviada","status_xl":"Asignado → Enviada","f_ent":"13-05-2026","f_lim":"15-05-2026","f_sal":"18-05-2026","asig":"Hernan","notas":"","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0046_1","desc":"Garantia Equipos","pais":"Chile","cli":"Geovita","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"28-04-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0017","desc":"Tablero SS 90 kW","pais":"Chile","cli":"DMC","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"05-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0022.A","desc":"Ventilacion Santiago-Colina-Los Andes","pais":"Chile","cli":"Idom","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"Fran","notas":"Estudio pendiente??","prio":3,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0018","desc":"6 ventiladores 9-90","pais":"Peru","cli":"Alpayana","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"29-04-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0022.B","desc":"Ventilacion Santiago-Colina-Los Andes","pais":"Chile","cli":"Sacyr","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"Fran","notas":"","prio":3,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0025","desc":"Modificacion + supervisión Copiapó","pais":"Chile","cli":"Candelaria","estado":"En Progreso","status_xl":"Asignado","f_ent":"","f_lim":"13-05-2026","f_sal":"","asig":"David","notas":"","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0027","desc":"Ductos y accesorios","pais":"Mexico","cli":"Agnico Eagle","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"06-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0047","desc":"Ventiladores reforzadores","pais":"Chile","cli":"PanAmerican La Florida","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"06-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"25CL2554","desc":"Ventiladores principales REV1","pais":"Sin país","cli":"Minera Chipana","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"12-05-2026","f_sal":"13-05-2026","asig":"David","notas":"Hernan envía rev 11/05","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26PE0013","desc":"Ventiladores Auxiliares Yaruchagua","pais":"Peru","cli":"Glore Perú","estado":"Enviada","status_xl":"En preparacion","f_ent":"","f_lim":"01-04-2026","f_sal":"","asig":"Fran","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0028","desc":"Reparación ventilador y tablero AVO II","pais":"Chile","cli":"AVO II","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"04-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0052","desc":"Equipos ventilación industrial","pais":"Chile","cli":"El Teniente","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"05-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0049","desc":"Dimensiones Ventilación Punta del COBRE","pais":"Chile","cli":"Pucobre","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"David","notas":"","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0044","desc":"Ventilación Tren Santiago-Batuco","pais":"Chile","cli":"AED Ingenieria","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"David","notas":"","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0038","desc":"Vents. Inyección/Extracción Prefact. TBM","pais":"Chile","cli":"Codelco Chuquicamata","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"20-05-2026","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0037","desc":"atacama kozan","pais":"Chile","cli":"ATACAMA KOZAN","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"04-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0048.A","desc":"Ventilacion definitiva Túnel Lo Ruiz","pais":"Chile","cli":"Indra","estado":"Enviada","status_xl":"Técnica Enviada","f_ent":"","f_lim":"Mediados mayo","f_sal":"13-05-2026","asig":"Fran","notas":"Ver trato preferente INDRA","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0011","desc":"OC184347 Grupo Minero Las Cenizas","pais":"Chile","cli":"Las Cenizas","estado":"Enviada","status_xl":"En revision tecnica","f_ent":"","f_lim":"URGENTE","f_sal":"15-05-2026","asig":"David","notas":"","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26PE0019","desc":"Detalles técnicos PV 04-07 L4","pais":"Peru","cli":"Metro de Lima","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"Hernan","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"25PE0036","desc":"Reparacion ventilador VE-294","pais":"Peru","cli":"Poderosa","estado":"Pendiente","status_xl":"Listas aclaraciones, Daniel lo sube","f_ent":"","f_lim":"","f_sal":"","asig":"Hernan","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26AR0003","desc":"Dos ventiladores","pais":"Argentina","cli":"Minera Gualcamayo","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"12-05-2026","f_sal":"12-05-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0055","desc":"Reparación 222442-VEN-01","pais":"Chile","cli":"Chuquicamata","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"07-05-2026","f_sal":"07-06-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26MX0037","desc":"Ventilador ZVN 1-14","pais":"Mexico","cli":"Concheño/Frisco","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"06-05-2026","f_sal":"06-05-2026","asig":"Carlos","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0015","desc":"Ventilacion definitiva Linea 9","pais":"Chile","cli":"Metro Santiago","estado":"En Aclaraciones","status_xl":"En ronda de aclaraciones","f_ent":"","f_lim":"29-09-2026","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0017","desc":"Ventiladores Auxiliares Arcata","pais":"Peru","cli":"Sierra Minera Caraz","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"07-05-2026","f_sal":"07-05-2026","asig":"Fran","notas":"Ver posibilidad ventiladores Poderosa","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26MX0038","desc":"Rodete repuesto monobloque Gel 9","pais":"Mexico","cli":"Concheño","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"20-05-2026","asig":"Fran","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0056","desc":"Reparación ventiladores Van 110","pais":"Chile","cli":"PAN AMERICAN SILVER","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CO0013","desc":"Silenciadores para ventiladores","pais":"Colombia","cli":"ARIS Segovia","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"Carlos","notas":"","prio":3,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"1092-18-PE","desc":"Ficha técnica JZRi 12/45-4","pais":"Peru","cli":"Systra","estado":"Enviada","status_xl":"Solo técnico","f_ent":"13-05-2026","f_lim":"13-05-2026","f_sal":"15-05-2026","asig":"Hernan","notas":"","prio":1,"ing":null,"proy":null,"cons":true,"comp":1,"tot":1},{"nro":"26CL0053","desc":"Subtramo 2A y 2B Línea 9 CRTG","pais":"Chile","cli":"CRTG","estado":"Pendiente","status_xl":"En estudio","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0057","desc":"Herramientas VDF","pais":"Chile","cli":"Codelco","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CO0015","desc":"Cotizacion ZVN 1-6-11/25 EMS","pais":"Colombia","cli":"EMS","estado":"Pendiente","status_xl":"Sin definir","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"Motor IE3","prio":0,"ing":true,"proy":false,"cons":false,"comp":1,"tot":3},{"nro":"26AR0004","desc":"Línea F Subte Buenos Aires","pais":"Argentina","cli":"HAUG","estado":"Pendiente","status_xl":"Definicion tecnica","f_ent":"","f_lim":"07-05-2026","f_sal":"","asig":"Sin Asignar","notas":"Ver con Hernan","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0011","desc":"Revisión Oferta Técnica ACCIONA","pais":"Peru","cli":"WeBuild/Acciona","estado":"En Progreso","status_xl":"Asignado","f_ent":"","f_lim":"30-04-2026","f_sal":"","asig":"Carlos","notas":"Estudio ventilacion","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0051","desc":"Reparacion Ventilador dañado","pais":"Chile","cli":"DMC","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"07-05-2026","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0042","desc":"Dampers ventiladores","pais":"Mexico","cli":"Torex","estado":"En Revisión","status_xl":"Hernan revisando dampers","f_ent":"","f_lim":"15-05-2026","f_sal":"","asig":"Hernan","notas":"","prio":4,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0046_2","desc":"Reparacion ZVN 1-10-55/2 NS:4142","pais":"Chile","cli":"Geovita","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"29-05-2026","asig":"Fran","notas":"Hoy salio una","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0048.B","desc":"Ventilacion definitiva Túnel Lo Ruiz","pais":"Chile","cli":"SICE","estado":"Enviada","status_xl":"Técnica Enviada","f_ent":"","f_lim":"Mediados mayo","f_sal":"13-05-2026","asig":"Fran","notas":"Enviar primero la tecnica","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0043","desc":"Ventilacion definitiva AVO 2","pais":"Chile","cli":"AVO 2","estado":"Enviada","status_xl":"Enviada hoy 29/05","f_ent":"","f_lim":"26-05-2026","f_sal":"29-05-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26MX0028","desc":"Túnel de viento","pais":"Mexico","cli":"XCARET","estado":"En Espera","status_xl":"En espera","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0036","desc":"3 ZVN 10-75 / 3 ZVN 12-150","pais":"Mexico","cli":"Torex","estado":"Enviada","status_xl":"Asignado → Enviada","f_ent":"","f_lim":"13-05-2026","f_sal":"13-05-2026","asig":"David","notas":"Hoy","prio":2,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CO0016","desc":"Alabes de recambio","pais":"Colombia","cli":"ARIS MARMATO","estado":"Enviada","status_xl":"Asignado → Enviada","f_ent":"13-05-2026","f_lim":"","f_sal":"18-05-2026","asig":"Fran","notas":"","prio":2,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CO0017","desc":"Secundarios 4 ZVN 7-45","pais":"Colombia","cli":"ARIS MARMATO","estado":"Enviada","status_xl":"Asignado","f_ent":"","f_lim":"13-05-2026","f_sal":"13-05-2026","asig":"Fran","notas":"","prio":2,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0058","desc":"ZVN 1-28-850/6","pais":"Chile","cli":"PDES","estado":"Enviada","status_xl":"Asignado → Enviada","f_ent":"","f_lim":"13-05-2026","f_sal":"13-05-2026","asig":"David","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0061","desc":"3 ZVN 1-9-45/2 y 2 ZVN 1-9-90/2","pais":"Chile","cli":"DMC","estado":"En Progreso","status_xl":"Asignado","f_ent":"","f_lim":"13-05-2026","f_sal":"","asig":"Fran","notas":"","prio":4,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0014","desc":"Reparacion 7 Ventiladores","pais":"Peru","cli":"Taller AEI","estado":"En Progreso","status_xl":"Asignado – URGENTE","f_ent":"","f_lim":"13-05-2026","f_sal":"","asig":"Hernan","notas":"","prio":1,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"25PE0013b","desc":"5 Ventiladores extras Huaron","pais":"Peru","cli":"PanAmerican Silver","estado":"Enviada","status_xl":"Revisado → Enviada","f_ent":"14-05-2026","f_lim":"","f_sal":"18-05-2026","asig":"Sergio","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CR0001","desc":"Mina Bellavista Costa Rica","pais":"Costa Rica","cli":"Mina Bellavista","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0062","desc":"Modelo MP","pais":"Chile","cli":"Mina Patagua","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0048","desc":"Cotización refacciones ventiladores","pais":"Mexico","cli":"Fresnillo","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0063","desc":"Inyector N°1 31710-VEN-001","pais":"Chile","cli":"CODELCO Andina","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0022","desc":"Ventiladores axiales Mina Marañón","pais":"Peru","cli":"Poderosa","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"25-05-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0064","desc":"Cotización Ventilador Túnel 1","pais":"Chile","cli":"Mina Marañón","estado":"Parcial","status_xl":"Técnica OK","f_ent":"","f_lim":"","f_sal":"","asig":"","notas":"","prio":0,"ing":true,"proy":false,"cons":false,"comp":1,"tot":3},{"nro":"26CL0059A","desc":"Ventilación Licitacion Diamante (A)","pais":"Chile","cli":"Diamante","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0059B","desc":"Ventilación Licitacion Diamante (B)","pais":"Chile","cli":"Diamante","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0049","desc":"054-24 OC5630.090/119","pais":"Mexico","cli":"—","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26NI0005","desc":"HEMCO 10233811","pais":"Nicaragua","cli":"HEMCO","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0065","desc":"Cotización Ventilador + Partidor","pais":"Chile","cli":"—","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0041","desc":"Oferta Técnica Sta Bárbara","pais":"Mexico","cli":"Santa Bárbara","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"27-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CO0012","desc":"Cotización Ventiladores Colombia","pais":"Colombia","cli":"—","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"28-05-2026","asig":"Carlos","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},{"nro":"26CL0053b","desc":"Licitacion Ventiladores Metro Santiago","pais":"Chile","cli":"Metro de Santiago","estado":"Pendiente","status_xl":"Pendiente","f_ent":"","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26PE0023","desc":"Solicitud Cotizacion 1000003267/1000003052","pais":"Peru","cli":"—","estado":"Pendiente","status_xl":"Nueva hoy","f_ent":"29-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26MX0053","desc":"Recambios ventiladores Agnico Eagle","pais":"Mexico","cli":"Agnico Eagle","estado":"Pendiente","status_xl":"Nueva hoy","f_ent":"29-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26VE0004","desc":"Asistencia ventilador 34204-50012392","pais":"Venezuela","cli":"—","estado":"Pendiente","status_xl":"Nueva hoy","f_ent":"29-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"EX-22-1463","desc":"Conexión Valle de los Chillos y El Arbolito","pais":"Ecuador","cli":"—","estado":"Pendiente","status_xl":"Nueva hoy","f_ent":"29-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},{"nro":"26CL0054","desc":"Ventilador auxiliar ZVN 1-9-45/2","pais":"Chile","cli":"Minera Arqueros","estado":"En Espera","status_xl":"En espera","f_ent":"","f_lim":"","f_sal":"","asig":"David","notas":"David preparando 18-05-26","prio":3,"ing":true,"proy":true,"cons":false,"comp":2,"tot":3},{"nro":"26CL0017b","desc":"Tablero SS 90 kW (confirmación envío)","pais":"Chile","cli":"DMC","estado":"Enviada","status_xl":"Enviada","f_ent":"","f_lim":"","f_sal":"05-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3}],"day_rows":[{"date":"2026-03-18","label":"18-03","dow":"Miércoles","ent":0,"sal":1,"week":12},{"date":"2026-04-23","label":"23-04","dow":"Jueves","ent":0,"sal":1,"week":17},{"date":"2026-04-27","label":"27-04","dow":"Lunes","ent":11,"sal":0,"week":18},{"date":"2026-04-28","label":"28-04","dow":"Martes","ent":4,"sal":0,"week":18},{"date":"2026-04-29","label":"29-04","dow":"Miércoles","ent":8,"sal":1,"week":18},{"date":"2026-04-30","label":"30-04","dow":"Jueves","ent":0,"sal":2,"week":18},{"date":"2026-05-04","label":"04-05","dow":"Lunes","ent":6,"sal":2,"week":19},{"date":"2026-05-05","label":"05-05","dow":"Martes","ent":0,"sal":2,"week":19},{"date":"2026-05-06","label":"06-05","dow":"Miércoles","ent":3,"sal":3,"week":19},{"date":"2026-05-07","label":"07-05","dow":"Jueves","ent":1,"sal":3,"week":19},{"date":"2026-05-08","label":"08-05","dow":"Viernes","ent":5,"sal":0,"week":19},{"date":"2026-05-12","label":"12-05","dow":"Martes","ent":10,"sal":1,"week":20},{"date":"2026-05-13","label":"13-05","dow":"Miércoles","ent":9,"sal":3,"week":20},{"date":"2026-05-15","label":"15-05","dow":"Viernes","ent":0,"sal":1,"week":20},{"date":"2026-05-18","label":"18-05","dow":"Lunes","ent":2,"sal":6,"week":21},{"date":"2026-05-20","label":"20-05","dow":"Miércoles","ent":5,"sal":1,"week":21},{"date":"2026-05-22","label":"22-05","dow":"Viernes","ent":4,"sal":0,"week":21},{"date":"2026-05-25","label":"25-05","dow":"Lunes","ent":0,"sal":1,"week":22},{"date":"2026-05-26","label":"26-05","dow":"Martes","ent":2,"sal":6,"week":22},{"date":"2026-05-27","label":"27-05","dow":"Miércoles","ent":1,"sal":3,"week":22},{"date":"2026-05-28","label":"28-05","dow":"Jueves","ent":2,"sal":1,"week":22},{"date":"2026-05-29","label":"29-05","dow":"Viernes","ent":4,"sal":1,"week":22}],"week_rows":[{"week":12,"label":"Semana 12","ent":0,"sal":1},{"week":17,"label":"Semana 17","ent":0,"sal":1},{"week":18,"label":"Semana 18","ent":23,"sal":3},{"week":19,"label":"Semana 19","ent":15,"sal":10},{"week":20,"label":"Semana 20","ent":19,"sal":5},{"week":21,"label":"Semana 21","ent":11,"sal":7},{"week":22,"label":"Semana 22","ent":9,"sal":12}],"pais_rows":[["Chile",{"total":36,"env":17}],["Peru",{"total":15,"env":9}],["Mexico",{"total":11,"env":6}],["Colombia",{"total":5,"env":3}],["Argentina",{"total":3,"env":2}],["Nicaragua",{"total":2,"env":1}],["Ecuador",{"total":2,"env":1}],["Venezuela",{"total":1,"env":0}],["Costa Rica",{"total":1,"env":0}],["Sin país",{"total":1,"env":1}]],"asig_rows":[["Fran",{"total":16,"env":13}],["Sin Asignar",{"total":33,"env":8}],["David",{"total":9,"env":6}],["Carlos",{"total":8,"env":4}],["Hernan",{"total":6,"env":3}],["Sergio",{"total":1,"env":1}]],"stats":{"entradas":77,"enviadas":39,"parciales":1,"en_progreso":14,"pendientes":24,"urgentes":2}};
+var OFFERS=D.offers;
+var DAY=D.day_rows;
+var WEEK=D.week_rows;
+var FLAGS={Chile:'🇨🇱',Mexico:'🇲🇽',Peru:'🇵🇪',Colombia:'🇨🇴',Nicaragua:'🇳🇮',Argentina:'🇦🇷',Ecuador:'🇪🇨','Costa Rica':'🇨🇷',Venezuela:'🇻🇪'};
+var TODAY='2026-05-29';
  
-var NEW_NROS=new Set(["26CO0012","26CL0065","26NI0005"]);
+// KPIs
+document.getElementById('k-parc').textContent=D.stats.parciales;
+document.getElementById('k-prog').textContent=D.stats.en_progreso;
+document.getElementById('k-pend').textContent=D.stats.pendientes;
+document.getElementById('k-urg').textContent=D.stats.urgentes;
  
-var DAY_ROWS=[
-{"date":"2026-03-18","label":"18-03-2026","dow":"Miércoles","ent":0,"sal":1,"dif":-1,"cum_ent":0,"cum_sal":1,"week":12},
-{"date":"2026-04-23","label":"23-04-2026","dow":"Jueves","ent":0,"sal":1,"dif":-1,"cum_ent":0,"cum_sal":2,"week":17},
-{"date":"2026-04-27","label":"27-04-2026","dow":"Lunes","ent":11,"sal":0,"dif":11,"cum_ent":11,"cum_sal":2,"week":18},
-{"date":"2026-04-28","label":"28-04-2026","dow":"Martes","ent":4,"sal":0,"dif":4,"cum_ent":15,"cum_sal":2,"week":18},
-{"date":"2026-04-29","label":"29-04-2026","dow":"Miércoles","ent":8,"sal":1,"dif":7,"cum_ent":23,"cum_sal":3,"week":18},
-{"date":"2026-04-30","label":"30-04-2026","dow":"Jueves","ent":0,"sal":2,"dif":-2,"cum_ent":23,"cum_sal":5,"week":18},
-{"date":"2026-05-04","label":"04-05-2026","dow":"Lunes","ent":6,"sal":2,"dif":4,"cum_ent":29,"cum_sal":7,"week":19},
-{"date":"2026-05-05","label":"05-05-2026","dow":"Martes","ent":0,"sal":2,"dif":-2,"cum_ent":29,"cum_sal":9,"week":19},
-{"date":"2026-05-06","label":"06-05-2026","dow":"Miércoles","ent":3,"sal":3,"dif":0,"cum_ent":32,"cum_sal":12,"week":19},
-{"date":"2026-05-07","label":"07-05-2026","dow":"Jueves","ent":1,"sal":3,"dif":-2,"cum_ent":33,"cum_sal":15,"week":19},
-{"date":"2026-05-08","label":"08-05-2026","dow":"Viernes","ent":5,"sal":0,"dif":5,"cum_ent":38,"cum_sal":15,"week":19},
-{"date":"2026-05-12","label":"12-05-2026","dow":"Martes","ent":10,"sal":1,"dif":9,"cum_ent":48,"cum_sal":16,"week":20},
-{"date":"2026-05-13","label":"13-05-2026","dow":"Miércoles","ent":9,"sal":3,"dif":6,"cum_ent":57,"cum_sal":19,"week":20},
-{"date":"2026-05-15","label":"15-05-2026","dow":"Viernes","ent":0,"sal":1,"dif":-1,"cum_ent":57,"cum_sal":20,"week":20},
-{"date":"2026-05-18","label":"18-05-2026","dow":"Lunes","ent":2,"sal":6,"dif":-4,"cum_ent":59,"cum_sal":26,"week":21},
-{"date":"2026-05-20","label":"20-05-2026","dow":"Miércoles","ent":5,"sal":1,"dif":4,"cum_ent":64,"cum_sal":27,"week":21},
-{"date":"2026-05-22","label":"22-05-2026","dow":"Viernes","ent":4,"sal":0,"dif":4,"cum_ent":68,"cum_sal":27,"week":21},
-{"date":"2026-05-25","label":"25-05-2026","dow":"Lunes","ent":0,"sal":1,"dif":-1,"cum_ent":68,"cum_sal":28,"week":22},
-{"date":"2026-05-26","label":"26-05-2026","dow":"Martes","ent":2,"sal":6,"dif":-4,"cum_ent":70,"cum_sal":34,"week":22},
-{"date":"2026-05-27","label":"27-05-2026","dow":"Miércoles","ent":1,"sal":3,"dif":-2,"cum_ent":71,"cum_sal":37,"week":22},
-{"date":"2026-05-28","label":"28-05-2026","dow":"Jueves","ent":2,"sal":1,"dif":1,"cum_ent":73,"cum_sal":38,"week":22}
-];
+function sign(v){return v>0?'+'+v:String(v);}
+function cls(v){return v>0?'c-pos':v<0?'c-neg':'c-neu';}
  
-var WEEK_ROWS=[
-{"week":12,"label":"Semana 12","ent":0,"sal":1,"dif":-1},
-{"week":17,"label":"Semana 17","ent":0,"sal":1,"dif":-1},
-{"week":18,"label":"Semana 18","ent":23,"sal":3,"dif":20},
-{"week":19,"label":"Semana 19","ent":15,"sal":10,"dif":5},
-{"week":20,"label":"Semana 20","ent":19,"sal":5,"dif":14},
-{"week":21,"label":"Semana 21","ent":11,"sal":7,"dif":4},
-{"week":22,"label":"Semana 22","ent":5,"sal":11,"dif":-6}
-];
- 
-var PAIS_ROWS=[
-["Chile",{"total":36,"env":16}],
-["Peru",{"total":14,"env":9}],
-["Mexico",{"total":10,"env":6}],
-["Colombia",{"total":5,"env":2}],
-["Argentina",{"total":3,"env":2}],
-["Nicaragua",{"total":2,"env":1}],
-["Ecuador",{"total":1,"env":1}],
-["Costa rica",{"total":1,"env":0}],
-["Sin país",{"total":1,"env":1}]
-];
- 
-var FLAGS={Chile:'🇨🇱',Mexico:'🇲🇽',Peru:'🇵🇪',Colombia:'🇨🇴',Nicaragua:'🇳🇮',Argentina:'🇦🇷',Ecuador:'🇪🇨','Costa rica':'🇨🇷','Sin país':'🌍'};
- 
-function fd(s){if(!s||s==='—')return'—';var d=new Date(s+'T00:00:00');return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit'});}
-function sn(n){if(!n)return'—';var p=n.split(' ');return p.length<=1?n:p[0]+' '+p[1][0]+'.';}
-function cls(v){return v>0?'num-pos':v<0?'num-neg':'num-neu';}
-function sign(v){return v>0?'+'+v:v;}
- 
-var TBL_VIEW='dia';
-function setTbl(v,btn){TBL_VIEW=v;document.querySelectorAll('.tgl').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');renderMovTbl();}
- 
-function renderMovTbl(){
-  var rows=TBL_VIEW==='dia'?DAY_ROWS:WEEK_ROWS;
-  var isDia=TBL_VIEW==='dia';
-  var totE=0,totS=0;
+// Movement table
+var TV='dia';
+function setTbl(v,b){TV=v;document.querySelectorAll('.tgl').forEach(function(x){x.classList.remove('act');});b.classList.add('act');renderMov();}
+function renderMov(){
+  var isDia=TV==='dia', rows=isDia?DAY:WEEK, totE=0,totS=0;
   rows.forEach(function(r){totE+=r.ent;totS+=r.sal;});
-  var thead=isDia
-    ?'<thead><tr><th>Fecha</th><th>Día</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif</th><th style="text-align:center">Sem</th></tr></thead>'
-    :'<thead><tr><th>Semana</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif</th></tr></thead>';
-  var tbody=rows.map(function(r){
-    var dif=r.ent-r.sal;
-    var isNew=r.date>='2026-05-27';
-    var rowClass=isNew?' class="new-row"':'';
+  var head=isDia?"<tr><th>Fecha</th><th>D</th><th>Ent.</th><th>Sal.</th><th>Dif</th><th>Sem</th></tr>"
+                :"<tr><th>Semana</th><th>Ent.</th><th>Sal.</th><th>Dif</th></tr>";
+  var body=rows.map(function(r){
+    var d=r.ent-r.sal, isT=isDia&&r.date===TODAY;
+    var rc=isT?' class="today-row"':'';
     return isDia
-      ?'<tr'+rowClass+'><td>'+r.label+(isNew?' <span style="font-size:9px;background:#DCFCE7;color:#166534;padding:1px 4px;border-radius:3px;font-weight:700">HOY</span>':'')+'</td><td>'+r.dow+'</td><td class="cell-ent">'+r.ent+'</td><td class="cell-sal">'+r.sal+'</td><td class="'+cls(dif)+'">'+sign(dif)+'</td><td><span class="week-badge">'+r.week+'</span></td></tr>'
-      :'<tr'+rowClass+'><td style="font-weight:600">'+r.label+'</td><td class="cell-ent">'+r.ent+'</td><td class="cell-sal">'+r.sal+'</td><td class="'+cls(r.ent-r.sal)+'">'+sign(r.ent-r.sal)+'</td></tr>';
+      ?"<tr"+rc+"><td>"+r.label+(isT?' <b style="color:var(--blu2)">HOY</b>':'')+"</td><td style='color:var(--sub)'>"+r.dow+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(d)+"'>"+sign(d)+"</td><td><span class='wbadge'>"+r.week+"</span></td></tr>"
+      :"<tr><td style='font-weight:600'>"+r.label+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(r.ent-r.sal)+"'>"+sign(r.ent-r.sal)+"</td></tr>";
   }).join('');
-  var tfoot=isDia
-    ?'<tfoot><tr><td colspan="2" style="text-align:left;font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td><td></td></tr></tfoot>'
-    :'<tfoot><tr><td style="font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td></tr></tfoot>';
-  document.getElementById('tbl-movimientos').innerHTML='<table class="xtbl">'+thead+'<tbody>'+tbody+'</tbody>'+tfoot+'</table>';
+  var foot=isDia
+    ?"<tr><td colspan='2' style='text-align:left;font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td><td></td></tr>"
+    :"<tr><td style='font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td></tr>";
+  document.getElementById('tbl-mov').innerHTML="<table class='xtbl'><thead>"+head+"</thead><tbody>"+body+"</tbody><tfoot>"+foot+"</tfoot></table>";
 }
  
-function renderSemTbl(){
-  var totE=0,totS=0;
-  WEEK_ROWS.forEach(function(r){totE+=r.ent;totS+=r.sal;});
-  var rows=WEEK_ROWS.map(function(r){var dif=r.ent-r.sal;return'<tr><td style="font-weight:600">'+r.label+'</td><td class="cell-ent">'+r.ent+'</td><td class="cell-sal">'+r.sal+'</td><td class="'+cls(dif)+'">'+sign(dif)+'</td></tr>';}).join('');
-  document.getElementById('tbl-semanas').innerHTML='<table class="xtbl"><thead><tr><th>Semana</th><th style="text-align:center">Ingresos</th><th style="text-align:center">Salidas</th><th style="text-align:center">Dif</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td style="font-weight:700">TOTAL</td><td class="cell-ent">'+totE+'</td><td class="cell-sal">'+totS+'</td><td class="'+cls(totE-totS)+'">'+sign(totE-totS)+'</td></tr></tfoot></table>';
+// Bars
+function buildBars(rows,id){
+  var max=Math.max.apply(null,rows.map(function(r){return r[1].total;}));
+  document.getElementById(id).innerHTML=rows.map(function(r){
+    var f=FLAGS[r[0]]||'';
+    return "<div class='pbar'><span class='pbar-lbl'>"+f+" "+r[0]+"</span>"
+      +"<div class='pbar-track'><div class='pbar-total' style='width:"+Math.round(r[1].total/max*100)+"%'></div>"
+      +"<div class='pbar-env' style='width:"+Math.round(r[1].env/max*100)+"%'></div></div>"
+      +"<span class='pbar-nums'><span style='color:var(--blu2)'>"+r[1].total+"</span>/<span style='color:var(--grn2)'>"+r[1].env+"✓</span></span></div>";
+  }).join('')+"<div style='font-size:9px;color:var(--sub);margin-top:4px'>Azul=total · Verde=enviadas</div>";
 }
+buildBars(D.pais_rows,'pais-bars');
+buildBars(D.asig_rows,'asig-bars');
  
-function renderPais(){
-  var max=Math.max.apply(null,PAIS_ROWS.map(function(r){return r[1].total;}));
-  var html=PAIS_ROWS.map(function(r){
-    var p=r[0],v=r[1];
-    return'<div class="pbar"><span class="pbar-lbl">'+(FLAGS[p]||'🌍')+' '+p+'</span><div class="pbar-track"><div class="pbar-total" style="width:'+Math.round(v.total/max*100)+'%"></div><div class="pbar-env" style="width:'+Math.round(v.env/max*100)+'%"></div></div><span class="pbar-nums" style="color:var(--blu2)">'+v.total+' / <span style="color:var(--grn)">'+v.env+'✓</span></span></div>';
-  }).join('');
-  document.getElementById('pais-bars').innerHTML=html+'<div style="font-size:10px;color:var(--lite);margin-top:6px">Gris=total · Verde=enviadas</div>';
+// Charts
+var CO={responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{size:9},boxWidth:8,padding:8}}},
+  scales:{x:{ticks:{color:'#475569',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,.04)'}},
+          y:{beginAtZero:true,ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}};
+var labs=DAY.map(function(r){return r.label;});
+var dE=DAY.map(function(r){return r.ent;}), dS=DAY.map(function(r){return r.sal;});
+new Chart(document.getElementById('ch-dia').getContext('2d'),{type:'bar',data:{labels:labs,
+  datasets:[{label:'Entradas',data:dE,backgroundColor:'rgba(59,130,246,.7)',borderRadius:3},
+            {label:'Salidas',data:dS,backgroundColor:'rgba(16,185,129,.7)',borderRadius:3}]},options:CO});
+var wlabs=WEEK.map(function(r){return r.label;});
+new Chart(document.getElementById('ch-sem').getContext('2d'),{type:'bar',data:{labels:wlabs,
+  datasets:[{label:'Entradas',data:WEEK.map(function(r){return r.ent;}),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4},
+            {label:'Salidas',data:WEEK.map(function(r){return r.sal;}),backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}]},options:CO});
+var ce=0,cs=0,cumE=[],cumS=[];
+DAY.forEach(function(r){ce+=r.ent;cs+=r.sal;cumE.push(ce);cumS.push(cs);});
+var CO2=JSON.parse(JSON.stringify(CO));
+new Chart(document.getElementById('ch-cum').getContext('2d'),{type:'line',data:{labels:labs,
+  datasets:[{label:'Acum. entradas',data:cumE,borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3},
+            {label:'Acum. salidas',data:cumS,borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3}]},options:CO2});
+ 
+// Detail table
+var FILT='all', SEARCH='';
+function setF(f,b){FILT=f;document.querySelectorAll('.fpill').forEach(function(x){x.classList.remove('act');});b.classList.add('act');renderDtbl();}
+ 
+function badge(e){
+  var el=e.toLowerCase();
+  if(el==='enviada')return"<span class='badge b-env'>✓ Enviada</span>";
+  if(el==='parcial')return"<span class='badge b-parc'>◑ Parcial</span>";
+  if(el.includes('urgente'))return"<span class='badge b-urg'>🚨 URGENTE</span>";
+  if(el.includes('progreso')||el.includes('asignado')||el.includes('listo')||el.includes('preparac'))return"<span class='badge b-prog'>▷ "+e+"</span>";
+  if(el.includes('revisión')||el.includes('revision')||el.includes('aclarac'))return"<span class='badge b-rev'>↺ "+e+"</span>";
+  if(el.includes('revisar'))return"<span class='badge b-revisar'>⚠ Revisar</span>";
+  if(el.includes('espera')||el.includes('estudio')||el.includes('definic')||el.includes('modificar'))return"<span class='badge b-parc'>⋯ "+e+"</span>";
+  return"<span class='badge b-pend'>● "+e+"</span>";
 }
- 
-var CH={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'#F1F5F9'}}}};
- 
-function buildCharts(){
-  // Exclude week 12 row (pre-period) from charts
-  var drows=DAY_ROWS.filter(function(r){return r.date>='2026-04-23';});
-  var dias=drows.map(function(r){return r.label;});
-  var dE=drows.map(function(r){return r.ent;});
-  var dS=drows.map(function(r){return r.sal;});
-  new Chart(document.getElementById('ch-dia').getContext('2d'),{type:'bar',data:{labels:dias,datasets:[{label:'Entradas',data:dE,backgroundColor:'rgba(29,78,216,.75)',borderRadius:4},{label:'Salidas',data:dS,backgroundColor:'rgba(5,150,105,.75)',borderRadius:4}]},options:Object.assign({},CH)});
-  var wrows=WEEK_ROWS.filter(function(r){return r.week>=17;});
-  var sems=wrows.map(function(r){return r.label;});
-  var sE=wrows.map(function(r){return r.ent;});
-  var sS=wrows.map(function(r){return r.sal;});
-  new Chart(document.getElementById('ch-sem').getContext('2d'),{type:'bar',data:{labels:sems,datasets:[{label:'Entradas',data:sE,backgroundColor:'rgba(29,78,216,.75)',borderRadius:5},{label:'Salidas',data:sS,backgroundColor:'rgba(5,150,105,.75)',borderRadius:5}]},options:Object.assign({},CH)});
-  var cumE=[],cumS=[],ce=0,cs=0;
-  drows.forEach(function(r){ce+=r.ent;cs+=r.sal;cumE.push(ce);cumS.push(cs);});
-  new Chart(document.getElementById('ch-cum').getContext('2d'),{type:'line',data:{labels:dias,datasets:[{label:'Acum. entradas',data:cumE,borderColor:'#1D4ED8',backgroundColor:'rgba(29,78,216,.08)',borderWidth:2,pointRadius:4,fill:true,tension:.3},{label:'Acum. salidas',data:cumS,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',borderWidth:2,pointRadius:4,fill:true,tension:.3}]},options:Object.assign({},CH)});
+function chip(v,l){
+  if(v===null||v===undefined)return"<span class='chip chip-na'>"+l+"</span>";
+  return v?"<span class='chip chip-ok'>✓"+l+"</span>":"<span class='chip chip-no'>✗"+l+"</span>";
 }
- 
-var FILT='all',SEARCH='';
-function setF(f,btn){FILT=f;document.querySelectorAll('.fpill').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');renderDtbl();}
- 
-function chipTask(done,label){
-  if(done===null||done===undefined)return'<span class="chip chip-na">'+label+': N/A</span>';
-  return done?'<span class="chip chip-ok">✓ '+label+'</span>':'<span class="chip chip-no">✗ '+label+'</span>';
+function shortAsig(a){
+  var m={Hernan:'Hernan',Carlos:'Carlos',David:'David',Fran:'Fran',Sergio:'Sergio','Sin Asignar':'—'};
+  return m[a]||a||'—';
+}
+function prioHtml(p){
+  if(!p||p===0)return'';
+  var c=['','p1','p2','p3','p4'][p]||'p4';
+  return"<span class='prio-dot "+c+"'></span>"+p;
 }
  
 function filtered(){
   return OFFERS.filter(function(o){
-    if(SEARCH){var q=SEARCH.toLowerCase();if((o.sec+o.nro+o.cli+o.pais+o.desc).toLowerCase().indexOf(q)<0)return false;}
+    if(SEARCH){var q=SEARCH.toLowerCase();
+      if((o.nro+o.desc+o.cli+o.pais+o.asig+o.notas+o.status_xl).toLowerCase().indexOf(q)<0)return false;}
+    var e=o.estado.toLowerCase();
     if(FILT==='env')return o.estado==='Enviada';
     if(FILT==='parc')return o.estado==='Parcial';
-    if(FILT==='pend')return o.estado==='Pendiente';
-    if(FILT==='new')return NEW_NROS.has(o.nro)||o.created_at>='2026-05-28';
+    if(FILT==='prog')return e.includes('progreso')||e.includes('revision')||e.includes('preparac')||e.includes('aclarac');
+    if(FILT==='pend')return e.includes('pendiente')||e.includes('espera')||e.includes('estudio')||e.includes('definic')||e.includes('modificar')||e.includes('revisar');
+    if(FILT==='urg')return e.includes('urgente')||o.f_lim.toLowerCase().includes('urgente');
+    if(FILT==='p1')return o.prio===1;
+    if(FILT==='p2')return o.prio===2;
+    if(FILT==='p3')return o.prio===3;
     if(FILT==='cl')return o.pais==='Chile';
     if(FILT==='pe')return o.pais==='Peru';
     if(FILT==='mx')return o.pais==='Mexico';
-    if(FILT==='ar')return o.pais==='Argentina';
     if(FILT==='co')return o.pais==='Colombia';
+    if(FILT==='ar')return o.pais==='Argentina';
+    if(FILT==='sa')return !o.asig||o.asig==='Sin Asignar';
+    if(FILT==='new')return o.f_ent===TODAY||o.f_sal===TODAY;
     return true;
   });
+}
+ 
+function limStyle(lim){
+  if(!lim||lim==='—')return'';
+  if(lim.toLowerCase().includes('urgente'))return' style="color:#FCA5A5;font-weight:700"';
+  var m=lim.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if(m){
+    var d=new Date(m[3]+'-'+m[2]+'-'+m[1]);
+    var now=new Date('2026-05-29');
+    if(d<now)return' style="color:#EF4444;font-weight:600"';
+    if((d-now)<7*86400000)return' style="color:#FCD34D;font-weight:600"';
+  }
+  return'';
 }
  
 function renderDtbl(){
   var data=filtered();
   document.getElementById('dtbl-body').innerHTML=data.map(function(o){
-    var isNew=NEW_NROS.has(o.nro)||o.created_at>='2026-05-28';
-    var desc=o.desc.length>50?o.desc.slice(0,50)+'…':o.desc;
-    var flag=FLAGS[o.pais]||'🌍';
-    var badge=o.estado==='Enviada'?'<span class="badge b-env">✓ Enviada</span>':o.estado==='Parcial'?'<span class="badge b-parc">◑ Parcial</span>':'<span class="badge b-pend">● Pendiente</span>';
-    var chips=chipTask(o.ing_done,'Ing.')+chipTask(o.proy_done,'Proy.')+chipTask(o.cons_done,'Consol.');
-    var newBadge=isNew?'<span style="font-size:9px;background:#DCFCE7;color:#166534;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px">NEW</span>':'';
-    return'<tr'+(isNew?' class="new-row"':'')+'>'
-      +'<td><span class="nro">'+(o.nro||'—')+'</span>'+newBadge+'</td>'
-      +'<td class="tdname"><a href="'+o.url+'" target="_blank" title="'+o.sec+'">'+desc+'</a></td>'
-      +'<td>'+flag+' '+(o.pais||'—')+'</td>'
-      +'<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(o.cli||'')+'">'+( o.cli||'—')+'</td>'
-      +'<td>'+badge+'</td>'
-      +'<td class="faltante-cell">'+chips+'</td>'
-      +'<td style="text-align:center;font-size:11px;color:var(--sub)">'+o.completadas+'/'+o.total+'</td>'
-      +'<td style="color:var(--sub)">'+fd(o.created_at)+'</td>'
-      +'<td style="color:'+(o.estado==='Enviada'?'var(--grn)':'var(--lite)')+'">'+fd(o.fecha_sal)+'</td>'
-      +'<td style="color:var(--sub)">'+sn(o.assignee)+'</td>'
-      +'</tr>';
+    var fl=FLAGS[o.pais]||'🌍';
+    var isToday=o.f_ent===TODAY||o.f_sal===TODAY;
+    var rc=isToday?' class="today-row"':'';
+    var lim=o.f_lim;
+    if(lim.toLowerCase().includes('urgente'))lim='🚨 URGENTE';
+    var salColor=o.estado==='Enviada'?'color:#34D399':'color:var(--sub)';
+    var acolor=(o.asig&&o.asig!=='Sin Asignar')?'color:var(--txt)':'color:var(--sub)';
+    return "<tr"+rc+">"
+      +"<td style='text-align:center;font-size:10px'>"+prioHtml(o.prio)+"</td>"
+      +"<td><span class='nro'>"+o.nro+"</span></td>"
+      +"<td class='tdname' title='"+o.desc+"'>"+o.desc.slice(0,42)+(o.desc.length>42?'…':'')+"</td>"
+      +"<td>"+fl+" <span style='color:var(--sub);font-size:10px'>"+o.pais+"</span></td>"
+      +"<td style='max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)' title='"+o.cli+"'>"+o.cli+"</td>"
+      +"<td>"+badge(o.estado)+"</td>"
+      +"<td>"+chip(o.ing,'I')+chip(o.proy,'P')+chip(o.cons,'C')+"</td>"
+      +"<td style='color:var(--sub);font-size:10px;font-family:var(--mono)'>"+( o.f_ent||'—')+"</td>"
+      +"<td style='font-size:10px;font-family:var(--mono)'"+limStyle(lim)+">"+lim+"</td>"
+      +"<td style='"+salColor+";font-size:10px;font-family:var(--mono)'>"+( o.f_sal||'—')+"</td>"
+      +"<td style='"+acolor+";font-size:10px'>"+shortAsig(o.asig)+"</td>"
+      +"<td class='notas-cell' title='"+o.notas+"'>"+o.notas+"</td>"
+      +"</tr>";
   }).join('');
-  document.getElementById('dtbl-foot').textContent=data.length+' ofertas mostradas';
+  document.getElementById('dtbl-foot').textContent=data.length+' ofertas · Rojo=fecha vencida · Amarillo=próxima semana · HOY=entradas/salidas de hoy';
 }
  
-document.addEventListener('DOMContentLoaded',function(){
-  renderMovTbl();renderSemTbl();renderPais();buildCharts();renderDtbl();
-  document.getElementById('srch').addEventListener('input',function(){SEARCH=this.value;renderDtbl();});
-});
+renderMov();
+renderDtbl();
+document.getElementById('srch').addEventListener('input',function(){SEARCH=this.value;renderDtbl();});
 </script>
 </body>
 </html>
