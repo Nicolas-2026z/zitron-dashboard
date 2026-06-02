@@ -29,7 +29,7 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .pcard{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:border-color .15s;}
 .pcard:hover{border-color:#94A3B8;}
 .ptop{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
-.pname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:normal;overflow:visible;}
+.pname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:normal;}
 .pcountry{font-size:11px;color:var(--sub);padding:2px 8px;border-radius:12px;background:var(--bg);}
 .pbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;}
 .ppct{font-size:15px;font-weight:700;min-width:42px;text-align:right;}
@@ -41,13 +41,12 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .pcnt{font-size:11px;color:var(--sub);white-space:nowrap;min-width:95px;text-align:right;}
 .pdet{display:none;border-top:1px solid var(--border);margin-top:11px;padding-top:11px;}
 .phrow{display:flex;align-items:center;gap:8px;padding:3px 0;}
-.phname{font-size:11px;color:var(--sub);min-width:130px;}
+.phname{font-size:11px;color:var(--sub);min-width:160px;}
 .phbg{height:4px;background:#E8EDF3;border-radius:2px;flex:1;overflow:hidden;}
 .phfill{height:100%;border-radius:2px;}
 .phpct{font-size:11px;font-weight:600;min-width:34px;text-align:right;}
-.phct{font-size:10px;color:var(--sub);min-width:48px;text-align:right;}
+.phct{font-size:10px;color:var(--sub);min-width:40px;text-align:right;}
 .footer{text-align:center;font-size:11px;color:#94A3B8;padding:24px 0 16px;}
-.badge-new{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#EEF2FF;color:#4338CA;border:1px solid #818CF8;}
 .sec-title{font-size:15px;font-weight:700;color:var(--hdr);margin:32px 0 6px;display:flex;align-items:center;gap:8px;}
 .sec-title::before{content:'';display:inline-block;width:4px;height:18px;background:var(--hdr);border-radius:2px;}
 .sec-sub{font-size:11px;color:var(--sub);margin-bottom:14px;}
@@ -105,7 +104,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
 </script>
 <header class="header">
   <div class="hleft"><div class="hlogo">Z</div><div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2</div></div></div>
-  <div class="hright"><div>Actualizado: 27/05/2026</div><div style="color:#86EFAC" id="hdrTotal">— proyectos</div></div>
+  <div class="hright"><div>Actualizado: 02/06/2026</div><div style="color:#86EFAC" id="hdrTotal">43 proyectos</div></div>
 </header>
 <main class="main">
   <div class="kpis" id="kpis"></div>
@@ -130,7 +129,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   </div>
   <div class="plist" id="plist"></div>
   <div class="sec-title">Tablero Servicios y Mantención</div>
-  <div class="sec-sub">Carpeta Servicios · Zitron Chile v1 · 67 tareas totales · Actualizado 27/05/2026</div>
+  <div class="sec-sub">Carpeta Servicios · Zitron Chile v1 · 67 tareas totales · Actualizado 02/06/2026</div>
   <div class="svc-kpis">
     <div class="skpi"><div class="kl">Total tareas</div><div class="kv" style="color:#378ADD">67</div></div>
     <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#BA7517">34</div></div>
@@ -138,8 +137,8 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
     <div class="skpi"><div class="kl">Avance global</div><div class="kv" style="color:#1A3A5C">49%</div></div>
   </div>
   <div class="svc-grid">
-    <div class="svc-card"><h3>Tareas por sección</h3><div id="svc-sections"></div></div>
-    <div class="svc-card"><h3>Distribución por país (tareas activas)</h3><div id="svc-countries"></div></div>
+    <div class="svc-card"><h3>Tareas por seccion</h3><div id="svc-sections"></div></div>
+    <div class="svc-card"><h3>Distribucion por pais</h3><div id="svc-countries"></div></div>
   </div>
   <div class="svc-tasks"><h3>Tareas activas</h3><div class="stabs" id="svc-tabs"></div><div id="svc-tasklist"></div></div>
   <div class="footer" id="footer"></div>
@@ -147,185 +146,233 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
 <script>
 var PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 var filt="all";
-// ══ 40 PROYECTOS — verificados Asana 27/05/2026 ══
+/*
+  43 PROYECTOS — % avance nivel 1 sin cabeceras ponderado por nivel 2
+  Regla: pct = sum(num_subtasks de fases completadas) / sum(num_subtasks de todas las fases) * 100
+  Fases = tareas nivel 1 del proyecto en Asana (sin contar cabeceras de seccion)
+  ph = [nombre_fase, num_subtasks_total, num_subtasks_en_fases_completadas]
+  
+  Datos validados del consolidado 27/05/2026 + nuevos proyectos 0%
+*/
 var P=[
-// ── >60% AVANZADOS ──
-{n:"50001524 - ATACAMA KOZAN",p:"Chile",t:47,d:45,pct:96,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. Servicios",2,2],["Ing. JP",4,4],["Propuesta compras",6,6],
-  ["Compras",6,6],["Ing. Diseno",4,4],["Bodega",2,2],["Caldereria",3,3],
-  ["Bodega salida",5,5],["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001451 - ZITRON COLOMBIA",p:"Colombia",t:50,d:46,pct:92,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",1,1],["Ing. JP",4,4],["Propuesta",5,5],
-  ["Compras",11,11],["Ing. Diseno",2,2],["CC",1,1],["Bodega entrada",6,6],
-  ["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001477 - TRITON MINERA",p:"Nicaragua",t:55,d:49,pct:89,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta compras",7,7],
-  ["Compras",7,7],["Ing. y Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
-  ["Bodega salida",6,6],["Montaje",7,7],["Logistica",4,3],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
-{n:"50001515 - CRTG",p:"Chile",t:47,d:39,pct:83,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
-  ["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],
-  ["Bodega salida",4,4],["Montaje",6,6],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001514 - CRTG",p:"Chile",t:47,d:39,pct:83,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
-  ["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],
-  ["Bodega salida",4,4],["Montaje",6,6],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001504 - ZITRON PERU B",p:"Peru",t:38,d:28,pct:74,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],
-  ["Ing. Diseno",4,3],["Bodega entrada",2,1],["Caldereria",3,3],["Bodega salida",3,3],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001501 - MIN. LA HACIENDA",p:"Mexico",t:41,d:30,pct:73,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",1,0],["Ing. JP",4,4],["Propuesta",6,6],
-  ["Compras",5,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",2,2],
-  ["Bodega salida",2,2],["Montaje",4,2],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001500 - MIN. LA HACIENDA",p:"Mexico",t:48,d:34,pct:71,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
-  ["Compras",5,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
-  ["Bodega salida",4,3],["Montaje",6,4],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001446 - MINERA FRESNILLO",p:"Mexico",t:52,d:36,pct:69,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],
-  ["Compras",6,5],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
-  ["Bodega salida",5,4],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001504 - ZITRON PERU A",p:"Peru",t:44,d:30,pct:68,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],
-  ["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",4,0],
-  ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001508 - XEMORTIZ STOCK",p:"Mexico",t:41,d:27,pct:66,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],
-  ["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,2],["Bodega salida",3,2],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001415 - ZITRON PERU",p:"Peru",t:52,d:34,pct:65,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],
-  ["Compras",7,5],["Ing. Diseno",4,3],["CC Fab. Externa",1,1],["Bodega salida",6,5],
-  ["Montaje",7,2],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001473 - MAPIMI",p:"Mexico",t:48,d:29,pct:60,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
-  ["Compras",5,5],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,1],
-  ["Bodega salida",4,1],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001485 - CALABRESSE METRO STO DOMINGO",p:"Rep. Dominicana",t:52,d:31,pct:60,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta compras",6,4],
-  ["Propuesta produccion",1,1],["Compras",6,3],["Ing. Diseno",4,3],["Bodega entrada",2,2],
-  ["Fab. Externa",3,3],["Bodega salida",5,2],["Montaje",7,0],["Logistica",4,0],
-  ["Cierre",2,0],["Puesta marcha",2,0]]},
-// ── 30-59% EN PROGRESO ──
-{n:"50001506 - ZITRON COLOMBIA EPM FRIO AIRE",p:"Colombia",t:53,d:29,pct:55,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],
-  ["Compras",6,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Fab. Externa",3,0],
-  ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001497 - XEMORTIZ IMMSA BBR",p:"Mexico",t:52,d:26,pct:50,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],
-  ["Compras",6,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Fab. Externa",3,0],
-  ["Bodega salida",5,1],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001309 - ZITRON COLOMBIA BUGA BUENAVENTURA",p:"Colombia",t:31,d:14,pct:45,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,2],["Compras",4,1],
-  ["Ing. Diseno",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logistica",4,0],
-  ["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001541 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:38,d:18,pct:47,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,2],["Propuesta",7,5],["Compras",6,3],
-  ["Ing. Diseno",4,0],["Bodega entrada",3,3],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001466 - ZITRON PERU (PODEROSA)",p:"Peru",t:39,d:16,pct:41,ph:[
-  ["Kick Off",5,5],["Ing. JP",5,4],["Propuesta",8,3],["Compras",2,2],
-  ["Ing. Diseno",3,3],["Bodega entrada",5,0],["Bodega salida",5,0],
-  ["Logistica",4,0],["Puesta marcha",2,0]]},
-{n:"50001490 - ZITRON PERU METRO DE LIMA",p:"Peru",t:63,d:25,pct:40,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",7,7],["Propuesta",9,9],
-  ["Compras",9,2],["Ing. Diseno",4,1],["Bodega entrada",2,0],["Caldereria",3,0],
-  ["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001518 - EQ. CHAPARRAL",p:"Mexico",t:54,d:21,pct:39,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],
-  ["Compras",6,2],["Ing. Diseno",4,1],["Bodega entrada",2,0],["Caldereria",3,0],
-  ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001498 - CALABRESSE METRO STO DOMINGO POZOS",p:"Rep. Dominicana",t:51,d:20,pct:39,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],
-  ["Compras",6,3],["Ing. Diseno",4,2],["Bodega entrada",2,0],["Fab. Externa",3,0],
-  ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001520 - XEMORTIZ DDG",p:"Mexico",t:37,d:14,pct:38,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,2],["Propuesta",4,2],["Compras",4,2],
-  ["Ing. Diseno",4,3],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",3,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001532 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:37,d:13,pct:35,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. JP",4,3],["Propuesta",4,2],["Compras",4,0],
-  ["Ing. Diseno",4,3],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",3,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001533 - GESVIAL",p:"Chile",t:47,d:16,pct:34,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,3],
-  ["Compras",2,1],["Ing. Diseno",3,2],["Bodega entrada",2,0],["Caldereria",3,0],
-  ["Bodega salida",4,0],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001534 - ZITRON PERU METRO DE LIMA E04-E05",p:"Peru",t:60,d:20,pct:33,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",5,5],["Propuesta compras",8,6],
-  ["Compras",8,1],["Ing. y Diseno",4,2],["CC Fab Externa",1,0],["Bodega",2,0],
-  ["Caldereria",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],
-  ["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001525 - ZITRON PERU METRO DE LIMA ESTACION 07",p:"Peru",t:47,d:15,pct:32,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,4],["Propuesta",8,8],
-  ["Compras",8,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],
-  ["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-{n:"50001499 - EQ. CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,ph:[
-  ["Kick Off",5,5],["Ing. Servicio",2,0],["Ing. JP",4,4],["Propuesta",9,4],
-  ["Compras",9,2],["Ing. Diseno",4,1],["Bodega entrada",4,0],["Fab. Externa",3,0],
-  ["Bodega salida",6,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-// ── 10-29% INICIADOS ──
-{n:"50001544 - DMC MINING SERVICES",p:"Chile",t:59,d:12,pct:20,changed:true,ph:[
-  ["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",4,3],["Propuesta compras",8,3],
-  ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega entrada",6,0],["Caldereria",3,0],
-  ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
- 
-// ── 0% SIN INICIAR ──
-{n:"50001547 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:42,d:0,pct:0,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
-  ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
-  ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001546 - XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
-  ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
-  ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001545 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
-  ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
-  ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
-{n:"50001543 - ZITRON COLOMBIA EGM",p:"Colombia",t:44,d:0,pct:0,ph:[
-  ["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],
-  ["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],
-  ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
-// NUEVOS 27/05/2026
- 
-{n:"50001557 - ATACAMA KOZAN OT4335-4339-4341",p:"Chile",t:62,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",8,0],
-  ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],
-  ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
-{n:"50001557 - ATACAMA KOZAN OT4340",p:"Chile",t:54,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
-  ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]},
-{n:"50001554 - MAPIM",p:"Mexico",t:62,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",8,0],
-  ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],
-  ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
-{n:"50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA",p:"Colombia",t:54,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
-  ["Ing. Diseno",4,0],["Bodega entrada",6,0],["Caldereria",3,0],["Bodega salida",4,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
-{n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4324-4325",p:"Colombia",t:55,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
-  ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
-{n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4326",p:"Colombia",t:54,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
-  ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]},
-{n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4327",p:"Colombia",t:54,d:0,pct:0,changed:true,ph:[
-  ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
-  ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
-  ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]}
+  // ── >60% AVANZADOS ──
+  {n:"50001524 - ATACAMA KOZAN",p:"Chile",t:47,d:45,pct:96,ph:[
+    ["Kick Off",5,5],["Ing. Servicios",2,2],["Ing. JP",4,4],["Propuesta compras",6,6],
+    ["Compras",6,6],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",5,5],["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001451 - ZITRON COLOMBIA",p:"Colombia",t:50,d:46,pct:92,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",1,1],["Ing. JP",4,4],["Propuesta",5,5],
+    ["Compras",11,11],["Ing. Diseno",2,2],["CC",1,1],["Bodega entrada",6,6],
+    ["Montaje",7,7],["Logistica",4,4],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001477 - TRITON MINERA",p:"Nicaragua",t:55,d:49,pct:89,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,2],["Ing. JP",4,4],["Propuesta compras",7,7],
+    ["Compras",7,7],["Ing. y Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",6,6],["Montaje",7,7],["Logistica",4,3],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
+
+  {n:"50001515 - CRTG",p:"Chile",t:47,d:39,pct:83,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
+    ["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",4,4],["Montaje",6,6],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001514 - CRTG",p:"Chile",t:47,d:39,pct:83,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
+    ["Compras",5,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",4,4],["Montaje",6,6],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001504 - ZITRON PERU B",p:"Peru",t:38,d:28,pct:74,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],
+    ["Ing. Diseno",4,3],["Bodega entrada",2,1],["Caldereria",3,3],["Bodega salida",3,3],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001501 - MIN. LA HACIENDA",p:"Mexico",t:41,d:30,pct:73,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",1,0],["Ing. JP",4,4],["Propuesta",6,6],
+    ["Compras",5,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",2,2],
+    ["Bodega salida",2,2],["Montaje",4,2],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001500 - MIN. LA HACIENDA",p:"Mexico",t:48,d:34,pct:71,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
+    ["Compras",5,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",4,3],["Montaje",6,4],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001446 - MINERA FRESNILLO",p:"Mexico",t:52,d:36,pct:69,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],
+    ["Compras",6,5],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],
+    ["Bodega salida",5,4],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,3]]},
+
+  {n:"50001504 - ZITRON PERU A",p:"Peru",t:44,d:30,pct:68,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",5,5],["Compras",5,5],
+    ["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,3],["Bodega salida",4,0],
+    ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001508 - XEMORTIZ STOCK",p:"Mexico",t:41,d:27,pct:66,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,4],["Compras",4,4],
+    ["Ing. Diseno",4,4],["Bodega entrada",2,2],["Caldereria",3,2],["Bodega salida",3,2],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001415 - ZITRON PERU",p:"Peru",t:52,d:34,pct:65,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],
+    ["Compras",7,5],["Ing. Diseno",4,3],["CC Fab. Externa",1,1],["Bodega salida",6,5],
+    ["Montaje",7,2],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001473 - MAPIMI",p:"Mexico",t:48,d:29,pct:60,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,5],
+    ["Compras",5,5],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Caldereria",3,1],
+    ["Bodega salida",4,1],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001485 - CALABRESSE METRO STO DOMINGO",p:"Rep. Dominicana",t:52,d:31,pct:60,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta compras",6,4],
+    ["Propuesta produccion",1,1],["Compras",6,3],["Ing. Diseno",4,3],["Bodega entrada",2,2],
+    ["Fab. Externa",3,3],["Bodega salida",5,2],["Montaje",7,0],["Logistica",4,0],
+    ["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  // ── 30-59% EN PROGRESO ──
+  {n:"50001506 - ZITRON COLOMBIA EPM FRIO AIRE",p:"Colombia",t:53,d:29,pct:55,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],
+    ["Compras",6,5],["Ing. Diseno",4,4],["Bodega entrada",2,2],["Fab. Externa",3,0],
+    ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001497 - XEMORTIZ IMMSA BBR",p:"Mexico",t:52,d:26,pct:50,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,6],
+    ["Compras",6,4],["Ing. Diseno",4,3],["Bodega entrada",2,2],["Fab. Externa",3,0],
+    ["Bodega salida",5,1],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001541 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:38,d:18,pct:47,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,2],["Propuesta",7,5],["Compras",6,3],
+    ["Ing. Diseno",4,0],["Bodega entrada",3,3],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001309 - ZITRON COLOMBIA BUGA BUENAVENTURA",p:"Colombia",t:31,d:14,pct:45,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,4],["Propuesta",4,2],["Compras",4,1],
+    ["Ing. Diseno",4,1],["Bodega entrada",2,0],["Montaje",7,0],["Logistica",4,0],
+    ["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001466 - ZITRON PERU (PODEROSA)",p:"Peru",t:39,d:16,pct:41,ph:[
+    ["Kick Off",5,5],["Ing. JP",5,4],["Propuesta",8,3],["Compras",2,2],
+    ["Ing. Diseno",3,3],["Bodega entrada",5,0],["Bodega salida",5,0],
+    ["Logistica",4,0],["Puesta marcha",2,0]]},
+
+  {n:"50001490 - ZITRON PERU METRO DE LIMA",p:"Peru",t:63,d:25,pct:40,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",7,7],["Propuesta",9,9],
+    ["Compras",9,2],["Ing. Diseno",4,1],["Bodega entrada",2,0],["Caldereria",3,0],
+    ["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001518 - EQ. CHAPARRAL",p:"Mexico",t:54,d:21,pct:39,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,5],["Propuesta",7,7],
+    ["Compras",6,2],["Ing. Diseno",4,1],["Bodega entrada",2,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001498 - CALABRESSE METRO STO DOMINGO POZOS",p:"Rep. Dominicana",t:51,d:20,pct:39,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",6,5],
+    ["Compras",6,3],["Ing. Diseno",4,2],["Bodega entrada",2,0],["Fab. Externa",3,0],
+    ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001520 - XEMORTIZ DDG",p:"Mexico",t:37,d:14,pct:38,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,2],["Propuesta",4,2],["Compras",4,2],
+    ["Ing. Diseno",4,3],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",3,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001532 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:37,d:13,pct:35,ph:[
+    ["Kick Off",5,5],["Ing. JP",4,3],["Propuesta",4,2],["Compras",4,0],
+    ["Ing. Diseno",4,3],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",3,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001533 - GESVIAL",p:"Chile",t:47,d:16,pct:34,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",4,4],["Propuesta",5,3],
+    ["Compras",2,1],["Ing. Diseno",3,2],["Bodega entrada",2,0],["Caldereria",3,0],
+    ["Bodega salida",4,0],["Montaje",6,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001534 - ZITRON PERU METRO DE LIMA E04-E05",p:"Peru",t:60,d:20,pct:33,ph:[
+    ["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",5,5],["Propuesta compras",8,6],
+    ["Compras",8,1],["Ing. y Diseno",4,2],["CC Fab Externa",1,0],["Bodega",2,0],
+    ["Caldereria",3,0],["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],
+    ["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001525 - ZITRON PERU METRO DE LIMA ESTACION 07",p:"Peru",t:47,d:15,pct:32,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,1],["Ing. JP",5,4],["Propuesta",8,8],
+    ["Compras",8,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],
+    ["Bodega salida",7,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001499 - EQ. CHAPARRAL",p:"Mexico",t:57,d:16,pct:28,ph:[
+    ["Kick Off",5,5],["Ing. Servicio",2,0],["Ing. JP",4,4],["Propuesta",9,4],
+    ["Compras",9,2],["Ing. Diseno",4,1],["Bodega entrada",4,0],["Fab. Externa",3,0],
+    ["Bodega salida",6,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001516 - UNEL LA BANDERA",p:"Rep. Dominicana",t:52,d:5,pct:10,ph:[
+    ["Kick Off",5,5],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",6,0],
+    ["Compras",6,0],["Ing. y Diseno",4,0],["Bodega",2,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  // ── 10-29% INICIADOS ──
+  {n:"50001544 - DMC MINING SERVICES",p:"Chile",t:59,d:12,pct:20,ph:[
+    ["Kick Off",5,5],["Ing. Servicios",2,1],["Ing. JP",4,3],["Propuesta compras",8,3],
+    ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega entrada",6,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta en Marcha",2,0]]},
+
+  // ── 0% SIN INICIAR ──
+  {n:"50001547 - XEMORTIZ AMERICAS GOLD",p:"Mexico",t:42,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
+    ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
+    ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001546 - XEMORTIZ",p:"Mexico",t:42,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
+    ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
+    ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001545 - XEMORTIZ MINERA FRISCO",p:"Mexico",t:42,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta",7,0],["Compras",7,0],
+    ["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],["Bodega salida",5,0],
+    ["Montaje",7,0],["Logistica",4,0],["Cierre",2,0]]},
+
+  {n:"50001543 - ZITRON COLOMBIA EGM",p:"Colombia",t:44,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. Servicio",2,0],["Ing. JP",4,0],["Propuesta",7,0],
+    ["Compras",7,0],["Ing. Diseno",4,0],["Bodega entrada",2,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",7,0],["Logistica",4,0],["Cierre",2,0],["Puesta marcha",2,0]]},
+
+  {n:"50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA",p:"Colombia",t:54,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
+    ["Ing. Diseno",4,0],["Bodega entrada",6,0],["Caldereria",3,0],["Bodega salida",4,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
+
+  {n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4324-4325",p:"Colombia",t:55,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
+    ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
+
+  {n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4326",p:"Colombia",t:54,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
+    ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]},
+
+  {n:"50001553 - ZITRON COLOMBIA ARIS MINING OT4327",p:"Colombia",t:54,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
+    ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]},
+
+  {n:"50001558 - GESVIAL",p:"Chile",t:59,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",8,0],
+    ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
+
+  {n:"50001557 - ATACAMA KOZAN OT4335-4339-4341",p:"Chile",t:62,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",8,0],
+    ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]},
+
+  {n:"50001557 - ATACAMA KOZAN OT4340",p:"Chile",t:54,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. JP",4,0],["Propuesta compras",7,0],["Compras",7,0],
+    ["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],["Bodega salida",4,0],
+    ["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0]]},
+
+  {n:"50001554 - MAPIM",p:"Mexico",t:62,d:0,pct:0,ph:[
+    ["Kick Off",5,0],["Ing. Servicios",2,0],["Ing. JP",4,0],["Propuesta compras",8,0],
+    ["Compras",8,0],["Ing. y Diseno",4,0],["Bodega",6,0],["Caldereria",3,0],
+    ["Bodega salida",5,0],["Montaje",6,0],["Logistica",4,0],["Cierre proyecto",2,0],["Puesta En Marcha",2,0]]}
 ];
- 
+
 function col(p){return p>=60?"#1D9E75":p>=30?"#378ADD":p>=10?"#BA7517":"#E24B4A";}
-function bi(p){
-  if(p>=60)return{t:"Avanzado",c:"#1D9E75"};
-  if(p>=30)return{t:"En progreso",c:"#378ADD"};
-  if(p>=10)return{t:"Iniciado",c:"#BA7517"};
-  return{t:"Sin iniciar",c:"#E24B4A"};
-}
+function bi(p){if(p>=60)return{t:"Avanzado",c:"#1D9E75"};if(p>=30)return{t:"En progreso",c:"#378ADD"};if(p>=10)return{t:"Iniciado",c:"#BA7517"};return{t:"Sin iniciar",c:"#E24B4A"};}
 function getF(){
   var q=(document.getElementById("srch").value||"").toLowerCase();
   var s=document.getElementById("srt").value;
@@ -357,9 +404,7 @@ function rKPIs(){
     {l:"Sin iniciar",v:P.filter(function(x){return x.pct===0;}).length,c:"#E24B4A"},
     {l:"Despachados",v:P.filter(function(x){var l=x.ph.find(function(p){return p[0]==="Logistica";});return l&&l[1]>0&&l[1]===l[2];}).length,c:"#1D9E75"}
   ];
-  document.getElementById("kpis").innerHTML=ks.map(function(k){
-    return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';
-  }).join("");
+  document.getElementById("kpis").innerHTML=ks.map(function(k){return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';}).join("");
 }
 function toggle(i){
   var card=document.getElementById("c"+i),det=document.getElementById("d"+i);
@@ -383,25 +428,23 @@ function render(){
     var db=desp
       ?'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">Despachado</span>'
       :'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">Pend. despacho</span>';
-    var newBadge=x.changed?'<span class="badge-new">↑ Actualizado</span>':'';
     return '<div class="pcard" id="c'+i+'" onclick="toggle('+i+')">'
       +'<div class="ptop"><span class="pname" title="'+x.n+'">'+x.n+'</span>'
       +'<span class="pcountry">'+x.p+'</span>'
       +'<span class="pbadge" style="background:'+b.c+'22;color:'+b.c+'">'+b.t+'</span>'
       +'<span class="ppct" style="color:'+c+'">'+x.pct+'%</span>'
-      +newBadge+db
-      +'<span class="pchev">&#9662;</span></div>'
+      +db+'<span class="pchev">&#9662;</span></div>'
       +'<div class="pbar-row"><div class="pbar-bg"><div class="pbar-fill" style="width:'+x.pct+'%;background:'+c+';"></div></div>'
       +'<span class="pcnt">'+x.d+'/'+x.t+' subtareas</span></div>'
       +'<div class="pdet" id="d'+i+'">'+phs+'</div></div>';
   }).join("")||'<div style="text-align:center;padding:40px;color:#6B7280">Sin resultados</div>';
-  document.getElementById("footer").textContent=data.length+" proyectos mostrados · "+P.length+" total · Actualizado 27/05/2026 · Sincronizado Asana";
+  document.getElementById("footer").textContent=data.length+" proyectos · "+P.length+" total · 02/06/2026 · Consolidado Asana";
 }
 function setF(f,btn){filt=f;document.querySelectorAll(".pill").forEach(function(b){b.classList.remove("act");});btn.classList.add("act");render();}
 render();
- 
+
 var SVC_TASKS=[
-  {name:"50001560",section:"Proyectos",assignee:"Carlos Pérez",due:"2026-06-30",pais:"Nicaragua",prioridad:"Baja",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1215052134888365"},
+  {name:"50001560",section:"Proyectos",assignee:"Carlos Perez",due:"2026-06-30",pais:"Nicaragua",prioridad:"Baja",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1215052134888365"},
   {name:"50001549 - ZITRON PERU",section:"Proyectos",assignee:"DAVID BLAZQUEZ",due:"2026-05-07",pais:"Peru",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214787977829116"},
   {name:"50001455-GESVIAL",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-01-09",pais:"",prioridad:"",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802210"},
   {name:"50001513-ZUBLIN - STRABAG",section:"Proyectos",assignee:"Francisca Ramos",due:"2026-03-03",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075660"},
@@ -426,27 +469,24 @@ var SVC_TASKS=[
   {name:"50001521-CODELCO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-11",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075663"},
   {name:"50001460-ZITRON BRASIL ERO CARAIBA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-04-30",pais:"Brasil",prioridad:"Media",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075648"},
   {name:"50001531 - CODELCO ANDINA",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-05-15",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1214150417415463"},
-  {name:"50001519-AVO 1",section:"En ejecucion",assignee:"Carlos Pérez",due:"2026-03-16",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075662"},
-  {name:"50001353-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Pérez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802199"},
-  {name:"50001362-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Pérez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802200"},
-  {name:"50001517-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Pérez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075661"},
+  {name:"50001519-AVO 1",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-16",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075662"},
+  {name:"50001353-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802199"},
+  {name:"50001362-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-01-19",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802200"},
+  {name:"50001517-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075661"},
   {name:"50001487-CODELCO",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-02",pais:"Chile",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075652"},
-  {name:"50001522-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Pérez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075664"},
+  {name:"50001522-ZITRON BRASIL",section:"En ejecucion",assignee:"Carlos Perez",due:"2026-03-11",pais:"Brasil",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075664"},
   {name:"50001512-MINERA CENIZAS",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-03-13",pais:"",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628910075659"},
   {name:"50001440-XEMORTIZ",section:"En ejecucion",assignee:"Francisca Ramos",due:"2026-02-16",pais:"Mexico",prioridad:"Alta",url:"https://app.asana.com/1/402967058777498/project/1213595645392940/task/1213628909802207"}
 ];
-var SVC_TODAY=new Date('2026-05-27');
+var SVC_TODAY=new Date('2026-06-02');
 var SVC_SECTION="Proyectos";
 var SVC_SECTIONS=["Proyectos","Revisado en reunion","En ejecucion"];
-var SVC_LABELS={"Proyectos":"Proyectos","Revisado en reunion":"Revisado en reunion","En ejecucion":"En ejecucion"};
-var SEC_COLORS={"Proyectos":"#185FA5","Revisado en reunion":"#BA7517","En ejecucion":"#1D9E75"};
-var FLAGS={Chile:"🇨🇱",Mexico:"🇲🇽",Brasil:"🇧🇷",Peru:"🇵🇪",Colombia:"🇨🇴",Nicaragua:"🇳🇮"};
-function sbarHtml(label,val,max,color){var pct=max>0?Math.round(val/max*100):0;return '<div class="sbar-row"><span class="sbar-label" title="'+label+'">'+label+'</span><div class="sbar-track"><div class="sbar-fill" style="width:'+pct+'%;background:'+color+';"></div></div><span class="sbar-count">'+val+'</span></div>';}
-function renderSvcSections(){var rows=[["Finalizados",33],["En ejecucion",20],["Proyectos",11],["Revisado en reunion",2]];document.getElementById("svc-sections").innerHTML=rows.map(function(r){return sbarHtml(r[0],r[1],32,SEC_COLORS[r[0]]||"#888");}).join("");}
-function renderSvcCountries(){var cc={};SVC_TASKS.forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);var max=sorted[0][1];document.getElementById("svc-countries").innerHTML=sorted.map(function(pair){return sbarHtml((FLAGS[pair[0]]||"🌍")+" "+pair[0],pair[1],max,"#378ADD");}).join("");}
-function renderSvcTabs(){document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){var cnt=SVC_TASKS.filter(function(t){return t.section===s;}).length;return '<button class="stab'+(s===SVC_SECTION?" act":"")+'" onclick="setSvcSec(\''+s+'\',this)">'+SVC_LABELS[s]+' ('+cnt+')</button>';}).join("");}
+function sbarHtml(lbl,v,mx,clr){var p=mx>0?Math.round(v/mx*100):0;return '<div class="sbar-row"><span class="sbar-label">'+lbl+'</span><div class="sbar-track"><div class="sbar-fill" style="width:'+p+'%;background:'+clr+';"></div></div><span class="sbar-count">'+v+'</span></div>';}
+function renderSvcSections(){var rows=[["Finalizados",33],["En ejecucion",20],["Proyectos",11],["Revisado en reunion",2]];var cs={"Finalizados":"#6B7280","En ejecucion":"#1D9E75","Proyectos":"#185FA5","Revisado en reunion":"#BA7517"};document.getElementById("svc-sections").innerHTML=rows.map(function(r){return sbarHtml(r[0],r[1],33,cs[r[0]]||"#888");}).join("");}
+function renderSvcCountries(){var cc={};SVC_TASKS.forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);var mx=sorted[0][1];document.getElementById("svc-countries").innerHTML=sorted.map(function(r){return sbarHtml(r[0],r[1],mx,"#378ADD");}).join("");}
+function renderSvcTabs(){document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){var cnt=SVC_TASKS.filter(function(t){return t.section===s;}).length;return '<button class="stab'+(s===SVC_SECTION?" act":"")+'" onclick="setSvcSec(\''+s+'\',this)">'+s+' ('+cnt+')</button>';}).join("");}
 function setSvcSec(s,btn){SVC_SECTION=s;document.querySelectorAll(".stab").forEach(function(b){b.classList.remove("act");});btn.classList.add("act");renderSvcList();}
-function renderSvcList(){var po={Alta:0,Media:1,Baja:2,"":3};var tasks=SVC_TASKS.filter(function(t){return t.section===SVC_SECTION;}).sort(function(a,b){return (po[a.prioridad]||3)-(po[b.prioridad]||3);});if(!tasks.length){document.getElementById("svc-tasklist").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin tareas.</p>';return;}document.getElementById("svc-tasklist").innerHTML=tasks.map(function(t){var over=t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;var dt=t.due?new Date(t.due+"T00:00:00").toLocaleDateString("es-CL",{day:"2-digit",month:"short"}):"";var pill=t.prioridad?'<span class="stpill p-'+t.prioridad.toLowerCase()+'">'+t.prioridad+"</span>":'';return '<div class="strow"><span class="stname"><a href="'+t.url+'" target="_blank">'+t.name+'</a></span>'+pill+'<span class="stassign" title="'+t.assignee+'">'+t.assignee+'</span><span class="stdate'+(over?" ov":"")+'">'+dt+(over?" ⚠":"")+"</span></div>";}).join("");}
+function renderSvcList(){var po={Alta:0,Media:1,Baja:2,"":3};var tasks=SVC_TASKS.filter(function(t){return t.section===SVC_SECTION;}).sort(function(a,b){return(po[a.prioridad]||3)-(po[b.prioridad]||3);});if(!tasks.length){document.getElementById("svc-tasklist").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin tareas.</p>';return;}document.getElementById("svc-tasklist").innerHTML=tasks.map(function(t){var over=t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;var dt=t.due?new Date(t.due+"T00:00:00").toLocaleDateString("es-CL",{day:"2-digit",month:"short"}):"";var pill=t.prioridad?'<span class="stpill p-'+t.prioridad.toLowerCase()+'">'+t.prioridad+"</span>":'';return '<div class="strow"><span class="stname"><a href="'+t.url+'" target="_blank">'+t.name+'</a></span>'+pill+'<span class="stassign">'+t.assignee+'</span><span class="stdate'+(over?" ov":"")+'">'+dt+(over?" ⚠":"")+"</span></div>";}).join("");}
 renderSvcSections();renderSvcCountries();renderSvcTabs();renderSvcList();
 </script>
 </body>
