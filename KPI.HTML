@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reporte Ejecutivo — Consolidado Proyectos Zitron</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#1C2128;--border:#30363D;
+  --text:#E6EDF3;--sub:#8B949E;--grn:#3FB950;--blu:#58A6FF;
+  --amb:#D29922;--red:#F85149;--pur:#BC8CFF;
+  --grn-dim:#1A3A1F;--blu-dim:#0D2340;--amb-dim:#3D2C05;--red-dim:#3D1519;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+code,pre,.mono{font-family:'IBM Plex Mono',monospace}
+
+/* ── HEADER ── */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-l{display:flex;align-items:center;gap:14px}
+.logo{width:32px;height:32px;background:var(--blu);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;font-family:'IBM Plex Mono',monospace}
+.hdr-title{font-size:14px;font-weight:600;letter-spacing:.01em}
+.hdr-sub{font-size:11px;color:var(--sub);margin-top:1px}
+.hdr-badge{font-size:11px;color:var(--grn);background:var(--grn-dim);padding:3px 10px;border-radius:12px;border:1px solid #1F4F27}
+.hdr-r{font-size:11px;color:var(--sub);text-align:right;line-height:1.8}
+
+/* ── MAIN ── */
+.main{max-width:1100px;margin:0 auto;padding:24px 18px}
+
+/* ── KPIs ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:center}
+.kpi-l{font-size:10px;color:var(--sub);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.kpi-v{font-size:24px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px;gap:0}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--sub);transition:color .15s}
+.tab.on{color:var(--text);border-bottom-color:var(--blu);font-weight:500}
+.tab:hover:not(.on){color:var(--text)}
+
+/* ── VIEWS ── */
+.view{display:none}.view.on{display:block}
+
+/* ── FILTERS ── */
+.filt-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.filt-row label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em}
+.filt-row select,.filt-row input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;outline:none}
+.filt-row input{width:200px}
+.filt-count{font-size:11px;color:var(--sub);margin-left:4px}
+
+/* ── TABLE ── */
+.tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg3);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── GRUPO USUARIO ── */
+.grp-hdr td{background:rgba(88,166,255,.05);font-size:11px;font-weight:500;color:var(--sub);padding:5px 12px;border-bottom:1px solid var(--border)}
+
+/* ── BADGE / PILL ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.bg{background:var(--grn-dim);color:var(--grn);border:1px solid #1F4F27}
+.ba{background:var(--amb-dim);color:var(--amb);border:1px solid #5C4010}
+.br{background:var(--red-dim);color:var(--red);border:1px solid #5C1A1A}
+.bb{background:var(--blu-dim);color:var(--blu);border:1px solid #0D3A66}
+
+/* ── PROGRESS BAR ── */
+.pb{height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex:1;min-width:50px}
+.pf{height:100%;border-radius:3px;transition:width .3s}
+.pc{display:flex;align-items:center;gap:8px}
+
+/* ── AVATAR ── */
+.av{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+.uc{display:flex;align-items:center;gap:7px}
+
+/* ── DIAS CELL ── */
+.dias-ok{color:var(--grn);font-weight:600}
+.dias-late{color:var(--red);font-weight:600}
+.dias-pend{color:var(--amb);font-weight:600}
+
+/* ── PROYECTO CARDS ── */
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.pcard:hover{border-color:#484F58}
+.pcard.open{border-color:var(--blu)}
+.ptop{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pname{flex:1;font-size:13px;font-weight:500;white-space:normal}
+.pcountry{font-size:10px;color:var(--sub);padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border)}
+.ppct{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;min-width:40px;text-align:right}
+.pchev{font-size:11px;color:var(--sub);transition:transform .2s}
+.pcard.open .pchev{transform:rotate(180deg)}
+.pbar-row{display:flex;align-items:center;gap:10px}
+.pbar-bg{height:6px;background:var(--border);border-radius:3px;flex:1;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px}
+.pcnt{font-size:11px;color:var(--sub);white-space:nowrap;min-width:110px;text-align:right;font-family:'IBM Plex Mono',monospace}
+.pdet{display:none;border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
+.phrow{display:flex;align-items:center;gap:8px;padding:3px 0}
+.phname{font-size:11px;color:var(--sub);min-width:155px}
+.phbg{height:4px;background:var(--border);border-radius:2px;flex:1;overflow:hidden}
+.phfill{height:100%;border-radius:2px}
+.phpct{font-size:11px;font-weight:600;min-width:32px;text-align:right;font-family:'IBM Plex Mono',monospace}
+.phct{font-size:10px;color:var(--sub);min-width:38px;text-align:right;font-family:'IBM Plex Mono',monospace}
+
+/* ── PILLS ── */
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pill{padding:4px 13px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer;color:var(--sub);transition:all .15s}
+.pill.on{background:var(--blu-dim);color:var(--blu);border-color:#0D3A66}
+.pill:hover:not(.on){border-color:#484F58;color:var(--text)}
+
+/* ── SUMMARY CARDS ── */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:18px}
+.sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
+.sum-card h3{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+
+.footer{text-align:center;font-size:11px;color:var(--sub);padding:28px 0 16px;border-top:1px solid var(--border);margin-top:24px;font-family:'IBM Plex Mono',monospace}
+
+@media(max-width:640px){.kpi-row{grid-template-columns:repeat(2,1fr)}.hdr-sub{display:none}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="logo">Z</div>
+    <div>
+      <div class="hdr-title">Consolidado Proyectos — Reporte Ejecutivo</div>
+      <div class="hdr-sub">Portfolio Asana · 41 proyectos · 15 usuarios</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div><span class="hdr-badge">LIVE</span></div>
+    <div style="margin-top:4px">08/06/2026</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpis"></div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab on" onclick="sw('u',this)">👤 Por Usuario</div>
+    <div class="tab" onclick="sw('p',this)">📁 Por Proyecto</div>
+    <div class="tab" onclick="sw('t',this)">📋 Detalle Tareas</div>
+  </div>
+
+  <!-- VIEW USUARIO -->
+  <div class="view on" id="vu">
+    <div class="sum-grid" id="sum-cards"></div>
+    <div class="tbl-wrap">
+      <table id="tbl-u">
+        <thead><tr>
+          <th style="width:17%">Usuario</th>
+          <th style="width:7%">Tareas</th>
+          <th style="width:7%">✓ Hechas</th>
+          <th style="width:6%">⚠ Venc.</th>
+          <th style="width:22%">% Avance</th>
+          <th style="width:12%">Último comp.</th>
+          <th style="width:12%">Prox. vence</th>
+          <th style="width:17%">Proyectos</th>
+        </tr></thead>
+        <tbody id="tbody-u"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VIEW PROYECTO -->
+  <div class="view" id="vp">
+    <div class="filt-row">
+      <label>Filtrar:</label>
+      <input type="text" id="srch-p" placeholder="Buscar proyecto..." oninput="renderP()">
+      <select id="srt-p" onchange="renderP()">
+        <option value="pd">Mayor avance</option>
+        <option value="pa">Menor avance</option>
+        <option value="na">Nombre A-Z</option>
+      </select>
+    </div>
+    <div class="pills" id="pills-p"></div>
+    <div id="plist"></div>
+  </div>
+
+  <!-- VIEW TAREAS -->
+  <div class="view" id="vt">
+    <div class="filt-row">
+      <label>Usuario:</label>
+      <select id="fu" onchange="renderT()"><option value="">Todos</option></select>
+      <label>Estado:</label>
+      <select id="fs" onchange="renderT()">
+        <option value="">Todos</option>
+        <option value="c">Completada</option>
+        <option value="p">Pendiente</option>
+        <option value="v">Vencida</option>
+      </select>
+      <label>Proyecto:</label>
+      <select id="fp" onchange="renderT()" style="max-width:180px"><option value="">Todos</option></select>
+      <span class="filt-count" id="tc"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:25%">Tarea</th>
+          <th style="width:12%">Usuario</th>
+          <th style="width:18%">Proyecto</th>
+          <th style="width:9%">Vence</th>
+          <th style="width:9%">Completó</th>
+          <th style="width:14%">Días hábiles</th>
+          <th style="width:13%">Estado</th>
+        </tr></thead>
+        <tbody id="tbody-t"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer" id="footer">CONSOLIDADO PROYECTOS · ZITRON · 41 PROYECTOS · 08/06/2026</div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════
+//  COLORES POR USUARIO
+// ═══════════════════════════════════════════
+const UC={
+  "Benjamin Bustos":"#58A6FF","Eliana":"#3FB950","Hernan Gutierrez":"#F78166",
+  "Hugo Isla":"#BC8CFF","Francisca González":"#79C0FF","Francisca Ramos":"#56D364",
+  "Nicolás Mol":"#E3B341","Nicolás López":"#FF7B72","Rosemary Singh":"#3FB950",
+  "Victor Muñoz":"#58A6FF","Yerlia Castillo":"#3FB950","Karin Pinto":"#D2A8FF",
+  "Sergio Saavedra":"#8B949E","Ignacio Garcia":"#FFA657","Nicolás (cierre)":"#8B949E"
+};
+const gc=u=>UC[u]||"#8B949E";
+const ini=n=>n.split(" ").map(x=>x[0]||"").slice(0,2).join("").toUpperCase();
+const fd=s=>{if(!s)return"—";const[y,m,d]=s.split("-");return`${d}/${m}/${y.slice(2)}`};
+const TOD=new Date("2026-06-08");
+
+function wd(a,b){
+  if(!a||!b)return null;
+  let d1=new Date(a),d2=new Date(b);
+  if(d1>d2){let t=d1;d1=d2;d2=t;}
+  let c=0,cur=new Date(d1);
+  while(cur<=d2){if(cur.getDay()!==0&&cur.getDay()!==6)c++;cur.setDate(cur.getDate()+1);}
+  return c-1;
+}
+const isV=t=>!t.ok&&t.due&&new Date(t.due)<TOD;
+const colPct=p=>p>=80?"#3FB950":p>=50?"#E3B341":"#F85149";
+
+// ═══════════════════════════════════════════
+//  DATOS — TAREAS
+// ═══════════════════════════════════════════
+const T=[
+  // 50001558 GESVIAL
+  {n:"propuesta nucleo rodete",u:"Benjamin Bustos",p:"50001558 GESVIAL",due:"2026-05-26",comp:"2026-06-08",ok:true},
+  {n:"propuesta motor",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-18",comp:"2026-06-08",ok:true},
+  {n:"propuesta alabes",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-26",comp:"2026-06-08",ok:true},
+  {n:"Generación OC Rodete ot 4342",u:"Eliana",p:"50001558 GESVIAL",due:"2026-05-27",comp:null,ok:false},
+  {n:"Generación OC motor ot 4342",u:"Eliana",p:"50001558 GESVIAL",due:"2026-06-08",comp:null,ok:false},
+  {n:"Generación OC Alabe ot 4342",u:"Eliana",p:"50001558 GESVIAL",due:"2026-05-28",comp:null,ok:false},
+  {n:"Ingenieria Basica Motor",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-14",comp:"2026-06-08",ok:true},
+  {n:"Analisis de costeo",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-22",comp:null,ok:false},
+  {n:"Ingenieria basica Rodete",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Ingenieria Detalle",u:"Francisca Ramos",p:"50001558 GESVIAL",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Planos preliminar OT 4342",u:"Hernan Gutierrez",p:"50001558 GESVIAL",due:"2026-05-29",comp:null,ok:false},
+  {n:"Planos preliminar OT 4344",u:"Hernan Gutierrez",p:"50001558 GESVIAL",due:"2026-05-29",comp:null,ok:false},
+  // 50001557 ATACAMA KOZAN
+  {n:"Planos preliminar",u:"Hernan Gutierrez",p:"50001557 ATACAMA KOZAN",due:"2026-06-11",comp:"2026-06-08",ok:true},
+  {n:"Planos definitivos (pend.)",u:"Hernan Gutierrez",p:"50001557 ATACAMA KOZAN",due:"2026-08-03",comp:null,ok:false},
+  {n:"Motor OT 4340",u:"Eliana",p:"50001557 ATACAMA KOZAN",due:"2026-09-25",comp:null,ok:false},
+  {n:"Rodete OT 4340",u:"Eliana",p:"50001557 ATACAMA KOZAN",due:"2026-07-16",comp:null,ok:false},
+  {n:"Alabe OT 4340",u:"Eliana",p:"50001557 ATACAMA KOZAN",due:"2026-10-29",comp:null,ok:false},
+  {n:"propuesta nucleo rodete OT 4340",u:"Benjamin Bustos",p:"50001557 ATACAMA KOZAN",due:"2026-05-26",comp:null,ok:false},
+  // 50001544 DMC MINING
+  {n:"propuesta Corte Laser ot 4313",u:"Hugo Isla",p:"50001544 DMC MINING",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Propuesta Corte plasma ot 4313",u:"Hugo Isla",p:"50001544 DMC MINING",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Propuesta Mecanizado ot 4313",u:"Hugo Isla",p:"50001544 DMC MINING",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Propuesta Fabricación externa",u:"Hugo Isla",p:"50001544 DMC MINING",due:"2026-05-22",comp:"2026-06-08",ok:true},
+  {n:"Generación OC corte Laser",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-05-26",comp:"2026-06-08",ok:true},
+  {n:"Materiales corte Laser",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Fabricacion Corte Laser",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Generación OC Corte Plasma",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-05-26",comp:"2026-06-08",ok:true},
+  {n:"Materiales Corte Plasma",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Fabricación Corte Plasma",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Generación OC Mecanizado",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-05-26",comp:"2026-06-08",ok:true},
+  {n:"Mecanizado ot 4313",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Fabricación Mecanizado",u:"Yerlia Castillo",p:"50001544 DMC MINING",due:"2026-06-04",comp:"2026-06-08",ok:true},
+  {n:"Generacion OC Fabricación Externa",u:"Rosemary Singh",p:"50001544 DMC MINING",due:"2026-06-02",comp:"2026-06-08",ok:true},
+  {n:"Fabricación estructura ext.",u:"Rosemary Singh",p:"50001544 DMC MINING",due:"2026-07-01",comp:"2026-06-08",ok:true},
+  {n:"Fabricación Externa ot 4313",u:"Rosemary Singh",p:"50001544 DMC MINING",due:"2026-07-02",comp:"2026-06-08",ok:true},
+  {n:"Control calidad fabricación ext.",u:"Rosemary Singh",p:"50001544 DMC MINING",due:"2026-07-02",comp:"2026-06-08",ok:true},
+  {n:"check planos DMC",u:"Hernan Gutierrez",p:"50001544 DMC MINING",due:"2026-05-18",comp:"2026-06-08",ok:true},
+  {n:"Planos definitivos DMC",u:"Hernan Gutierrez",p:"50001544 DMC MINING",due:"2026-05-15",comp:"2026-06-08",ok:true},
+  {n:"Alabe ot 4313",u:"Eliana",p:"50001544 DMC MINING",due:"2026-04-28",comp:"2026-06-08",ok:true},
+  {n:"Generación OC Alabe",u:"Eliana",p:"50001544 DMC MINING",due:"2026-04-24",comp:"2026-06-08",ok:true},
+  {n:"Fabricación Alabe",u:"Eliana",p:"50001544 DMC MINING",due:"2026-04-28",comp:"2026-06-08",ok:true},
+  {n:"Rodete ot 4313",u:"Eliana",p:"50001544 DMC MINING",due:"2026-05-15",comp:"2026-06-08",ok:true},
+  {n:"Preparación Materiales",u:"Nicolás Mol",p:"50001544 DMC MINING",due:"2026-06-15",comp:"2026-06-08",ok:true},
+  {n:"Armado ot 4313",u:"Nicolás Mol",p:"50001544 DMC MINING",due:"2026-06-22",comp:"2026-06-08",ok:true},
+  {n:"PACKING LIST DMC",u:"Nicolás Mol",p:"50001544 DMC MINING",due:"2026-07-13",comp:null,ok:false},
+  {n:"Control calidad Armado",u:"Nicolás López",p:"50001544 DMC MINING",due:"2026-06-23",comp:"2026-06-08",ok:true},
+  {n:"Control calidad Mecanizado",u:"Nicolás López",p:"50001544 DMC MINING",due:"2026-06-10",comp:"2026-06-08",ok:true},
+  {n:"Control calidad Corte plasma",u:"Nicolás López",p:"50001544 DMC MINING",due:"2026-06-10",comp:"2026-06-08",ok:true},
+  {n:"Control calidad corte laser",u:"Nicolás López",p:"50001544 DMC MINING",due:"2026-06-10",comp:"2026-06-08",ok:true},
+  {n:"Recepcion fabricación externa",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-07-03",comp:"2026-06-08",ok:true},
+  {n:"Recepcion motor DMC",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-06-01",comp:"2026-06-08",ok:true},
+  {n:"Recepcion Alabe DMC",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-04-29",comp:"2026-06-08",ok:true},
+  {n:"Recepcion Rodete DMC",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-05-18",comp:"2026-06-08",ok:true},
+  {n:"Recepcion mecanizado",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-06-08",comp:"2026-06-08",ok:true},
+  {n:"Recepcion Materiales corte plasma",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-06-08",comp:"2026-06-08",ok:true},
+  {n:"Recepcion materiales corte laser",u:"Victor Muñoz",p:"50001544 DMC MINING",due:"2026-06-08",comp:"2026-06-08",ok:true},
+  {n:"Pruebas FAT DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-07-06",comp:"2026-06-08",ok:true},
+  {n:"Montaje Alabe DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-07-01",comp:"2026-06-08",ok:true},
+  {n:"Revestimiento DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-06-30",comp:"2026-06-08",ok:true},
+  {n:"Montaje Rodete DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-07-02",comp:"2026-06-08",ok:true},
+  {n:"Montaje motor DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-07-03",comp:"2026-06-08",ok:true},
+  {n:"Embalaje DMC",u:"Benjamin Bustos",p:"50001544 DMC MINING",due:"2026-07-10",comp:null,ok:false},
+  {n:"Check pruebas FAT DMC",u:"Francisca González",p:"50001544 DMC MINING",due:"2026-07-07",comp:null,ok:false},
+  {n:"Coordinacion Entrega Cliente",u:"Karin Pinto",p:"50001544 DMC MINING",due:"2026-07-09",comp:null,ok:false},
+  // 50001415 ZITRON E05
+  {n:"Tablero OT 4115-4118",u:"Eliana",p:"50001415 ZITRON E05",due:"2026-03-11",comp:"2026-06-01",ok:true},
+  {n:"Recepcion Tableros OT 4115",u:"Victor Muñoz",p:"50001415 ZITRON E05",due:"2026-03-13",comp:"2026-06-08",ok:true},
+  {n:"Pruebas FAT E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-05-13",comp:"2026-06-08",ok:true},
+  {n:"RE-PINTADO E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-05-15",comp:"2026-06-08",ok:true},
+  {n:"Revestimiento E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-04-29",comp:"2026-04-28",ok:true},
+  {n:"Montaje motor E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-05-04",comp:"2026-06-08",ok:true},
+  {n:"Montaje Rodete E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-05-08",comp:"2026-06-08",ok:true},
+  {n:"Montaje Sensores E05",u:"Benjamin Bustos",p:"50001415 ZITRON E05",due:"2026-05-11",comp:"2026-06-08",ok:true},
+  {n:"Check pruebas FAT E05",u:"Francisca González",p:"50001415 ZITRON E05",due:"2026-05-14",comp:"2026-06-08",ok:true},
+  {n:"Revisión tableros pruebas",u:"Sergio Saavedra",p:"50001415 ZITRON E05",due:"2026-03-20",comp:null,ok:false},
+  {n:"Coordinacion Entrega Cliente",u:"Karin Pinto",p:"50001415 ZITRON E05",due:"2026-05-18",comp:null,ok:false},
+  {n:"Check Planos E05",u:"Hernan Gutierrez",p:"50001415 ZITRON E05",due:"2026-06-17",comp:"2026-06-08",ok:true},
+  {n:"OT 4297 Check planos",u:"Hernan Gutierrez",p:"50001415 ZITRON E05",due:"2026-06-17",comp:"2026-06-08",ok:true},
+  {n:"OT 4296 Check planos",u:"Hernan Gutierrez",p:"50001415 ZITRON E05",due:"2026-06-17",comp:"2026-06-08",ok:true},
+  // 50001534 METRO LIMA
+  {n:"Propuesta Fabricacion Externa",u:"Hugo Isla",p:"50001534 METRO LIMA",due:"2026-06-19",comp:null,ok:false},
+  {n:"propuesta compras código",u:"Hugo Isla",p:"50001534 METRO LIMA",due:"2026-06-19",comp:null,ok:false},
+  {n:"Fabricacion estructura ext.",u:"Rosemary Singh",p:"50001534 METRO LIMA",due:"2026-08-04",comp:null,ok:false},
+  {n:"Fabricacion Externa",u:"Rosemary Singh",p:"50001534 METRO LIMA",due:"2026-07-27",comp:null,ok:false},
+  {n:"OT 4294 Armado",u:"Nicolás Mol",p:"50001534 METRO LIMA",due:"2026-08-11",comp:null,ok:false},
+  {n:"OT 4296 Armado",u:"Nicolás Mol",p:"50001534 METRO LIMA",due:"2026-08-11",comp:null,ok:false},
+  {n:"OT 4296 Control calidad Armado",u:"Nicolás López",p:"50001534 METRO LIMA",due:"2026-08-13",comp:null,ok:false},
+  {n:"OT 4294 Control calidad Armado",u:"Nicolás López",p:"50001534 METRO LIMA",due:"2026-08-13",comp:null,ok:false},
+  {n:"OT 4296/4294 Montaje Sensores",u:"Benjamin Bustos",p:"50001534 METRO LIMA",due:"2026-09-04",comp:null,ok:false},
+  {n:"OT 4296/4294 Montaje Alabe",u:"Benjamin Bustos",p:"50001534 METRO LIMA",due:"2026-09-08",comp:null,ok:false},
+  {n:"OT 4296/4294 Montaje Rodete",u:"Benjamin Bustos",p:"50001534 METRO LIMA",due:"2026-09-10",comp:null,ok:false},
+  {n:"OT 4296/4294 Montaje motor",u:"Benjamin Bustos",p:"50001534 METRO LIMA",due:"2026-09-14",comp:null,ok:false},
+  // 50001504 CODESTABLE
+  {n:"Planos definitivos",u:"Hernan Gutierrez",p:"50001504 CODESTABLE",due:"2026-03-09",comp:"2026-03-26",ok:true},
+  {n:"Sensor",u:"Yerlia Castillo",p:"50001504 CODESTABLE",due:"2026-05-11",comp:"2026-05-12",ok:true},
+  {n:"Motor",u:"Eliana",p:"50001504 CODESTABLE",due:"2026-02-11",comp:"2026-06-01",ok:true},
+  {n:"propuesta alabes",u:"Francisca Ramos",p:"50001504 CODESTABLE",due:"2026-01-02",comp:"2026-03-19",ok:true},
+  {n:"check pruebas fat",u:"Francisca González",p:"50001504 CODESTABLE",due:"2026-03-06",comp:"2026-06-08",ok:true},
+  {n:"Armado",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-02-19",comp:"2026-05-04",ok:true},
+  {n:"Control calidad Armado",u:"Nicolás López",p:"50001504 CODESTABLE",due:"2026-02-20",comp:"2026-05-05",ok:true},
+  {n:"Recepcion materiales",u:"Victor Muñoz",p:"50001504 CODESTABLE",due:"2026-02-05",comp:"2026-06-08",ok:true},
+  {n:"Control calidad compras",u:"Nicolás López",p:"50001504 CODESTABLE",due:"2026-02-09",comp:"2026-05-05",ok:true},
+  {n:"Revestimiento",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-02-27",comp:"2026-06-08",ok:true},
+  {n:"Montaje motor",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-02",comp:"2026-06-08",ok:true},
+  {n:"Montaje Alabe",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-03",comp:"2026-06-08",ok:true},
+  {n:"Pruebas FAT",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-05",comp:"2026-06-08",ok:true},
+  {n:"RE-PINTADO",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-09",comp:"2026-06-08",ok:true},
+  {n:"Montaje Rodete",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-04",comp:"2026-06-08",ok:true},
+  {n:"Montaje Sensor",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-05-19",comp:"2026-06-08",ok:true},
+  {n:"Recepcion Alabe",u:"Victor Muñoz",p:"50001504 CODESTABLE",due:"2026-01-09",comp:"2026-06-08",ok:true},
+  {n:"Recepcion motor",u:"Victor Muñoz",p:"50001504 CODESTABLE",due:"2026-02-12",comp:"2026-06-08",ok:true},
+  {n:"Recepcion Rodete",u:"Victor Muñoz",p:"50001504 CODESTABLE",due:"2026-01-27",comp:"2026-06-08",ok:true},
+  {n:"Despacho",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-03-13",comp:"2026-06-08",ok:true},
+  {n:"Coordinacion Entrega Cliente",u:"Francisca Ramos",p:"50001504 CODESTABLE",due:"2026-03-10",comp:"2026-06-08",ok:true},
+  {n:"Embalaje",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-03-11",comp:"2026-06-08",ok:true},
+  {n:"PACKING LIST",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-03-12",comp:"2026-05-08",ok:true},
+  {n:"Costos cierre",u:"Nicolás (cierre)",p:"50001504 CODESTABLE",due:"2026-06-22",comp:null,ok:false},
+  {n:"Gestion cierre",u:"Nicolás (cierre)",p:"50001504 CODESTABLE",due:"2026-06-22",comp:null,ok:false},
+  {n:"Despacho log.",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-06-11",comp:"2026-06-08",ok:true},
+  {n:"PACKING LIST log.",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-06-10",comp:"2026-06-08",ok:true},
+  {n:"Coordinacion log.",u:"Francisca Ramos",p:"50001504 CODESTABLE",due:"2026-06-08",comp:"2026-06-08",ok:true},
+  {n:"RE-PINTADO log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-06-05",comp:"2026-05-06",ok:true},
+  {n:"Pruebas FAT log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-06-03",comp:"2026-05-06",ok:true},
+  {n:"Montaje motor log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-06-02",comp:"2026-05-06",ok:true},
+  {n:"Revestimiento log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-04-29",comp:"2026-05-06",ok:true},
+  {n:"Montaje Rodete log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-05-15",comp:"2026-06-08",ok:true},
+  {n:"Montaje Alabe log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-05-13",comp:"2026-06-08",ok:true},
+  {n:"Control calidad Armado log.",u:"Nicolás López",p:"50001504 CODESTABLE",due:"2026-04-09",comp:"2026-05-15",ok:true},
+  {n:"Armado log.",u:"Nicolás Mol",p:"50001504 CODESTABLE",due:"2026-04-07",comp:"2026-05-07",ok:true},
+  {n:"Embalaje log.",u:"Benjamin Bustos",p:"50001504 CODESTABLE",due:"2026-06-09",comp:"2026-06-08",ok:true},
+  // 50001477 TRITON MINERA
+  {n:"Logistica Triton",u:"Eliana",p:"50001477 TRITON MINERA",due:"2026-03-11",comp:"2026-06-01",ok:true},
+  {n:"Ingenieria y diseño",u:"Eliana",p:"50001477 TRITON MINERA",due:"2026-05-29",comp:"2026-05-29",ok:true},
+  // 50001532 XEMORTIZ AMERICAS GOLD
+  {n:"propuesta compras código",u:"Hugo Isla",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-04-23",comp:"2026-06-08",ok:true},
+  {n:"Materiales a codigo",u:"Yerlia Castillo",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-08",comp:"2026-06-08",ok:true},
+  {n:"Fabricacion a codigo",u:"Yerlia Castillo",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-08",comp:"2026-06-08",ok:true},
+  {n:"Generación OC materiales",u:"Yerlia Castillo",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-04-29",comp:"2026-06-08",ok:true},
+  {n:"Recepcion materiales",u:"Victor Muñoz",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-12",comp:"2026-06-08",ok:true},
+  {n:"Control calidad compras",u:"Nicolás López",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-14",comp:"2026-06-08",ok:true},
+  {n:"Preparación Materiales",u:"Nicolás Mol",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-15",comp:"2026-06-08",ok:true},
+  {n:"Armado ot 4280",u:"Nicolás Mol",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-22",comp:null,ok:false},
+  {n:"Control calidad Armado",u:"Nicolás Mol",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-05-25",comp:null,ok:false},
+  {n:"Revestimiento ot 4280",u:"Benjamin Bustos",p:"50001532 XEMORTIZ AMERICAS GOLD",due:"2026-06-01",comp:null,ok:false},
+  // 50001541 XEMORTIZ FRISCO
+  {n:"Plano Preliminar",u:"Hernan Gutierrez",p:"50001541 XEMORTIZ FRISCO",due:"2026-05-07",comp:"2026-06-02",ok:true},
+  {n:"Plano Definitivos",u:"Hernan Gutierrez",p:"50001541 XEMORTIZ FRISCO",due:"2026-05-20",comp:null,ok:false},
+  {n:"Check Planos",u:"Hernan Gutierrez",p:"50001541 XEMORTIZ FRISCO",due:"2026-05-22",comp:null,ok:false},
+  {n:"Ingenieria Basica Motor",u:"Francisca Ramos",p:"50001541 XEMORTIZ FRISCO",due:"2026-04-22",comp:null,ok:false},
+  {n:"Ingenieria Detalle",u:"Francisca Ramos",p:"50001541 XEMORTIZ FRISCO",due:"2026-04-29",comp:"2026-06-02",ok:true},
+  {n:"Corte plasma",u:"Yerlia Castillo",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-04",comp:"2026-04-28",ok:true},
+  {n:"Mecanizado",u:"Yerlia Castillo",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-04",comp:"2026-05-05",ok:true},
+  {n:"Corte Laser",u:"Yerlia Castillo",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-04",comp:"2026-04-28",ok:true},
+  {n:"Motor OT 4307",u:"Eliana",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-02",comp:null,ok:false},
+  {n:"Fabricación motor OT 4307",u:"Eliana",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-02",comp:null,ok:false},
+  {n:"Control calidad corte Laser",u:"Nicolás López",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-10",comp:"2026-05-15",ok:true},
+  {n:"Control calidad Corte plasma",u:"Nicolás López",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-10",comp:"2026-05-15",ok:true},
+  {n:"Control calidad Mecanizado",u:"Nicolás López",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-10",comp:"2026-05-15",ok:true},
+  {n:"Recepcion motor",u:"Victor Muñoz",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-03",comp:null,ok:false},
+  {n:"Generación OC Fabricación ext.",u:"Rosemary Singh",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-05",comp:null,ok:false},
+  {n:"Fabricacion externa",u:"Rosemary Singh",p:"50001541 XEMORTIZ FRISCO",due:"2026-06-04",comp:null,ok:false},
+  {n:"Check pruebas FAT",u:"Francisca González",p:"50001541 XEMORTIZ FRISCO",due:"2026-07-21",comp:null,ok:false},
+  // 50001497 XEMORTIZ IMMSA
+  {n:"Motor OT 4196",u:"Eliana",p:"50001497 XEMORTIZ IMMSA",due:"2026-05-19",comp:"2026-06-01",ok:true},
+  {n:"Planos motor proveedor",u:"Eliana",p:"50001497 XEMORTIZ IMMSA",due:"2026-02-20",comp:"2026-06-01",ok:true},
+  {n:"Fabricación motor OT 4196",u:"Eliana",p:"50001497 XEMORTIZ IMMSA",due:"2026-05-19",comp:"2026-06-01",ok:true},
+  {n:"Planos Definitivos",u:"Hernan Gutierrez",p:"50001497 XEMORTIZ IMMSA",due:"2026-02-27",comp:"2026-03-26",ok:true},
+  {n:"Recepcion Motor",u:"Victor Muñoz",p:"50001497 XEMORTIZ IMMSA",due:"2026-05-21",comp:null,ok:false},
+  {n:"Despacho",u:"Nicolás Mol",p:"50001497 XEMORTIZ IMMSA",due:"2026-05-15",comp:null,ok:false},
+  {n:"PACKING LIST",u:"Nicolás Mol",p:"50001497 XEMORTIZ IMMSA",due:"2026-06-04",comp:null,ok:false},
+  {n:"Embalaje",u:"Benjamin Bustos",p:"50001497 XEMORTIZ IMMSA",due:"2026-06-03",comp:null,ok:false},
+  // 50001309 ZITRON COLOMBIA BUGA
+  {n:"Motor OT 3756",u:"Eliana",p:"50001309 COLOMBIA BUGA",due:"2026-06-09",comp:"2026-06-01",ok:true},
+  {n:"rodete OT 3756",u:"Eliana",p:"50001309 COLOMBIA BUGA",due:"2026-03-16",comp:"2026-06-01",ok:true},
+  {n:"Alabe OT 3756",u:"Eliana",p:"50001309 COLOMBIA BUGA",due:"2026-05-18",comp:"2026-06-01",ok:true},
+  {n:"Recepcion motor",u:"Victor Muñoz",p:"50001309 COLOMBIA BUGA",due:"2026-06-11",comp:null,ok:false},
+  {n:"Recepcion Rodete",u:"Victor Muñoz",p:"50001309 COLOMBIA BUGA",due:"2026-03-18",comp:null,ok:false},
+  {n:"Recepcion Alabe",u:"Victor Muñoz",p:"50001309 COLOMBIA BUGA",due:"2026-05-20",comp:null,ok:false},
+  // 50001485 CALABRESSE METRO
+  {n:"Alabe OT 4183",u:"Eliana",p:"50001485 CALABRESSE METRO",due:"2026-04-09",comp:"2026-06-01",ok:true},
+  {n:"Motor",u:"Eliana",p:"50001485 CALABRESSE METRO",due:"2026-05-06",comp:"2026-04-09",ok:true},
+  {n:"Recepcion Alabe",u:"Victor Muñoz",p:"50001485 CALABRESSE METRO",due:"2026-04-13",comp:null,ok:false},
+  {n:"Recepcion motor",u:"Victor Muñoz",p:"50001485 CALABRESSE METRO",due:"2026-05-11",comp:"2026-04-09",ok:true},
+  {n:"Check Pruebas Fat",u:"Francisca González",p:"50001485 CALABRESSE METRO",due:"2026-05-15",comp:null,ok:false},
+  {n:"Costos cierre",u:"Nicolás (cierre)",p:"50001485 CALABRESSE METRO",due:"2026-06-03",comp:null,ok:false},
+  {n:"Gestion cierre",u:"Nicolás (cierre)",p:"50001485 CALABRESSE METRO",due:"2026-06-03",comp:null,ok:false},
+  {n:"Instalación componentes",u:"Ignacio Garcia",p:"50001485 CALABRESSE METRO",due:"2026-06-05",comp:null,ok:false},
+  {n:"Pruebas instalacion",u:"Ignacio Garcia",p:"50001485 CALABRESSE METRO",due:"2026-06-08",comp:null,ok:false},
+  // 50001490 ZITRON PV04-PV05
+  {n:"Tableros",u:"Eliana",p:"50001490 ZITRON PV04-PV05",due:"2026-06-15",comp:"2026-05-12",ok:true},
+  {n:"Recepcion Tableros",u:"Victor Muñoz",p:"50001490 ZITRON PV04-PV05",due:"2026-06-15",comp:"2026-05-12",ok:true},
+  {n:"Pruebas instalacion",u:"Ignacio Garcia",p:"50001490 ZITRON PV04-PV05",due:"2026-06-12",comp:null,ok:false},
+  {n:"Instalacion componentes",u:"Ignacio Garcia",p:"50001490 ZITRON PV04-PV05",due:"2026-06-05",comp:null,ok:false},
+  // 50001451 ZITRON COLOMBIA
+  {n:"Planos Preliminar",u:"Hernan Gutierrez",p:"50001451 ZITRON COLOMBIA",due:"2025-12-26",comp:"2026-04-15",ok:true},
+  {n:"Recepcion Motor",u:"Victor Muñoz",p:"50001451 ZITRON COLOMBIA",due:"2026-06-04",comp:"2026-04-15",ok:true},
+  {n:"Motor",u:"Eliana",p:"50001451 ZITRON COLOMBIA",due:"2026-06-02",comp:"2026-04-14",ok:true},
+  {n:"Montaje motor",u:"Benjamin Bustos",p:"50001451 ZITRON COLOMBIA",due:"2026-06-08",comp:null,ok:false},
+  {n:"RE-PINTADO",u:"Benjamin Bustos",p:"50001451 ZITRON COLOMBIA",due:"2026-06-11",comp:null,ok:false},
+  {n:"Pruebas FAT",u:"Benjamin Bustos",p:"50001451 ZITRON COLOMBIA",due:"2026-06-09",comp:null,ok:false},
+  {n:"Coordinacion Entrega",u:"Francisca Ramos",p:"50001451 ZITRON COLOMBIA",due:"2026-06-01",comp:null,ok:false},
+  {n:"Embalaje",u:"Benjamin Bustos",p:"50001451 ZITRON COLOMBIA",due:"2026-06-01",comp:null,ok:false},
+  {n:"Despacho",u:"Nicolás Mol",p:"50001451 ZITRON COLOMBIA",due:"2026-06-03",comp:null,ok:false},
+  {n:"PACKING LIST",u:"Nicolás Mol",p:"50001451 ZITRON COLOMBIA",due:"2026-06-02",comp:null,ok:false},
+  {n:"Check Pruebas FAT",u:"Hernan Gutierrez",p:"50001451 ZITRON COLOMBIA",due:"2026-06-10",comp:null,ok:false},
+  {n:"Costos cierre",u:"Nicolás (cierre)",p:"50001451 ZITRON COLOMBIA",due:"2026-06-12",comp:null,ok:false},
+  {n:"Gestion cierre",u:"Nicolás (cierre)",p:"50001451 ZITRON COLOMBIA",due:"2026-06-12",comp:null,ok:false},
+  {n:"Instalacion componentes",u:"Ignacio Garcia",p:"50001451 ZITRON COLOMBIA",due:"2026-06-03",comp:null,ok:false},
+  {n:"Pruebas instalacion",u:"Ignacio Garcia",p:"50001451 ZITRON COLOMBIA",due:"2026-06-04",comp:null,ok:false},
+  // 50001524 ATACAMA KOZAN (antiguo)
+  {n:"Generación OC Tableros",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2025-12-26",comp:"2026-06-01",ok:true},
+  {n:"Atenuador OT 4211-4228",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2026-03-20",comp:"2026-06-01",ok:true},
+  {n:"Generación OC Rodete",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2025-12-24",comp:"2026-06-01",ok:true},
+  {n:"Tablero OT 4206-4209",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2026-04-06",comp:null,ok:false},
+  {n:"Fabricación Tablero",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2026-04-06",comp:null,ok:false},
+  {n:"rodete OT 4204-4205",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2026-03-13",comp:null,ok:false},
+  {n:"Fabricación Rodete",u:"Eliana",p:"50001524 ATACAMA KOZAN",due:"2026-03-13",comp:null,ok:false},
+  {n:"Fabricacion externa OT 4204",u:"Rosemary Singh",p:"50001524 ATACAMA KOZAN",due:"2026-06-04",comp:null,ok:false},
+  {n:"OC fabricacion externa",u:"Rosemary Singh",p:"50001524 ATACAMA KOZAN",due:"2026-05-06",comp:null,ok:false},
+  {n:"Recepcion Atenuador",u:"Victor Muñoz",p:"50001524 ATACAMA KOZAN",due:"2026-03-24",comp:null,ok:false},
+  {n:"Instalacion de componentes",u:"Ignacio Garcia",p:"50001524 ATACAMA KOZAN",due:"2026-06-11",comp:null,ok:false},
+  {n:"Pruebas instalacion",u:"Ignacio Garcia",p:"50001524 ATACAMA KOZAN",due:"2026-06-04",comp:null,ok:false},
+  {n:"Costos cierre",u:"Nicolás (cierre)",p:"50001524 ATACAMA KOZAN",due:"2026-06-05",comp:null,ok:false},
+  {n:"Gestion cierre",u:"Nicolás (cierre)",p:"50001524 ATACAMA KOZAN",due:"2026-06-05",comp:null,ok:false},
+  // 50001525 ZITRON E07
+  {n:"Atenuador ot 4289",u:"Eliana",p:"50001525 ZITRON E07",due:"2026-06-05",comp:null,ok:false},
+  {n:"Rodete ot 4287-4288",u:"Eliana",p:"50001525 ZITRON E07",due:"2026-06-09",comp:null,ok:false},
+  {n:"Recepcion Rodete",u:"Victor Muñoz",p:"50001525 ZITRON E07",due:"2026-06-11",comp:null,ok:false},
+  {n:"Atenuadores bodega",u:"Victor Muñoz",p:"50001525 ZITRON E07",due:"2026-06-09",comp:null,ok:false},
+  // 50001559 FERROVIAL
+  {n:"Ingenieria Electrica",u:"Francisca Ramos",p:"50001559 FERROVIAL",due:"2026-05-25",comp:null,ok:false},
+  {n:"Analisis de costeo",u:"Francisca Ramos",p:"50001559 FERROVIAL",due:"2026-05-29",comp:null,ok:false},
+  {n:"Ingenieria Detalle",u:"Francisca Ramos",p:"50001559 FERROVIAL",due:"2026-05-29",comp:null,ok:false},
+  {n:"Ingenieria basica Rodete",u:"Francisca Ramos",p:"50001559 FERROVIAL",due:"2026-05-29",comp:null,ok:false},
+  {n:"Ingenieria Basica Motor",u:"Francisca Ramos",p:"50001559 FERROVIAL",due:"2026-05-22",comp:null,ok:false},
+];
+
+// ═══════════════════════════════════════════
+//  PROYECTOS (para vista Por Proyecto)
+// ═══════════════════════════════════════════
+const PROJS=[
+  {n:"50001524 - ATACAMA KOZAN",p:"Chile",pct:96,t:47,d:45},
+  {n:"50001451 - ZITRON COLOMBIA",p:"Colombia",pct:92,t:50,d:46},
+  {n:"50001477 - TRITON MINERA",p:"Nicaragua",pct:89,t:55,d:49},
+  {n:"50001515 - CRTG",p:"Chile",pct:83,t:47,d:39},
+  {n:"50001514 - CRTG",p:"Chile",pct:83,t:47,d:39},
+  {n:"50001504 - ZITRON PERU B",p:"Peru",pct:74,t:38,d:28},
+  {n:"50001501 - MIN. LA HACIENDA",p:"Mexico",pct:73,t:41,d:30},
+  {n:"50001500 - MIN. LA HACIENDA",p:"Mexico",pct:71,t:48,d:34},
+  {n:"50001446 - MINERA FRESNILLO",p:"Mexico",pct:69,t:52,d:36},
+  {n:"50001504 - ZITRON PERU A",p:"Peru",pct:68,t:44,d:30},
+  {n:"50001508 - XEMORTIZ STOCK",p:"Mexico",pct:66,t:41,d:27},
+  {n:"50001415 - ZITRON PERU E05",p:"Peru",pct:65,t:52,d:34},
+  {n:"50001473 - MAPIMI",p:"Mexico",pct:60,t:48,d:29},
+  {n:"50001485 - CALABRESSE METRO",p:"Rep. Dominicana",pct:60,t:52,d:31},
+  {n:"50001506 - ZCO EPM FRIO AIRE",p:"Colombia",pct:55,t:53,d:29},
+  {n:"50001497 - XEMORTIZ IMMSA",p:"Mexico",pct:50,t:52,d:26},
+  {n:"50001541 - XEMORTIZ FRISCO",p:"Mexico",pct:47,t:38,d:18},
+  {n:"50001309 - ZITRON COLOMBIA BUGA",p:"Colombia",pct:45,t:31,d:14},
+  {n:"50001466 - ZITRON PERU PODEROSA",p:"Peru",pct:41,t:39,d:16},
+  {n:"50001490 - ZITRON PERU METRO",p:"Peru",pct:40,t:63,d:25},
+  {n:"50001518 - EQ. CHAPARRAL",p:"Mexico",pct:39,t:54,d:21},
+  {n:"50001498 - CALABRESSE POZOS",p:"Rep. Dominicana",pct:39,t:51,d:20},
+  {n:"50001520 - XEMORTIZ DDG",p:"Mexico",pct:38,t:37,d:14},
+  {n:"50001532 - XEMORTIZ AMERICAS GOLD",p:"Mexico",pct:35,t:37,d:13},
+  {n:"50001533 - GESVIAL",p:"Chile",pct:34,t:47,d:16},
+  {n:"50001534 - ZITRON PERU METRO E04",p:"Peru",pct:33,t:60,d:20},
+  {n:"50001525 - ZITRON PERU E07",p:"Peru",pct:32,t:47,d:15},
+  {n:"50001499 - EQ. CHAPARRAL",p:"Mexico",pct:28,t:57,d:16},
+  {n:"50001544 - DMC MINING SERVICES",p:"Chile",pct:20,t:59,d:12},
+  {n:"50001547 - XEMORTIZ AMERICAS GOLD",p:"Mexico",pct:0,t:42,d:0},
+  {n:"50001546 - XEMORTIZ",p:"Mexico",pct:0,t:42,d:0},
+  {n:"50001545 - XEMORTIZ MINERA FRISCO",p:"Mexico",pct:0,t:42,d:0},
+  {n:"50001543 - ZITRON COLOMBIA EGM",p:"Colombia",pct:0,t:44,d:0},
+  {n:"50001555 - ZITRON COLOMBIA ARIS",p:"Colombia",pct:0,t:54,d:0},
+  {n:"50001553 - ARIS MINING OT4324-4325",p:"Colombia",pct:0,t:55,d:0},
+  {n:"50001553 - ARIS MINING OT4326",p:"Colombia",pct:0,t:54,d:0},
+  {n:"50001553 - ARIS MINING OT4327",p:"Colombia",pct:0,t:54,d:0},
+  {n:"50001558 - GESVIAL",p:"Chile",pct:0,t:59,d:0},
+  {n:"50001557 - ATACAMA KOZAN OT4340",p:"Chile",pct:0,t:54,d:0},
+  {n:"50001554 - MAPIMI",p:"Mexico",pct:0,t:62,d:0},
+  {n:"50001559 - FERROVIAL",p:"Chile",pct:0,t:45,d:0},
+];
+
+const ALLP_FILTER=["all","Chile","Peru","Mexico","Colombia","Rep. Dominicana","Nicaragua","Brasil"];
+let pfilt="all";
+
+// ═══════════════════════════════════════════
+//  KPIs
+// ═══════════════════════════════════════════
+function buildKPIs(){
+  const d=T, tot=d.length, ok=d.filter(x=>x.ok).length;
+  const vc=d.filter(x=>isV(x)).length, pe=d.filter(x=>!x.ok&&!isV(x)).length;
+  const pct=Math.round(ok/tot*100);
+  document.getElementById("kpis").innerHTML=`
+    <div class="kpi"><div class="kpi-l">Proyectos</div><div class="kpi-v" style="color:var(--blu)">${PROJS.length}</div></div>
+    <div class="kpi"><div class="kpi-l">Tareas totales</div><div class="kpi-v" style="color:var(--text)">${tot}</div></div>
+    <div class="kpi"><div class="kpi-l">Completadas</div><div class="kpi-v" style="color:var(--grn)">${ok} <span style="font-size:13px">(${pct}%)</span></div></div>
+    <div class="kpi"><div class="kpi-l">Pendientes</div><div class="kpi-v" style="color:var(--amb)">${pe}</div></div>
+    <div class="kpi"><div class="kpi-l">Vencidas</div><div class="kpi-v" style="color:var(--red)">${vc}</div></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  VISTA USUARIO
+// ═══════════════════════════════════════════
+function renderU(){
+  const users=[...new Set(T.map(t=>t.u))].sort();
+  // Summary cards
+  const totalT=T.length, totalOk=T.filter(x=>x.ok).length;
+  const topUser=users.map(u=>{const ut=T.filter(t=>t.u===u);const ok=ut.filter(t=>t.ok).length;return{u,pct:Math.round(ok/ut.length*100)};}).sort((a,b)=>b.pct-a.pct)[0];
+  const mostVenc=users.map(u=>{const vc=T.filter(t=>t.u===u&&isV(t)).length;return{u,vc};}).sort((a,b)=>b.vc-a.vc)[0];
+  document.getElementById("sum-cards").innerHTML=`
+    <div class="sum-card">
+      <h3>Resumen global</h3>
+      <div style="font-size:13px;color:var(--sub);margin-bottom:6px">Avance total del equipo</div>
+      <div style="font-size:32px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--grn);margin-bottom:8px">${Math.round(totalOk/totalT*100)}%</div>
+      <div class="pb" style="height:8px;margin-bottom:8px"><div class="pf" style="width:${Math.round(totalOk/totalT*100)}%;background:var(--grn)"></div></div>
+      <div style="font-size:11px;color:var(--sub)">${totalOk} de ${totalT} tareas completadas · ${T.filter(x=>isV(x)).length} vencidas</div>
+    </div>
+    <div class="sum-card">
+      <h3>Top desempeño</h3>
+      <div class="uc" style="margin-bottom:8px"><div class="av" style="width:32px;height:32px;font-size:12px;background:${gc(topUser.u)}">${ini(topUser.u)}</div><div><div style="font-size:13px;font-weight:500">${topUser.u}</div><div style="font-size:11px;color:var(--sub)">${topUser.pct}% completado</div></div></div>
+      <div class="pb"><div class="pf" style="width:${topUser.pct}%;background:var(--grn)"></div></div>
+    </div>
+    <div class="sum-card">
+      <h3>Atención requerida</h3>
+      <div class="uc" style="margin-bottom:8px"><div class="av" style="width:32px;height:32px;font-size:12px;background:var(--red)">${ini(mostVenc.u)}</div><div><div style="font-size:13px;font-weight:500">${mostVenc.u}</div><div style="font-size:11px;color:var(--red)">${mostVenc.vc} tarea${mostVenc.vc!==1?'s':''} vencida${mostVenc.vc!==1?'s':''}</div></div></div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px">Mayor cantidad de tareas vencidas</div>
+    </div>`;
+
+  // Table
+  let h="";
+  users.forEach(u=>{
+    const ut=T.filter(t=>t.u===u);
+    const ok=ut.filter(t=>t.ok).length, vc=ut.filter(t=>isV(t)).length;
+    const pct=Math.round(ok/ut.length*100);
+    const col=gc(u), fc=colPct(pct);
+    const bc=pct>=80?'bg':pct>=50?'ba':'br';
+    const lc=ut.filter(t=>t.ok&&t.comp).map(t=>t.comp).sort().reverse()[0];
+    const nd=ut.filter(t=>!t.ok&&t.due).map(t=>t.due).sort()[0];
+    const ps=[...new Set(ut.map(t=>t.p))].length;
+    h+=`<tr>
+      <td><div class="uc"><div class="av" style="background:${col}">${ini(u)}</div>${u}</div></td>
+      <td style="text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:600">${ut.length}</td>
+      <td style="text-align:center;color:var(--grn);font-family:'IBM Plex Mono',monospace">${ok}</td>
+      <td style="text-align:center;color:${vc>0?'var(--red)':'var(--sub)'};font-family:'IBM Plex Mono',monospace">${vc||"—"}</td>
+      <td><div class="pc"><div class="pb"><div class="pf" style="width:${pct}%;background:${fc}"></div></div><span class="badge ${bc}" style="min-width:36px;text-align:center">${pct}%</span></div></td>
+      <td style="font-size:11px;color:var(--sub);font-family:'IBM Plex Mono',monospace">${fd(lc)}</td>
+      <td style="font-size:11px;color:${nd&&new Date(nd)<TOD?'var(--red)':'var(--text)'};font-family:'IBM Plex Mono',monospace">${fd(nd)}</td>
+      <td style="font-size:11px;color:var(--sub)">${ps} proyecto${ps!==1?'s':''}</td>
+    </tr>`;
+  });
+  document.getElementById("tbody-u").innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  VISTA PROYECTOS
+// ═══════════════════════════════════════════
+function renderP(){
+  const q=(document.getElementById("srch-p")||{value:""}).value.toLowerCase();
+  const srt=(document.getElementById("srt-p")||{value:"pd"}).value;
+  let data=PROJS.filter(x=>{
+    if(q&&x.n.toLowerCase().indexOf(q)<0&&x.p.toLowerCase().indexOf(q)<0)return false;
+    if(pfilt!=="all"&&x.p!==pfilt)return false;
+    return true;
+  });
+  if(srt==="pd")data.sort((a,b)=>b.pct-a.pct);
+  else if(srt==="pa")data.sort((a,b)=>a.pct-b.pct);
+  else data.sort((a,b)=>a.n.localeCompare(b.n));
+
+  // Pills
+  document.getElementById("pills-p").innerHTML=ALLP_FILTER.map(f=>`<button class="pill${pfilt===f?' on':''}" onclick="setPF('${f}',this)">${f==='all'?'Todos':f}</button>`).join("");
+
+  // Cards
+  document.getElementById("plist").innerHTML=data.map((x,i)=>{
+    const c=colPct(x.pct);
+    const bc=x.pct>=80?'bg':x.pct>=50?'ba':x.pct>0?'br':'bb';
+    const lbl=x.pct>=80?'Avanzado':x.pct>=50?'En progreso':x.pct>0?'Iniciado':'Sin iniciar';
+    return `<div class="pcard" id="pc${i}" onclick="togP(${i})">
+      <div class="ptop">
+        <span class="pname">${x.n}</span>
+        <span class="pcountry">${x.p}</span>
+        <span class="badge ${bc}">${lbl}</span>
+        <span class="ppct" style="color:${c}">${x.pct}%</span>
+        <span class="pchev">▾</span>
+      </div>
+      <div class="pbar-row">
+        <div class="pbar-bg"><div class="pbar-fill" style="width:${x.pct}%;background:${c}"></div></div>
+        <span class="pcnt">${x.d}/${x.t} subtareas</span>
+      </div>
+      <div class="pdet" id="pd${i}">
+        <div style="font-size:11px;color:var(--sub);padding:6px 0">
+          ${T.filter(t=>t.p.includes(x.n.split(" - ")[0].trim())).length>0
+            ? T.filter(t=>t.p.includes(x.n.split(" - ")[0].trim())).slice(0,5).map(t=>`<div style="padding:2px 0;display:flex;gap:8px;align-items:center"><span style="color:${t.ok?'var(--grn)':isV(t)?'var(--red)':'var(--amb)'}">●</span><span style="flex:1">${t.n}</span><span style="font-family:IBM Plex Mono;font-size:10px">${fd(t.due)}</span></div>`).join("")
+            : '<div style="color:var(--sub)">Sin tareas detalladas en este nivel</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join("")||`<div style="text-align:center;padding:40px;color:var(--sub)">Sin resultados</div>`;
+}
+function togP(i){const d=document.getElementById("pd"+i),c=document.getElementById("pc"+i);const o=d.style.display==="block";d.style.display=o?"none":"block";c&&c.classList.toggle("open",!o);}
+function setPF(f){pfilt=f;renderP();}
+
+// ═══════════════════════════════════════════
+//  VISTA TAREAS
+// ═══════════════════════════════════════════
+function initFilters(){
+  const us=[...new Set(T.map(t=>t.u))].sort();
+  const ps=[...new Set(T.map(t=>t.p))].sort();
+  const fu=document.getElementById("fu"), fp=document.getElementById("fp");
+  us.forEach(u=>{const o=document.createElement("option");o.value=u;o.textContent=u;fu.appendChild(o);});
+  ps.forEach(p=>{const o=document.createElement("option");o.value=p;o.textContent=p.substring(0,28);fp.appendChild(o);});
+}
+function renderT(){
+  const fu=document.getElementById("fu").value;
+  const fs=document.getElementById("fs").value;
+  const fp=document.getElementById("fp").value;
+  let d=T.filter(t=>{
+    if(fu&&t.u!==fu)return false;
+    if(fp&&t.p!==fp)return false;
+    const st=t.ok?"c":isV(t)?"v":"p";
+    if(fs&&st!==fs)return false;
+    return true;
+  });
+  document.getElementById("tc").textContent=`${d.length} tareas`;
+  const g={};d.forEach(t=>{if(!g[t.u])g[t.u]=[];g[t.u].push(t);});
+  let h="";
+  Object.keys(g).sort().forEach(u=>{
+    const col=gc(u), ut=g[u], ok=ut.filter(t=>t.ok).length;
+    h+=`<tr class="grp-hdr"><td colspan="7"><div class="uc"><div class="av" style="background:${col}">${ini(u)}</div><strong>${u}</strong> <span style="font-weight:400;margin-left:4px">· ${ok}/${ut.length} completadas</span></div></td></tr>`;
+    ut.forEach(t=>{
+      const st=t.ok?"c":isV(t)?"v":"p";
+      let ds="—",dc="var(--sub)",cls="";
+      if(t.ok&&t.due&&t.comp){
+        const dd=wd(t.due,t.comp);
+        if(dd!==null){if(dd<=0){ds=`+${Math.abs(dd)}d antes`;cls="dias-ok";}else{ds=`${dd}d tarde`;cls="dias-late";}}
+      } else if(!t.ok&&t.due){
+        if(isV(t)){const l=wd(t.due,"2026-06-08");ds=`${l}d vencida`;cls="dias-late";}
+        else{const r=wd("2026-06-08",t.due);ds=`${r}d rest.`;cls="dias-pend";}
+      }
+      const badge=st==="c"?`<span class="badge bg">✓ Lista</span>`:st==="v"?`<span class="badge br">⚠ Vencida</span>`:`<span class="badge ba">En curso</span>`;
+      h+=`<tr>
+        <td title="${t.n}">${t.n}</td>
+        <td style="color:var(--sub);font-size:11px">${u.split(" ")[0]}</td>
+        <td style="color:var(--sub);font-size:10px" title="${t.p}">${t.p.substring(0,20)}…</td>
+        <td style="font-size:11px;font-family:'IBM Plex Mono',monospace">${fd(t.due)}</td>
+        <td style="font-size:11px;font-family:'IBM Plex Mono',monospace">${t.ok?fd(t.comp):"—"}</td>
+        <td class="${cls}" style="font-size:11px;font-family:'IBM Plex Mono',monospace">${ds}</td>
+        <td>${badge}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById("tbody-t").innerHTML=h||`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--sub)">Sin tareas</td></tr>`;
+}
+
+// ═══════════════════════════════════════════
+//  TAB SWITCHER
+// ═══════════════════════════════════════════
+function sw(tab,el){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));
+  el.classList.add("on");
+  ["u","p","t"].forEach(v=>{
+    document.getElementById("v"+v).classList.toggle("on",v===tab);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+buildKPIs();
+renderU();
+renderP();
+initFilters();
+renderT();
+</script>
+</body>
+</html>
