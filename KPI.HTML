@@ -2,896 +2,396 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Reporte Ejecutivo — Consolidado Proyectos Zitron</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Desempeño — Asana</title>
 <style>
-:root{--bg:#0D1117;--bg2:#161B22;--bg3:#1C2128;--border:#30363D;--text:#E6EDF3;--sub:#8B949E;--grn:#3FB950;--blu:#58A6FF;--amb:#D29922;--red:#F85149;--pur:#BC8CFF;--cya:#39D5C2;--grn-dim:#1A3A1F;--blu-dim:#0D2340;--amb-dim:#3D2C05;--red-dim:#3D1519;--pur-dim:#2A1F40;--cya-dim:#0D302D;}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
-#ls{position:fixed;inset:0;background:linear-gradient(135deg,#0A1628,#0D1117 50%,#0A1F3A);display:flex;align-items:center;justify-content:center;z-index:9999}
-.lb{background:#161B22;border:1px solid #30363D;border-radius:16px;padding:44px 40px;width:360px;text-align:center}
-.ll{width:64px;height:64px;background:var(--blu);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;margin:0 auto 18px;font-family:'IBM Plex Mono',monospace}
-.lt{font-size:20px;font-weight:600;margin-bottom:4px}.ls2{font-size:13px;color:var(--sub);margin-bottom:28px}
-.li{width:100%;padding:13px 16px;background:#0D1117;border:1.5px solid #30363D;border-radius:8px;font-size:18px;text-align:center;letter-spacing:6px;color:var(--text);margin-bottom:14px;outline:none;font-family:'IBM Plex Mono',monospace}
-.li:focus{border-color:var(--blu)}.li.err{border-color:var(--red);animation:shake .3s}
-.lbtn{width:100%;padding:13px;background:var(--blu);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}.lbtn:hover{opacity:.85}
-.le{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.hl{display:flex;align-items:center;gap:14px}
-.logo{width:32px;height:32px;background:var(--blu);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;font-family:'IBM Plex Mono',monospace}
-.htit{font-size:14px;font-weight:600}.hsub{font-size:11px;color:var(--sub);margin-top:1px}
-.hbadge{font-size:11px;color:var(--grn);background:var(--grn-dim);padding:3px 10px;border-radius:12px;border:1px solid #1F4F27}
-.main{max-width:1200px;margin:0 auto;padding:24px 18px}
-.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
-.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:center}
-.kl{font-size:10px;color:var(--sub);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
-.kv{font-size:24px;font-weight:600;font-family:'IBM Plex Mono',monospace}
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px;gap:2px}
-.tab{padding:8px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--sub);transition:color .15s;white-space:nowrap}
-.tab.on{color:var(--text);border-bottom-color:var(--blu);font-weight:500}
-.view{display:none}.view.on{display:block}
-.fr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
-.fr label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-.fr select,.fr input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;outline:none}
-.fr input{width:180px}.fc{font-size:11px;color:var(--sub);margin-left:4px;font-family:'IBM Plex Mono',monospace}
-.tw{border:1px solid var(--border);border-radius:8px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--bg3);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:7px 12px;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg3)}
-.gh td{background:rgba(88,166,255,.06);font-size:11px;font-weight:500;color:var(--sub);padding:6px 12px;border-bottom:1px solid var(--border)}
-.sh td{background:rgba(188,140,255,.04);font-size:10px;color:var(--pur);padding:4px 12px 4px 26px;border-bottom:1px solid var(--border);letter-spacing:.04em;text-transform:uppercase}
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
-.bg{background:var(--grn-dim);color:var(--grn);border:1px solid #1F4F27}
-.ba{background:var(--amb-dim);color:var(--amb);border:1px solid #5C4010}
-.br{background:var(--red-dim);color:var(--red);border:1px solid #5C1A1A}
-.bb{background:var(--blu-dim);color:var(--blu);border:1px solid #0D3A66}
-.bp{background:var(--pur-dim);color:var(--pur);border:1px solid #3A2A60}
-.bc{background:var(--cya-dim);color:var(--cya);border:1px solid #0D3530}
-.pb{height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex:1;min-width:40px}
-.pf{height:100%;border-radius:3px}
-.pc{display:flex;align-items:center;gap:7px}
-.av{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
-.uc{display:flex;align-items:center;gap:7px}
-.dok{color:var(--grn);font-weight:600}.dlate{color:var(--red);font-weight:600}.dpend{color:var(--amb);font-weight:600}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.sg3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
-.sc h3{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
-.pcard:hover{border-color:#484F58}.pcard.open{border-color:var(--blu)}
-.ptop{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.pname{flex:1;font-size:13px;font-weight:500}
-.pcntry{font-size:10px;color:var(--sub);padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border)}
-.ppct{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;min-width:40px;text-align:right}
-.pchev{font-size:11px;color:var(--sub);transition:transform .2s}.pcard.open .pchev{transform:rotate(180deg)}
-.pbg{height:6px;background:var(--border);border-radius:3px;flex:1;overflow:hidden}
-.pfill{height:100%;border-radius:3px}
-.pcnt{font-size:11px;color:var(--sub);white-space:nowrap;min-width:90px;text-align:right;font-family:'IBM Plex Mono',monospace}
-.pdet{display:none;border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
-.phrow{display:flex;align-items:center;gap:8px;padding:3px 0}
-.phname{font-size:11px;color:var(--sub);min-width:155px}
-.phbg{height:4px;background:var(--border);border-radius:2px;flex:1;overflow:hidden}
-.phfill{height:100%;border-radius:2px}
-.phpct{font-size:11px;font-weight:600;min-width:32px;text-align:right;font-family:'IBM Plex Mono',monospace}
-.phct{font-size:10px;color:var(--sub);min-width:38px;text-align:right;font-family:'IBM Plex Mono',monospace}
-.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.pill{padding:4px 13px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer;color:var(--sub);transition:all .15s}
-.pill.on{background:var(--blu-dim);color:var(--blu);border-color:#0D3A66}
-/* Equipos tab */
-.eq-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}
-.eq-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
-.eq-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
-.eq-badge{display:inline-block;font-size:10px;padding:2px 9px;border-radius:10px;margin-bottom:14px;font-weight:500}
-.eq-pct{font-size:36px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
-.eq-sub{font-size:11px;color:var(--sub);margin-top:4px;margin-bottom:12px}
-.eq-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:14px}
-.eq-fill{height:100%;border-radius:4px}
-.eq-members{display:flex;flex-direction:column;gap:6px}
-.eq-member{display:flex;align-items:center;gap:8px}
-.eq-mname{font-size:11px;flex:1}
-.eq-mpb{height:4px;background:var(--border);border-radius:2px;flex:1;overflow:hidden}
-.eq-mpf{height:100%;border-radius:2px}
-.eq-mpct{font-size:10px;font-family:'IBM Plex Mono',monospace;min-width:28px;text-align:right}
-.footer{text-align:center;font-size:11px;color:var(--sub);padding:24px 0 16px;border-top:1px solid var(--border);margin-top:24px;font-family:'IBM Plex Mono',monospace}
-@media(max-width:768px){.krow{grid-template-columns:repeat(2,1fr)}.sg{grid-template-columns:1fr 1fr}.eq-grid{grid-template-columns:1fr}}
+/* ── Login gate ── */
+#gate {
+  position: fixed; inset: 0; z-index: 999;
+  background: #eeede9;
+  display: flex; align-items: center; justify-content: center;
+}
+@media (prefers-color-scheme: dark) { #gate { background: #1c1c1a; } }
+.login-card {
+  background: #fff; border: 0.5px solid rgba(0,0,0,0.12);
+  border-radius: 14px; padding: 40px 36px 32px;
+  width: 100%; max-width: 340px; text-align: center;
+}
+@media (prefers-color-scheme: dark) {
+  .login-card { background: #252523; border-color: rgba(255,255,255,0.1); }
+}
+.login-logo { font-size: 28px; margin-bottom: 6px; }
+.login-title { font-size: 17px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+.login-sub   { font-size: 12px; color: #9a9a94; margin-bottom: 24px; }
+@media (prefers-color-scheme: dark) {
+  .login-title { color: #f0efeb; }
+}
+.login-input {
+  width: 100%; padding: 10px 14px; font-size: 14px;
+  border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px;
+  background: #f5f5f3; color: #1a1a18;
+  outline: none; margin-bottom: 12px;
+  font-family: inherit; letter-spacing: .05em;
+}
+.login-input:focus { border-color: rgba(0,0,0,0.4); background: #fff; }
+@media (prefers-color-scheme: dark) {
+  .login-input { background: #2e2e2b; border-color: rgba(255,255,255,0.15); color: #f0efeb; }
+  .login-input:focus { background: #363633; border-color: rgba(255,255,255,0.3); }
+}
+.login-btn {
+  width: 100%; padding: 10px; font-size: 14px; font-weight: 600;
+  background: #1a1a18; color: #fff; border: none;
+  border-radius: 8px; cursor: pointer; font-family: inherit;
+  transition: opacity .15s;
+}
+.login-btn:hover { opacity: .85; }
+@media (prefers-color-scheme: dark) {
+  .login-btn { background: #f0efeb; color: #1a1a18; }
+}
+.login-err {
+  font-size: 12px; color: #A32D2D; margin-top: 10px;
+  min-height: 16px; display: none;
+}
+.login-err.show { display: block; }
+</style>
+<style>
+:root {
+  --bg: #ffffff;
+  --bg2: #f5f5f3;
+  --bg3: #eeede9;
+  --text: #1a1a18;
+  --text2: #6b6b67;
+  --text3: #a0a09c;
+  --border: rgba(0,0,0,0.1);
+  --border2: rgba(0,0,0,0.18);
+  --green: #3B6D11; --green-bg: #EAF3DE; --green-mid: #639922;
+  --yellow: #BA7517; --yellow-bg: #FAEEDA; --yellow-mid: #EF9F27;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-mid: #E24B4A;
+  --gray-mid: #B4B2A9;
+  --radius: 10px; --radius-sm: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+    --text: #f0efeb; --text2: #9a9a94; --text3: #5e5e5a;
+    --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.16);
+    --green-bg: #1a2e0a; --yellow-bg: #2e2008; --red-bg: #2e0e0e;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 48px; }
+
+/* Header */
+.header { margin-bottom: 28px; }
+.header h1 { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+.header p  { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.updated   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* KPI grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+.kpi { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.kpi-label { font-size: 11px; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+.kpi-val   { font-size: 26px; font-weight: 600; letter-spacing: -.5px; }
+.kpi-sub   { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* Tabs */
+.tab-bar { display: flex; border-bottom: 0.5px solid var(--border2); margin-bottom: 20px; gap: 0; }
+.main-tab { font-size: 13px; font-weight: 500; padding: 9px 22px; cursor: pointer; border: none; border-bottom: 2px solid transparent; color: var(--text2); background: none; font-family: inherit; transition: color .15s; }
+.main-tab:hover { color: var(--text); }
+.main-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.panel { display: none; } .panel.active { display: block; }
+
+/* Team cards */
+.teams-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px,1fr)); gap: 10px; }
+.team-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.team-name { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.team-icon { font-size: 15px; }
+.team-perf { font-size: 28px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 4px; }
+.bar-wrap { height: 5px; background: var(--border2); border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.team-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; vertical-align: middle; margin-right: 2px; }
+.dot-g{background:var(--green-mid)}.dot-y{background:var(--yellow-mid)}.dot-r{background:var(--red-mid)}
+
+/* Filter pills */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.filter-label { font-size: 11px; color: var(--text3); }
+.fpill { font-size: 12px; padding: 4px 12px; cursor: pointer; border: 0.5px solid var(--border2); border-radius: 20px; color: var(--text2); background: none; font-family: inherit; transition: all .15s; }
+.fpill:hover { border-color: var(--text2); color: var(--text); }
+.fpill.active { background: var(--text); color: var(--bg); border-color: transparent; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { font-size: 11px; font-weight: 500; color: var(--text2); text-align: left; padding: 8px 10px; border-bottom: 0.5px solid var(--border2); cursor: pointer; white-space: nowrap; user-select: none; background: var(--bg); position: sticky; top: 0; z-index: 2; }
+th:hover { color: var(--text); }
+th.sort-asc::after { content: ' ▲'; font-size: 9px; }
+th.sort-desc::after { content: ' ▼'; font-size: 9px; }
+td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+tr.person-row:hover td { background: var(--bg2); cursor: pointer; }
+.chevron { display: inline-block; font-size: 9px; color: var(--text3); transition: transform .18s; margin-right: 4px; }
+.chevron.open { transform: rotate(90deg); }
+
+/* Sub-table */
+.sub-wrap { background: var(--bg2); border-bottom: 0.5px solid var(--border); }
+.sub-wrap table { font-size: 12px; }
+.sub-wrap th { font-size: 10px; background: var(--bg2); padding: 5px 10px 5px 32px; }
+.sub-wrap th:first-child { padding-left: 32px; }
+.sub-wrap td { padding: 5px 10px; border-bottom: 0.5px solid var(--border); color: var(--text2); }
+.sub-wrap td:first-child { padding-left: 32px; }
+.sub-wrap tr:last-child td { border-bottom: none; }
+
+/* Badges */
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
+.b-prod { background: #EEEDFE; color: #3C3489; }
+.b-ing  { background: #E6F1FB; color: #0C447C; }
+.b-proy { background: #E1F5EE; color: #085041; }
+.b-comp { background: #FAEEDA; color: #633806; }
+.b-bod  { background: #F1EFE8; color: #444441; }
+.b-log  { background: #FBEAF0; color: #72243E; }
+.b-serv { background: #FAECE7; color: #712B13; }
+@media (prefers-color-scheme: dark) {
+  .b-prod{background:#26215C;color:#AFA9EC}.b-ing{background:#042C53;color:#85B7EB}
+  .b-proy{background:#04342C;color:#5DCAA5}.b-comp{background:#412402;color:#FAC775}
+  .b-bod{background:#2C2C2A;color:#B4B2A9}.b-log{background:#4B1528;color:#ED93B1}
+  .b-serv{background:#4A1B0C;color:#F0997B}
+}
+
+/* Perf pill */
+.pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+.pill-hi { background: var(--green-bg); color: var(--green); }
+.pill-md { background: var(--yellow-bg); color: var(--yellow); }
+.pill-lo { background: var(--red-bg); color: var(--red); }
+
+/* Mini bar */
+.mini-bar { display: flex; height: 7px; border-radius: 4px; overflow: hidden; gap: 1px; min-width: 90px; }
+.seg-g{background:var(--green-mid)}.seg-y{background:var(--yellow-mid)}.seg-r{background:var(--red-mid)}.seg-x{background:var(--gray-mid)}
+
+/* Late chip */
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 8px; }
+.chip-ok   { background: var(--green-bg);  color: var(--green);  }
+.chip-warn { background: var(--yellow-bg); color: var(--yellow); }
+.chip-bad  { background: var(--red-bg);    color: var(--red);    }
+
+/* Legend */
+.legend { margin-top: 20px; padding: 10px 14px; background: var(--bg2); border-radius: var(--radius-sm); border: 0.5px solid var(--border); font-size: 11px; color: var(--text2); display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.legend-note { margin-left: auto; color: var(--text3); font-style: italic; }
+
+/* Tooltip */
+.tip-wrap { position: relative; display: inline-block; border-bottom: 1px dashed var(--text3); cursor: help; }
+.tip-wrap .tipbox { display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 11px; padding: 5px 9px; border-radius: 6px; white-space: nowrap; z-index: 10; font-weight: 400; }
+.tip-wrap:hover .tipbox { display: block; }
+
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .teams-grid { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
-<div id="ls">
-  <div class="lb">
-    <div class="ll">Z</div>
-    <div class="lt">Portafolio Proyectos</div>
-    <div class="ls2">Zitron &middot; Acceso privado</div>
-    <input id="pwi" class="li" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" maxlength="40"
-      onkeydown="if(event.key==='Enter')chkPw()"
-      oninput="this.classList.remove('err');document.getElementById('le').textContent=''">
-    <button class="lbtn" onclick="chkPw()">Ingresar</button>
-    <div class="le" id="le"></div>
-    <div style="font-size:10px;color:#484F58;margin-top:16px">Solicita la contraseña al administrador</div>
+<!-- Login gate -->
+<div id="gate">
+  <div class="login-card">
+    <div class="login-logo">📊</div>
+    <div class="login-title">Dashboard Desempeño</div>
+    <div class="login-sub">Ingresa la clave para continuar</div>
+    <input id="pwInput" class="login-input" type="password" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter')checkPw()" autocomplete="current-password" />
+    <button class="login-btn" onclick="checkPw()">Ingresar</button>
+    <div class="login-err" id="pwErr">Clave incorrecta. Intenta de nuevo.</div>
   </div>
 </div>
-<header class="hdr">
-  <div class="hl">
-    <div class="logo">Z</div>
-    <div><div class="htit">Consolidado Proyectos &mdash; Reporte Ejecutivo</div>
-    <div class="hsub">Portfolio Asana &middot; 41 proyectos &middot; Tareas nivel 1 y 2 &middot; Por usuario y equipo</div></div>
-  </div>
-  <div style="text-align:right;font-size:11px;color:var(--sub)">
-    <span class="hbadge">ASANA REAL</span>
-    <div style="margin-top:4px">08/06/2026</div>
-  </div>
-</header>
-<main class="main">
-  <div class="krow" id="kpis"></div>
-  <div class="tabs">
-    <div class="tab on" onclick="sw('e',this)">&#128101; Por Equipo</div>
-    <div class="tab" onclick="sw('u',this)">&#128100; Por Usuario</div>
-    <div class="tab" onclick="sw('p',this)">&#128193; Por Proyecto</div>
-    <div class="tab" onclick="sw('t',this)">&#128203; Detalle Tareas</div>
+
+<div class="wrap">
+
+  <div class="header">
+    <h1>Dashboard Desempeño de Equipos</h1>
+    <p>Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (sin cabeceras de sección)</p>
+    <div class="updated">Días calculados en días hábiles Chile · Actualizado jun 2026</div>
   </div>
 
-  <!-- EQUIPOS -->
-  <div class="view on" id="ve">
-    <div class="eq-grid" id="eq-grid"></div>
-    <div class="sg3" id="sg-e"></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Tareas nivel 2</div><div class="kpi-val">2,185</div><div class="kpi-sub">43 proyectos · 7 equipos</div></div>
+    <div class="kpi"><div class="kpi-label">Completadas</div><div class="kpi-val">1,009</div><div class="kpi-sub">46.2% del total</div></div>
+    <div class="kpi"><div class="kpi-label">En plazo</div><div class="kpi-val" style="color:var(--green)">25.2%</div><div class="kpi-sub">204 verde · 50 hasta 7d</div></div>
+    <div class="kpi"><div class="kpi-label">Con atraso</div><div class="kpi-val" style="color:var(--red)">74.8%</div><div class="kpi-sub">755 cerradas con &gt;7d tarde</div></div>
   </div>
 
-  <!-- USUARIOS -->
-  <div class="view" id="vu">
-    <div class="sg" id="sg"></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th style="width:15%">Usuario</th>
-        <th style="width:10%">Equipo</th>
-        <th style="width:6%">Total</th>
-        <th style="width:6%">&#10003; Listas</th>
-        <th style="width:6%">&#9888; Venc.</th>
-        <th style="width:18%">% Avance</th>
-        <th style="width:10%">Último comp.</th>
-        <th style="width:10%">Próx. vence</th>
-        <th style="width:8%">Proyectos</th>
-      </tr></thead><tbody id="tbu"></tbody>
-    </table></div>
+  <div class="tab-bar">
+    <button class="main-tab active" onclick="switchTab('areas',this)">Resumen por área</button>
+    <button class="main-tab" onclick="switchTab('personas',this)">Detalle por persona</button>
   </div>
 
-  <!-- PROYECTOS -->
-  <div class="view" id="vp">
-    <div class="fr">
-      <label>Buscar:</label>
-      <input type="text" id="sp" placeholder="Proyecto o país..." oninput="renderP()">
-      <select id="srtp" onchange="renderP()">
-        <option value="pd">Mayor avance</option>
-        <option value="pa">Menor avance</option>
-        <option value="na">Nombre A-Z</option>
-      </select>
+  <!-- PANEL ÁREAS -->
+  <div id="panel-areas" class="panel active">
+    <div id="teamsGrid" class="teams-grid"></div>
+  </div>
+
+  <!-- PANEL PERSONAS -->
+  <div id="panel-personas" class="panel">
+    <div class="filters">
+      <span class="filter-label">Área:</span>
+      <button class="fpill active" onclick="filterTeam('all',this)">Todos</button>
+      <button class="fpill" onclick="filterTeam('Producción',this)">Producción</button>
+      <button class="fpill" onclick="filterTeam('Ingeniería',this)">Ingeniería</button>
+      <button class="fpill" onclick="filterTeam('Equipo Proyecto',this)">Proyecto</button>
+      <button class="fpill" onclick="filterTeam('Compras',this)">Compras</button>
+      <button class="fpill" onclick="filterTeam('Bodega',this)">Bodega</button>
+      <button class="fpill" onclick="filterTeam('Servicios',this)">Servicios</button>
+      <button class="fpill" onclick="filterTeam('Logística',this)">Logística</button>
     </div>
-    <div class="pills" id="pillsp"></div>
-    <div id="plist"></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">▶ Clic en una persona para ver detalle por proyecto</div>
+    <div class="tbl-wrap">
+      <table id="peopleTable">
+        <thead><tr>
+          <th style="width:18px"></th>
+          <th onclick="sortBy('name')">Persona</th>
+          <th onclick="sortBy('team')">Área</th>
+          <th onclick="sortBy('total')" style="text-align:right">Tareas</th>
+          <th onclick="sortBy('completed')" style="text-align:right">Compl.</th>
+          <th onclick="sortBy('perf')" style="text-align:right">% Compl.</th>
+          <th>Distribución cierre</th>
+          <th onclick="sortBy('avg_days')" style="text-align:right">
+            <span class="tip-wrap">Días háb. prom.<span class="tipbox">Días hábiles promedio desde fecha de inicio hasta cierre de tarea</span></span>
+          </th>
+          <th onclick="sortBy('avg_late')" style="text-align:right">
+            <span class="tip-wrap">Atraso háb. prom.<span class="tipbox">Días hábiles promedio entre fecha límite y cierre real. Negativo = anticipado.</span></span>
+          </th>
+        </tr></thead>
+        <tbody id="peopleBody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- TAREAS -->
-  <div class="view" id="vt">
-    <div class="fr">
-      <label>Usuario:</label><select id="fu" onchange="onUC()"><option value="">Todos</option></select>
-      <label>Equipo:</label><select id="feq" onchange="onEqC()"><option value="">Todos</option></select>
-      <label>Sección:</label><select id="fsec" onchange="renderT()"><option value="">Todas</option></select>
-      <label>Estado:</label>
-      <select id="fst" onchange="renderT()">
-        <option value="">Todos</option>
-        <option value="c">&#10003; Completada</option>
-        <option value="p">Pendiente</option>
-        <option value="v">&#9888; Vencida</option>
-      </select>
-      <label>Proyecto:</label>
-      <select id="fp" onchange="renderT()" style="max-width:200px"><option value="">Todos</option></select>
-      <span class="fc" id="tc"></span>
-    </div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th style="width:20%">Tarea</th>
-        <th style="width:9%">Sección</th>
-        <th style="width:9%">Usuario</th>
-        <th style="width:8%">Equipo</th>
-        <th style="width:13%">Proyecto</th>
-        <th style="width:7%">Vence</th>
-        <th style="width:7%">Completó</th>
-        <th style="width:9%">Días háb.</th>
-        <th style="width:8%">Estado</th>
-      </tr></thead><tbody id="tbt"></tbody>
-    </table></div>
+  <div class="legend">
+    <span><span class="dot dot-g"></span> Verde: cerrada en fecha o antes</span>
+    <span><span class="dot dot-y"></span> Amarillo: hasta 7 días después del plazo</span>
+    <span><span class="dot dot-r"></span> Rojo: más de 7 días de atraso</span>
+    <span class="legend-note">Solo tareas nivel 2 · días hábiles Chile (feriados incluidos)</span>
   </div>
-  <div class="footer">CONSOLIDADO PROYECTOS &middot; ZITRON &middot; 41 PROYECTOS &middot; ASANA REAL &middot; NIVEL 1+2 &middot; 08/06/2026</div>
-</main>
+
+</div>
+
 <script>
-// LOGIN
-function chkPw(){
-  var v=document.getElementById('pwi').value;
-  if(v==='zitron2026!'){document.getElementById('ls').style.display='none';sessionStorage.setItem('zpw','ok');}
-  else{var i=document.getElementById('pwi');i.classList.add('err');i.value='';i.focus();document.getElementById('le').textContent='Contraseña incorrecta';}
-}
-if(sessionStorage.getItem('zpw')==='ok'){document.addEventListener('DOMContentLoaded',function(){document.getElementById('ls').style.display='none';});}
-window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok')document.getElementById('pwi').focus();});
-
-// EQUIPOS
-const EQUIPOS={
-  'benjamin.bustos@zitron.com':'Producción',
-  'Benjamin Bustos':'Producción',
-  'Hugo Isla':'Producción',
-  'hugo isla martinez':'Producción',
-  'Nicolás Mol':'Producción',
-  'Nicolás López':'Producción',
-  'Nicolas Lopez':'Producción',
-  'Eliana':'Compras',
-  'Yerlia Ayleen Castillo Diaz':'Compras',
-  'Yerlia Castillo':'Compras',
-  'Rosemary Singh':'Compras',
-  'Sergio de la Fuente':'Proyectos',
-  'sergio saavedra fernandez':'Proyectos',
-  'Sergio Saavedra':'Proyectos',
-  'Francisca Alejandra Ramos Aravales':'Proyectos',
-  'Francisca Ramos':'Proyectos',
-  'Carlos Pérez':'Proyectos',
-  'Nicolás':'Proyectos',
-  'DAVID BLAZQUEZ':'Proyectos',
-  'Hernan Roberto Gutierrez Barrientos':'Ingeniería',
-  'Hernan Gutierrez':'Ingeniería',
-  'Francisca González Cornejo':'Ingeniería',
-  'Francisca Gonzalez':'Ingeniería',
-  'Gonzalo Javier Dávila Bade':'Ingeniería',
-  'Gabriel Venegas':'Ingeniería',
-  'Karin Pinto':'Logística',
-  'IGNACIO GARCIA MARTINEZ':'Servicios',
-  'Ignacio Garcia':'Servicios',
-  'Victor Muñoz':'Bodega',
-  'Victor Munoz':'Bodega',
-  'Nicolas cierre':'Proyectos',
-  'Nicolas Mol':'Producción',
-  'Nicolas Lopez':'Producción'
-};
-
-const EQUIPO_COLORS={
-  'Producción':'#58A6FF',
-  'Compras':'#3FB950',
-  'Proyectos':'#BC8CFF',
-  'Ingeniería':'#E3B341',
-  'Logística':'#39D5C2',
-  'Servicios':'#F78166',
-  'Bodega':'#D2A8FF',
-};
-
-function getEquipo(u){
-  if(!u)return 'Sin asignar';
-  for(var k in EQUIPOS){
-    if(u===k||u.toLowerCase()===k.toLowerCase()||
-       (u.split(' ')[0]&&k.indexOf(u.split(' ')[0])>=0)||
-       (k.split(' ')[0]&&u.indexOf(k.split(' ')[0])>=0))
-      return EQUIPOS[k];
-  }
-  return 'Otro';
-}
-
-// UTILS
-const UC={
-  'benjamin.bustos@zitron.com':'#58A6FF',
-  'Benjamin Bustos':'#58A6FF',
-  'Eliana':'#3FB950',
-  'Hernan Roberto Gutierrez Barrientos':'#F78166',
-  'Hernan Gutierrez':'#F78166',
-  'Hugo Isla':'#BC8CFF',
-  'hugo isla martinez':'#BC8CFF',
-  'Francisca González Cornejo':'#79C0FF',
-  'Francisca Gonzalez':'#79C0FF',
-  'Francisca Alejandra Ramos Aravales':'#56D364',
-  'Francisca Ramos':'#56D364',
-  'Nicolás Mol':'#E3B341',
-  'Nicolas Mol':'#E3B341',
-  'Nicolás López':'#FF7B72',
-  'Nicolas Lopez':'#FF7B72',
-  'Rosemary Singh':'#2EA043',
-  'Victor Muñoz':'#388BFD',
-  'Victor Munoz':'#388BFD',
-  'Yerlia Ayleen Castillo Diaz':'#7EE787',
-  'Yerlia Castillo':'#7EE787',
-  'Karin Pinto':'#D2A8FF',
-  'sergio saavedra fernandez':'#8B949E',
-  'Sergio Saavedra':'#8B949E',
-  'IGNACIO GARCIA MARTINEZ':'#FFA657',
-  'Ignacio Garcia':'#FFA657',
-  'Nicolás':'#6E7681',
-  'Nicolas cierre':'#6E7681',
-  'DAVID BLAZQUEZ':'#39D5C2',
-  'Carlos Pérez':'#A5D6FF',
-  'Gonzalo Javier Dávila Bade':'#FFD580',
-  'Gabriel Venegas':'#FF9E64',
-};
-const gc=u=>{if(!u)return'#8B949E';if(UC[u])return UC[u];for(var k in UC){if(u.indexOf(k.split(' ')[0])>=0||k.indexOf(u.split(' ')[0])>=0)return UC[k];}return'#8B949E';};
-const ini=n=>{if(!n)return'?';return n.split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase();};
-const fd=s=>{if(!s)return'--';var p=s.split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2)};
-const TODAY=new Date('2026-06-08');
-const cp=p=>p>=80?'#3FB950':p>=50?'#E3B341':'#F85149';
-const bcc=p=>p>=80?'bg':p>=50?'ba':p>0?'br':'bb';
-const bll=p=>p>=80?'Avanzado':p>=50?'En progreso':p>0?'Iniciado':'Sin iniciar';
-function wd(a,b){
-  if(!a||!b)return null;
-  var d1=new Date(a.split('T')[0]),d2=new Date(b.split('T')[0]);
-  if(d1>d2){var t=d1;d1=d2;d2=t;}
-  var c=0,cur=new Date(d1);
-  while(cur<=d2){if(cur.getDay()!==0&&cur.getDay()!==6)c++;cur.setDate(cur.getDate()+1);}
-  return c-1;
-}
-const isV=t=>!t.ok&&t.due&&new Date(t.due.split('T')[0])<TODAY;
-
-// NOMBRES CANONICOS
-function canonUser(u){
-  if(!u)return null;
-  var map={
-    'benjamin.bustos@zitron.com':'Benjamin Bustos',
-    'hugo isla martinez':'Hugo Isla',
-    'Hernan Roberto Gutierrez Barrientos':'Hernan Gutierrez',
-    'Francisca Alejandra Ramos Aravales':'Francisca Ramos',
-    'Francisca González Cornejo':'Francisca Gonzalez',
-    'Yerlia Ayleen Castillo Diaz':'Yerlia Castillo',
-    'Victor Muñoz':'Victor Munoz',
-    'IGNACIO GARCIA MARTINEZ':'Ignacio Garcia',
-    'sergio saavedra fernandez':'Sergio Saavedra',
-    'Gonzalo Javier Dávila Bade':'Gonzalo Davila',
-    'Carlos Pérez':'Carlos Perez',
-    'DAVID BLAZQUEZ':'David Blazquez',
+// Password gate
+(function(){
+  const h = s => s.split('').reduce((a,c)=>Math.imul(31,a)+c.charCodeAt(0)|0,0).toString(16);
+  const TARGET = h('zitron2026!');
+  window.checkPw = function(){
+    const val = document.getElementById('pwInput').value;
+    const err = document.getElementById('pwErr');
+    if(h(val) === TARGET){
+      document.getElementById('gate').style.display='none';
+      document.getElementById('pwInput').value='';
+    } else {
+      err.classList.add('show');
+      document.getElementById('pwInput').value='';
+      document.getElementById('pwInput').focus();
+      setTimeout(()=>err.classList.remove('show'), 3000);
+    }
   };
-  return map[u]||u;
-}
-
-// PROYECTOS (% real Asana nivel 1)
-var PROJS=[
-  {n:'50001504 - ZITRON PERU CODESTABLE (A)',p:'Peru',ok:10,tot:11,ph:[['Kick Off',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,1],['Ing. Servicios',1,1],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001504 - ZITRON PERU CODESTABLE (B)',p:'Peru',ok:10,tot:11,ph:[['Kick Off',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,1],['Ing. Servicios',1,1],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001524 - ATACAMA KOZAN',p:'Chile',ok:11,tot:13,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega entrada',1,1],['Calderería',1,1],['Bodega salida',1,1],['Montaje',1,1],['Logística',1,1],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001477 - TRITON MINERA',p:'Nicaragua',ok:11,tot:13,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega entrada',1,1],['Calderería',1,1],['Bodega salida',1,1],['Montaje',1,1],['Logística',1,1],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001451 - ZITRON COLOMBIA',p:'Colombia',ok:10,tot:12,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,1],['Ing. Servicios',1,1],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001544 - DMC MINING SERVICES',p:'Chile',ok:10,tot:13,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['FAT',1,0]]},
-  {n:'50001415 - ZITRON PERU E05',p:'Peru',ok:9,tot:12,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Montaje',1,1],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['FAT',1,0]]},
-  {n:'50001515 - CLIENTE POR DEFINIR',p:'Chile',ok:10,tot:13,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,1],['Cierre',1,0],['Puesta en Marcha',1,0],['Tablero',1,0]]},
-  {n:'50001514 - CLIENTE POR DEFINIR',p:'Chile',ok:9,tot:13,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Tablero',1,0]]},
-  {n:'50001446 - MINERA FRESNILLO',p:'Mexico',ok:8,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,1],['Montaje',1,1],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001473 - MAPIMI',p:'Mexico',ok:6,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001485 - CALABRESSE METRO',p:'Rep. Dominicana',ok:6,tot:14,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,1],['Fab. Externa',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Pozos',1,0]]},
-  {n:'50001500 - EQ MIN LA HACIENDA',p:'Mexico',ok:5,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001497 - XEMORTIZ IMMSA',p:'Mexico',ok:5,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,0],['Fab. Externa',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0]]},
-  {n:'50001508 - XEMORTIZ STOCK',p:'Mexico',ok:5,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,1],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001506 - ZCO EPM FRIO AIRE',p:'Colombia',ok:4,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Fab. Externa',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0]]},
-  {n:'50001501 - EQ MIN LA HACIENDA B',p:'Mexico',ok:4,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,1],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001466 - ZITRON PERU PODEROSA',p:'Peru',ok:3,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001309 - ZITRON COLOMBIA BUGA',p:'Colombia',ok:3,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001490 - ZITRON PERU PV04-PV05',p:'Peru',ok:3,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tableros',1,0]]},
-  {n:'50001518 - EQ. CHAPARRAL',p:'Mexico',ok:3,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001498 - CALABRESSE POZOS',p:'Rep. Dominicana',ok:3,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Fab. Externa',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0]]},
-  {n:'50001499 - EQ. CHAPARRAL B',p:'Mexico',ok:3,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,1],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001541 - XEMORTIZ MINERA FRISCO',p:'Mexico',ok:2,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001532 - XEMORTIZ AMERICAS GOLD',p:'Mexico',ok:2,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,1],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001534 - ZITRON PERU METRO E04',p:'Peru',ok:2,tot:14,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['CC Fab. Externa',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0]]},
-  {n:'50001525 - ZITRON PERU METRO E07',p:'Peru',ok:2,tot:14,ph:[['Kick Off',1,1],['Ing. Servicios',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001520 - XEMORTIZ DDG',p:'Mexico',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001533 - GESVIAL',p:'Chile',ok:1,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001547 - XEMORTIZ AMERICAS GOLD B',p:'Mexico',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001546 - XEMORTIZ',p:'Mexico',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001545 - XEMORTIZ MINERA FRISCO B',p:'Mexico',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001543 - ZITRON COLOMBIA EGM',p:'Colombia',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001555 - ZITRON COLOMBIA ARIS MINING',p:'Colombia',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001553 - ARIS MINING OT4324-4325',p:'Colombia',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001553 - ARIS MINING OT4327',p:'Colombia',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001557 - ATACAMA KOZAN OT4340',p:'Chile',ok:1,tot:11,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001558 - GESVIAL B',p:'Chile',ok:1,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001554 - MAPIMI B',p:'Mexico',ok:1,tot:13,ph:[['Kick Off',1,1],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-  {n:'50001553 - ARIS MINING OT4326',p:'Colombia',ok:0,tot:11,ph:[['Kick Off',1,0],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0]]},
-  {n:'50001559 - FERROVIAL',p:'Chile',ok:0,tot:13,ph:[['Kick Off',1,0],['Ing. JP',1,0],['Propuesta compras',1,0],['Compras',1,0],['Ingeniería y Diseño',1,0],['Bodega',1,0],['Calderería',1,0],['Montaje',1,0],['Logística',1,0],['Cierre',1,0],['Puesta en Marcha',1,0],['Servicios',1,0],['Tablero',1,0]]},
-];
-PROJS.forEach(function(p){p.pct=p.tot>0?Math.round(p.ok/p.tot*100):0;});
-
-// TAREAS - Nivel 1 (sección) + Nivel 2 (subtarea real con asignado)
-// Formato: {n, sec, u, p, due, comp, ok, nivel}
-var T=[
-// ===== 50001544 - DMC MINING SERVICES =====
-// Ing Servicios
-{n:'Ingenieria Electrica',sec:'Ingeniería Servicios',u:'IGNACIO GARCIA MARTINEZ',p:'50001544 - DMC MINING SERVICES',due:'2026-04-21',comp:'2026-05-25',ok:true},
-{n:'Revision Tableros',sec:'Ingeniería Servicios',u:'sergio saavedra fernandez',p:'50001544 - DMC MINING SERVICES',due:'2026-06-25',comp:null,ok:false},
-// Ing JP
-{n:'Ingenieria Basica Motor',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001544 - DMC MINING SERVICES',due:'2026-04-20',comp:'2026-05-25',ok:true},
-{n:'Ingenieria basica Rodete',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001544 - DMC MINING SERVICES',due:'2026-04-20',comp:'2026-05-25',ok:true},
-{n:'Ingenieria Detalle',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001544 - DMC MINING SERVICES',due:'2026-04-27',comp:'2026-05-25',ok:true},
-{n:'Analisis de costeo',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001544 - DMC MINING SERVICES',due:'2026-04-27',comp:null,ok:false},
-// Propuesta compras
-{n:'propuesta motor',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'propuesta alabes',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'propuesta nucleo rodete ot 4313',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'propuesta Corte Laser ot 4313',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Propuesta Corte plasma ot 4313',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Propuesta Mecanizado ot 4313',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Propuesta Fabricación externa ot 4313',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Propuesta Tableros',sec:'Propuesta compras',u:'Hugo Isla',p:'50001544 - DMC MINING SERVICES',due:'2026-05-22',comp:'2026-06-08',ok:true},
-// Compras
-{n:'Alabe ot 4313',sec:'Compras',u:'Eliana',p:'50001544 - DMC MINING SERVICES',due:'2026-04-28',comp:'2026-06-08',ok:true},
-{n:'rodete ot 4313',sec:'Compras',u:'Eliana',p:'50001544 - DMC MINING SERVICES',due:'2026-05-15',comp:'2026-06-08',ok:true},
-{n:'Motor ot 4313',sec:'Compras',u:'Eliana',p:'50001544 - DMC MINING SERVICES',due:'2026-06-01',comp:'2026-06-08',ok:true},
-{n:'Tableros ot 4314',sec:'Compras',u:'Eliana',p:'50001544 - DMC MINING SERVICES',due:'2026-06-24',comp:null,ok:false},
-{n:'Materiales corte Laser ot 4313',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-04',comp:'2026-06-08',ok:true},
-{n:'Materiales Corte Plasma ot 4313',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-04',comp:'2026-06-08',ok:true},
-{n:'Fabricación Externa ot 4313',sec:'Compras',u:'Rosemary Singh',p:'50001544 - DMC MINING SERVICES',due:'2026-07-02',comp:'2026-06-08',ok:true},
-{n:'Mecanizado ot 4313',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-04',comp:'2026-06-08',ok:true},
-// Ing y diseño
-{n:'Planos preliminar DMC',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001544 - DMC MINING SERVICES',due:'2026-05-18',comp:'2026-06-08',ok:true},
-{n:'Planos definitivos DMC',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001544 - DMC MINING SERVICES',due:'2026-05-15',comp:'2026-06-08',ok:true},
-{n:'check planos DMC',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001544 - DMC MINING SERVICES',due:'2026-05-18',comp:'2026-06-08',ok:true},
-{n:'check pruebas FAT DMC',sec:'Ingeniería y Diseño',u:'Francisca González Cornejo',p:'50001544 - DMC MINING SERVICES',due:'2026-07-07',comp:null,ok:false},
-// Bodega (materiales)
-{n:'Recepcion materiales corte laser',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-08',comp:'2026-06-08',ok:true},
-{n:'Control de calidad corte laser',sec:'Bodega',u:'Nicolás López',p:'50001544 - DMC MINING SERVICES',due:'2026-06-10',comp:'2026-06-08',ok:true},
-{n:'Recepcion Materiales corte plasma',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-08',comp:'2026-06-08',ok:true},
-{n:'Control de calidad Corte plasma',sec:'Bodega',u:'Nicolás López',p:'50001544 - DMC MINING SERVICES',due:'2026-06-10',comp:'2026-06-08',ok:true},
-{n:'Recepcion mecanizado',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-08',comp:'2026-06-08',ok:true},
-{n:'Control de calidad Mecanizado',sec:'Bodega',u:'Nicolás López',p:'50001544 - DMC MINING SERVICES',due:'2026-06-10',comp:'2026-06-08',ok:true},
-// Bodega recepción
-{n:'Recepcion Rodete DMC',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-05-18',comp:'2026-06-08',ok:true},
-{n:'Recepcion Alabe DMC',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-04-29',comp:'2026-06-08',ok:true},
-{n:'Recepcion motor DMC',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-01',comp:'2026-06-08',ok:true},
-{n:'Recepcion fabricación externa',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-07-03',comp:'2026-06-08',ok:true},
-{n:'Recepcion Tableros DMC',sec:'Bodega',u:'Victor Muñoz',p:'50001544 - DMC MINING SERVICES',due:'2026-06-24',comp:null,ok:false},
-// Calderería
-{n:'Preparación Materiales DMC',sec:'Calderería',u:'Nicolás Mol',p:'50001544 - DMC MINING SERVICES',due:'2026-06-15',comp:'2026-06-08',ok:true},
-{n:'Armado ot 4313',sec:'Calderería',u:'Nicolás Mol',p:'50001544 - DMC MINING SERVICES',due:'2026-06-22',comp:'2026-06-08',ok:true},
-{n:'Control de calidad Armado DMC',sec:'Calderería',u:'Nicolás López',p:'50001544 - DMC MINING SERVICES',due:'2026-06-23',comp:'2026-06-08',ok:true},
-// Montaje
-{n:'Revestimiento DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-06-30',comp:'2026-06-08',ok:true},
-{n:'Montaje Alabe DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-01',comp:'2026-06-08',ok:true},
-{n:'Montaje Rodete DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-02',comp:'2026-06-08',ok:true},
-{n:'Montaje motor DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-03',comp:'2026-06-08',ok:true},
-{n:'Pruebas FAT DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-06',comp:'2026-06-08',ok:true},
-{n:'RE-PINTADO DMC',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-07',comp:'2026-06-08',ok:true},
-// Logistica
-{n:'Coordinacion Entrega con Cliente',sec:'Logística',u:'Karin Pinto',p:'50001544 - DMC MINING SERVICES',due:'2026-07-09',comp:null,ok:false},
-{n:'Embalaje DMC',sec:'Logística',u:'benjamin.bustos@zitron.com',p:'50001544 - DMC MINING SERVICES',due:'2026-07-10',comp:null,ok:false},
-{n:'PACKING LIST DMC',sec:'Logística',u:'Nicolás Mol',p:'50001544 - DMC MINING SERVICES',due:'2026-07-13',comp:null,ok:false},
-{n:'Despacho DMC',sec:'Logística',u:'Nicolás Mol',p:'50001544 - DMC MINING SERVICES',due:'2026-07-13',comp:null,ok:false},
-// Cierre
-{n:'Gestion DMC',sec:'Cierre proyecto',u:'Nicolás',p:'50001544 - DMC MINING SERVICES',due:'2026-07-23',comp:null,ok:false},
-{n:'Costos DMC',sec:'Cierre proyecto',u:'Francisca Alejandra Ramos Aravales',p:'50001544 - DMC MINING SERVICES',due:'2026-07-23',comp:null,ok:false},
-// Puesta en marcha
-{n:'Instalación componentes DMC',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001544 - DMC MINING SERVICES',due:'2026-07-23',comp:null,ok:false},
-{n:'Pruebas de Instalacion DMC',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001544 - DMC MINING SERVICES',due:'2026-07-30',comp:null,ok:false},
-
-// ===== 50001415 - ZITRON PERU E05 =====
-{n:'Ingenieria electrica E05',sec:'Ingeniería Servicios',u:'IGNACIO GARCIA MARTINEZ',p:'50001415 - ZITRON PERU E05',due:'2025-11-13',comp:'2026-03-12',ok:true},
-{n:'Revision tableros pruebas E05',sec:'Ingeniería Servicios',u:'sergio saavedra fernandez',p:'50001415 - ZITRON PERU E05',due:'2026-03-20',comp:null,ok:false},
-{n:'Tablero OT 4115-4118',sec:'Compras',u:'Eliana',p:'50001415 - ZITRON PERU E05',due:'2026-03-11',comp:'2026-06-01',ok:true},
-{n:'Recepcion Tableros E05',sec:'Bodega',u:'Victor Muñoz',p:'50001415 - ZITRON PERU E05',due:'2026-03-13',comp:'2026-06-08',ok:true},
-{n:'Pruebas FAT E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-05-13',comp:'2026-06-08',ok:true},
-{n:'RE-PINTADO E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-05-15',comp:'2026-06-08',ok:true},
-{n:'Revestimiento E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-04-29',comp:'2026-04-28',ok:true},
-{n:'Montaje motor E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-05-04',comp:'2026-06-08',ok:true},
-{n:'Montaje Rodete E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-05-08',comp:'2026-06-08',ok:true},
-{n:'Montaje Sensores E05',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001415 - ZITRON PERU E05',due:'2026-05-11',comp:'2026-06-08',ok:true},
-{n:'Check pruebas FAT E05',sec:'Ingeniería Servicios',u:'Francisca González Cornejo',p:'50001415 - ZITRON PERU E05',due:'2026-05-14',comp:'2026-06-08',ok:true},
-{n:'Coordinacion Entrega E05',sec:'Logística',u:'Karin Pinto',p:'50001415 - ZITRON PERU E05',due:'2026-05-18',comp:null,ok:false},
-{n:'Check Planos E05',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001415 - ZITRON PERU E05',due:'2026-06-17',comp:'2026-06-08',ok:true},
-
-// ===== 50001504 - ZITRON PERU CODESTABLE (A) =====
-{n:'Planos definitivos CODESTABLE',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-09',comp:'2026-03-26',ok:true},
-{n:'Motor CODESTABLE',sec:'Compras',u:'Eliana',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-11',comp:'2026-06-01',ok:true},
-{n:'propuesta alabes CODESTABLE',sec:'Propuesta compras',u:'Francisca Alejandra Ramos Aravales',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-01-02',comp:'2026-03-19',ok:true},
-{n:'check pruebas fat CODESTABLE',sec:'Ingeniería Servicios',u:'Francisca González Cornejo',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-06',comp:'2026-06-08',ok:true},
-{n:'Armado CODESTABLE',sec:'Calderería',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-19',comp:'2026-05-04',ok:true},
-{n:'CC Armado CODESTABLE',sec:'Calderería',u:'Nicolás López',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-20',comp:'2026-05-05',ok:true},
-{n:'Recepcion materiales CODESTABLE',sec:'Bodega',u:'Victor Muñoz',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-05',comp:'2026-06-08',ok:true},
-{n:'CC compras CODESTABLE',sec:'Bodega',u:'Nicolás López',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-09',comp:'2026-05-05',ok:true},
-{n:'Revestimiento CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-27',comp:'2026-06-08',ok:true},
-{n:'Montaje motor CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-02',comp:'2026-06-08',ok:true},
-{n:'Montaje Alabe CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-03',comp:'2026-06-08',ok:true},
-{n:'Pruebas FAT CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-05',comp:'2026-06-08',ok:true},
-{n:'RE-PINTADO CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-09',comp:'2026-06-08',ok:true},
-{n:'Montaje Rodete CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-04',comp:'2026-06-08',ok:true},
-{n:'Montaje Sensor CODESTABLE A',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-05-19',comp:'2026-06-08',ok:true},
-{n:'Recepcion Alabe CODESTABLE',sec:'Bodega',u:'Victor Muñoz',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-01-09',comp:'2026-06-08',ok:true},
-{n:'Recepcion motor CODESTABLE',sec:'Bodega',u:'Victor Muñoz',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-02-12',comp:'2026-06-08',ok:true},
-{n:'Recepcion Rodete CODESTABLE',sec:'Bodega',u:'Victor Muñoz',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-01-27',comp:'2026-06-08',ok:true},
-{n:'Despacho CODESTABLE A',sec:'Logística',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-13',comp:'2026-06-08',ok:true},
-{n:'Coordinacion Entrega CODESTABLE A',sec:'Logística',u:'Francisca Alejandra Ramos Aravales',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-10',comp:'2026-06-08',ok:true},
-{n:'Embalaje CODESTABLE A',sec:'Logística',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-11',comp:'2026-06-08',ok:true},
-{n:'PACKING LIST CODESTABLE A',sec:'Logística',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-03-12',comp:'2026-05-08',ok:true},
-{n:'Costos cierre CODESTABLE A',sec:'Cierre proyecto',u:'Nicolás',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-06-22',comp:null,ok:false},
-{n:'Sensor CODESTABLE',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001504 - ZITRON PERU CODESTABLE (A)',due:'2026-05-11',comp:'2026-05-12',ok:true},
-
-// ===== 50001504 - ZITRON PERU CODESTABLE (B) =====
-{n:'Despacho CODESTABLE B',sec:'Logística',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-11',comp:'2026-06-08',ok:true},
-{n:'PACKING LIST CODESTABLE B',sec:'Logística',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-10',comp:'2026-06-08',ok:true},
-{n:'Coordinacion log B',sec:'Logística',u:'Francisca Alejandra Ramos Aravales',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-08',comp:'2026-06-08',ok:true},
-{n:'RE-PINTADO CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-05',comp:'2026-05-06',ok:true},
-{n:'Pruebas FAT CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-03',comp:'2026-05-06',ok:true},
-{n:'Montaje motor CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-02',comp:'2026-05-06',ok:true},
-{n:'Revestimiento CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-04-29',comp:'2026-05-06',ok:true},
-{n:'Montaje Rodete CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-05-15',comp:'2026-06-08',ok:true},
-{n:'Montaje Alabe CODESTABLE B',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-05-13',comp:'2026-06-08',ok:true},
-{n:'CC Armado CODESTABLE B',sec:'Calderería',u:'Nicolás López',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-04-09',comp:'2026-05-15',ok:true},
-{n:'Armado CODESTABLE B',sec:'Calderería',u:'Nicolás Mol',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-04-07',comp:'2026-05-07',ok:true},
-{n:'Embalaje CODESTABLE B',sec:'Logística',u:'benjamin.bustos@zitron.com',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-09',comp:'2026-06-08',ok:true},
-{n:'Costos cierre CODESTABLE B',sec:'Cierre proyecto',u:'Nicolás',p:'50001504 - ZITRON PERU CODESTABLE (B)',due:'2026-06-22',comp:null,ok:false},
-
-// ===== 50001451 - ZITRON COLOMBIA =====
-{n:'Planos Preliminar COLOMBIA',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001451 - ZITRON COLOMBIA',due:'2025-12-26',comp:'2026-04-15',ok:true},
-{n:'Check Pruebas FAT COLOMBIA',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-10',comp:null,ok:false},
-{n:'Recepcion Motor COLOMBIA',sec:'Bodega',u:'Victor Muñoz',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-04',comp:'2026-04-15',ok:true},
-{n:'Motor COLOMBIA',sec:'Compras',u:'Eliana',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-02',comp:'2026-04-14',ok:true},
-{n:'Montaje motor COLOMBIA',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-08',comp:null,ok:false},
-{n:'RE-PINTADO COLOMBIA',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-11',comp:null,ok:false},
-{n:'Pruebas FAT COLOMBIA',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-09',comp:null,ok:false},
-{n:'Coordinacion Entrega COLOMBIA',sec:'Logística',u:'Francisca Alejandra Ramos Aravales',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-01',comp:null,ok:false},
-{n:'Embalaje COLOMBIA',sec:'Logística',u:'benjamin.bustos@zitron.com',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-01',comp:null,ok:false},
-{n:'Despacho COLOMBIA',sec:'Logística',u:'Nicolás Mol',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-03',comp:null,ok:false},
-{n:'PACKING LIST COLOMBIA',sec:'Logística',u:'Nicolás Mol',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-02',comp:null,ok:false},
-{n:'Costos cierre COLOMBIA',sec:'Cierre proyecto',u:'Nicolás',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-12',comp:null,ok:false},
-{n:'Instalacion componentes COLOMBIA',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-03',comp:null,ok:false},
-{n:'Pruebas instalacion COLOMBIA',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001451 - ZITRON COLOMBIA',due:'2026-06-04',comp:null,ok:false},
-
-// ===== 50001524 - ATACAMA KOZAN =====
-{n:'Generacion OC Tableros ATACAMA',sec:'Compras',u:'Eliana',p:'50001524 - ATACAMA KOZAN',due:'2025-12-26',comp:'2026-06-01',ok:true},
-{n:'Atenuador OT 4211-4228',sec:'Compras',u:'Eliana',p:'50001524 - ATACAMA KOZAN',due:'2026-03-20',comp:'2026-06-01',ok:true},
-{n:'Generacion OC Rodete ATACAMA',sec:'Compras',u:'Eliana',p:'50001524 - ATACAMA KOZAN',due:'2025-12-24',comp:'2026-06-01',ok:true},
-{n:'Tablero OT 4206-4209',sec:'Compras',u:'Eliana',p:'50001524 - ATACAMA KOZAN',due:'2026-04-06',comp:null,ok:false},
-{n:'rodete OT 4204-4205',sec:'Compras',u:'Eliana',p:'50001524 - ATACAMA KOZAN',due:'2026-03-13',comp:null,ok:false},
-{n:'Fabricacion externa OT 4204',sec:'Compras',u:'Rosemary Singh',p:'50001524 - ATACAMA KOZAN',due:'2026-06-04',comp:null,ok:false},
-{n:'OC fabricacion externa ATACAMA',sec:'Compras',u:'Rosemary Singh',p:'50001524 - ATACAMA KOZAN',due:'2026-05-06',comp:null,ok:false},
-{n:'Recepcion Atenuador ATACAMA',sec:'Bodega',u:'Victor Muñoz',p:'50001524 - ATACAMA KOZAN',due:'2026-03-24',comp:null,ok:false},
-{n:'Instalacion componentes ATACAMA',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001524 - ATACAMA KOZAN',due:'2026-06-11',comp:null,ok:false},
-{n:'Pruebas instalacion ATACAMA',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001524 - ATACAMA KOZAN',due:'2026-06-04',comp:null,ok:false},
-{n:'Costos cierre ATACAMA',sec:'Cierre proyecto',u:'Nicolás',p:'50001524 - ATACAMA KOZAN',due:'2026-06-05',comp:null,ok:false},
-
-// ===== 50001477 - TRITON MINERA =====
-{n:'Logistica TRITON',sec:'Logística',u:'Eliana',p:'50001477 - TRITON MINERA',due:'2026-03-11',comp:'2026-06-01',ok:true},
-{n:'Ingenieria y diseno TRITON',sec:'Ingeniería y Diseño',u:'Eliana',p:'50001477 - TRITON MINERA',due:'2026-05-29',comp:'2026-05-29',ok:true},
-
-// ===== 50001532 - XEMORTIZ AMERICAS GOLD =====
-{n:'propuesta compras codigo XEMORTIZ',sec:'Propuesta compras',u:'Hugo Isla',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-04-23',comp:'2026-06-08',ok:true},
-{n:'Materiales a codigo XEMORTIZ',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-08',comp:'2026-06-08',ok:true},
-{n:'Generacion OC materiales XEMORTIZ',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-04-29',comp:'2026-06-08',ok:true},
-{n:'Recepcion materiales XEMORTIZ',sec:'Bodega',u:'Victor Muñoz',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-12',comp:'2026-06-08',ok:true},
-{n:'CC compras XEMORTIZ',sec:'Bodega',u:'Nicolás López',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-14',comp:'2026-06-08',ok:true},
-{n:'Preparacion Materiales XEMORTIZ',sec:'Calderería',u:'Nicolás Mol',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-15',comp:'2026-06-08',ok:true},
-{n:'Armado ot 4280',sec:'Calderería',u:'Nicolás Mol',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-22',comp:null,ok:false},
-{n:'CC Armado ot 4280',sec:'Calderería',u:'Nicolás López',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-05-25',comp:null,ok:false},
-{n:'Revestimiento ot 4280',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001532 - XEMORTIZ AMERICAS GOLD',due:'2026-06-01',comp:null,ok:false},
-
-// ===== 50001541 - XEMORTIZ MINERA FRISCO =====
-{n:'Plano Preliminar XEMORTIZ FRISCO',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-05-07',comp:'2026-06-02',ok:true},
-{n:'Plano Definitivos XEMORTIZ FRISCO',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-05-20',comp:null,ok:false},
-{n:'Check Planos XEMORTIZ FRISCO',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-05-22',comp:null,ok:false},
-{n:'Ingenieria Basica Motor FRISCO',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-04-22',comp:null,ok:false},
-{n:'Ingenieria Detalle FRISCO',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-04-29',comp:'2026-06-02',ok:true},
-{n:'Corte plasma FRISCO',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-04',comp:'2026-04-28',ok:true},
-{n:'Mecanizado FRISCO',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-04',comp:'2026-05-05',ok:true},
-{n:'Corte Laser FRISCO',sec:'Compras',u:'Yerlia Ayleen Castillo Diaz',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-04',comp:'2026-04-28',ok:true},
-{n:'Motor OT 4307',sec:'Compras',u:'Eliana',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-02',comp:null,ok:false},
-{n:'CC corte Laser FRISCO',sec:'Bodega',u:'Nicolás López',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-10',comp:'2026-05-15',ok:true},
-{n:'CC Corte plasma FRISCO',sec:'Bodega',u:'Nicolás López',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-10',comp:'2026-05-15',ok:true},
-{n:'CC Mecanizado FRISCO',sec:'Bodega',u:'Nicolás López',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-10',comp:'2026-05-15',ok:true},
-{n:'Recepcion motor FRISCO',sec:'Bodega',u:'Victor Muñoz',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-03',comp:null,ok:false},
-{n:'Generacion OC Fabricacion ext. FRISCO',sec:'Compras',u:'Rosemary Singh',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-05',comp:null,ok:false},
-{n:'Fabricacion externa FRISCO',sec:'Compras',u:'Rosemary Singh',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-06-04',comp:null,ok:false},
-{n:'Check pruebas FAT FRISCO',sec:'Ingeniería Servicios',u:'Francisca González Cornejo',p:'50001541 - XEMORTIZ MINERA FRISCO',due:'2026-07-21',comp:null,ok:false},
-
-// ===== 50001497 - XEMORTIZ IMMSA =====
-{n:'Motor OT 4196',sec:'Compras',u:'Eliana',p:'50001497 - XEMORTIZ IMMSA',due:'2026-05-19',comp:'2026-06-01',ok:true},
-{n:'Fabricacion motor OT 4196',sec:'Compras',u:'Eliana',p:'50001497 - XEMORTIZ IMMSA',due:'2026-05-19',comp:'2026-06-01',ok:true},
-{n:'Planos Definitivos IMMSA',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001497 - XEMORTIZ IMMSA',due:'2026-02-27',comp:'2026-03-26',ok:true},
-{n:'Recepcion Motor IMMSA',sec:'Bodega',u:'Victor Muñoz',p:'50001497 - XEMORTIZ IMMSA',due:'2026-05-21',comp:null,ok:false},
-{n:'Despacho IMMSA',sec:'Logística',u:'Nicolás Mol',p:'50001497 - XEMORTIZ IMMSA',due:'2026-05-15',comp:null,ok:false},
-{n:'PACKING LIST IMMSA',sec:'Logística',u:'Nicolás Mol',p:'50001497 - XEMORTIZ IMMSA',due:'2026-06-04',comp:null,ok:false},
-{n:'Embalaje IMMSA',sec:'Logística',u:'benjamin.bustos@zitron.com',p:'50001497 - XEMORTIZ IMMSA',due:'2026-06-03',comp:null,ok:false},
-
-// ===== 50001309 - ZITRON COLOMBIA BUGA =====
-{n:'Motor OT 3756',sec:'Compras',u:'Eliana',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-06-09',comp:'2026-06-01',ok:true},
-{n:'rodete OT 3756',sec:'Compras',u:'Eliana',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-03-16',comp:'2026-06-01',ok:true},
-{n:'Alabe OT 3756',sec:'Compras',u:'Eliana',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-05-18',comp:'2026-06-01',ok:true},
-{n:'Recepcion motor BUGA',sec:'Bodega',u:'Victor Muñoz',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-06-11',comp:null,ok:false},
-{n:'Recepcion Rodete BUGA',sec:'Bodega',u:'Victor Muñoz',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-03-18',comp:null,ok:false},
-{n:'Recepcion Alabe BUGA',sec:'Bodega',u:'Victor Muñoz',p:'50001309 - ZITRON COLOMBIA BUGA',due:'2026-05-20',comp:null,ok:false},
-
-// ===== 50001485 - CALABRESSE METRO =====
-{n:'Alabe OT 4183',sec:'Compras',u:'Eliana',p:'50001485 - CALABRESSE METRO',due:'2026-04-09',comp:'2026-06-01',ok:true},
-{n:'Motor CALABRESSE',sec:'Compras',u:'Eliana',p:'50001485 - CALABRESSE METRO',due:'2026-05-06',comp:'2026-04-09',ok:true},
-{n:'Recepcion Alabe CALABRESSE',sec:'Bodega',u:'Victor Muñoz',p:'50001485 - CALABRESSE METRO',due:'2026-04-13',comp:null,ok:false},
-{n:'Recepcion motor CALABRESSE',sec:'Bodega',u:'Victor Muñoz',p:'50001485 - CALABRESSE METRO',due:'2026-05-11',comp:'2026-04-09',ok:true},
-{n:'Check Pruebas Fat CALABRESSE',sec:'Ingeniería Servicios',u:'Francisca González Cornejo',p:'50001485 - CALABRESSE METRO',due:'2026-05-15',comp:null,ok:false},
-{n:'Costos cierre CALABRESSE',sec:'Cierre proyecto',u:'Nicolás',p:'50001485 - CALABRESSE METRO',due:'2026-06-03',comp:null,ok:false},
-{n:'Instalacion componentes CALABRESSE',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001485 - CALABRESSE METRO',due:'2026-06-05',comp:null,ok:false},
-{n:'Pruebas instalacion CALABRESSE',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001485 - CALABRESSE METRO',due:'2026-06-08',comp:null,ok:false},
-
-// ===== 50001490 - ZITRON PERU PV04-PV05 =====
-{n:'Tableros PV04',sec:'Compras',u:'Eliana',p:'50001490 - ZITRON PERU PV04-PV05',due:'2026-06-15',comp:'2026-05-12',ok:true},
-{n:'Recepcion Tableros PV04',sec:'Bodega',u:'Victor Muñoz',p:'50001490 - ZITRON PERU PV04-PV05',due:'2026-06-15',comp:'2026-05-12',ok:true},
-{n:'Pruebas instalacion PV04',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001490 - ZITRON PERU PV04-PV05',due:'2026-06-12',comp:null,ok:false},
-{n:'Instalacion componentes PV04',sec:'Puesta en Marcha',u:'IGNACIO GARCIA MARTINEZ',p:'50001490 - ZITRON PERU PV04-PV05',due:'2026-06-05',comp:null,ok:false},
-
-// ===== 50001534 - ZITRON PERU METRO E04 =====
-{n:'Propuesta Fabricacion Externa E04',sec:'Propuesta compras',u:'Hugo Isla',p:'50001534 - ZITRON PERU METRO E04',due:'2026-06-19',comp:null,ok:false},
-{n:'propuesta compras codigo E04',sec:'Propuesta compras',u:'Hugo Isla',p:'50001534 - ZITRON PERU METRO E04',due:'2026-06-19',comp:null,ok:false},
-{n:'Fabricacion estructura ext. E04',sec:'Compras',u:'Rosemary Singh',p:'50001534 - ZITRON PERU METRO E04',due:'2026-08-04',comp:null,ok:false},
-{n:'Fabricacion Externa E04',sec:'Compras',u:'Rosemary Singh',p:'50001534 - ZITRON PERU METRO E04',due:'2026-07-27',comp:null,ok:false},
-{n:'OT 4294 Armado E04',sec:'Calderería',u:'Nicolás Mol',p:'50001534 - ZITRON PERU METRO E04',due:'2026-08-11',comp:null,ok:false},
-{n:'OT 4296 Armado E04',sec:'Calderería',u:'Nicolás Mol',p:'50001534 - ZITRON PERU METRO E04',due:'2026-08-11',comp:null,ok:false},
-{n:'OT 4296 CC Armado E04',sec:'Calderería',u:'Nicolás López',p:'50001534 - ZITRON PERU METRO E04',due:'2026-08-13',comp:null,ok:false},
-{n:'OT 4294 CC Armado E04',sec:'Calderería',u:'Nicolás López',p:'50001534 - ZITRON PERU METRO E04',due:'2026-08-13',comp:null,ok:false},
-{n:'OT 4296/4294 Montaje Sensores',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001534 - ZITRON PERU METRO E04',due:'2026-09-04',comp:null,ok:false},
-{n:'OT 4296/4294 Montaje Alabe',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001534 - ZITRON PERU METRO E04',due:'2026-09-08',comp:null,ok:false},
-{n:'OT 4296/4294 Montaje Rodete',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001534 - ZITRON PERU METRO E04',due:'2026-09-10',comp:null,ok:false},
-{n:'OT 4296/4294 Montaje motor',sec:'Montaje',u:'benjamin.bustos@zitron.com',p:'50001534 - ZITRON PERU METRO E04',due:'2026-09-14',comp:null,ok:false},
-
-// ===== 50001525 - ZITRON PERU METRO E07 =====
-{n:'Atenuador ot 4289 E07',sec:'Compras',u:'Eliana',p:'50001525 - ZITRON PERU METRO E07',due:'2026-06-05',comp:null,ok:false},
-{n:'Rodete ot 4287-4288 E07',sec:'Compras',u:'Eliana',p:'50001525 - ZITRON PERU METRO E07',due:'2026-06-09',comp:null,ok:false},
-{n:'Recepcion Rodete E07',sec:'Bodega',u:'Victor Muñoz',p:'50001525 - ZITRON PERU METRO E07',due:'2026-06-11',comp:null,ok:false},
-{n:'Atenuadores bodega E07',sec:'Bodega',u:'Victor Muñoz',p:'50001525 - ZITRON PERU METRO E07',due:'2026-06-09',comp:null,ok:false},
-
-// ===== 50001558 - GESVIAL B =====
-{n:'propuesta nucleo rodete GESVIAL B',sec:'Propuesta compras',u:'benjamin.bustos@zitron.com',p:'50001558 - GESVIAL B',due:'2026-05-26',comp:'2026-06-08',ok:true},
-{n:'propuesta motor GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-18',comp:'2026-06-08',ok:true},
-{n:'propuesta alabes GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-26',comp:'2026-06-08',ok:true},
-{n:'Generacion OC Rodete ot 4342',sec:'Compras',u:'Eliana',p:'50001558 - GESVIAL B',due:'2026-05-27',comp:null,ok:false},
-{n:'Generacion OC motor ot 4342',sec:'Compras',u:'Eliana',p:'50001558 - GESVIAL B',due:'2026-06-08',comp:null,ok:false},
-{n:'Generacion OC Alabe ot 4342',sec:'Compras',u:'Eliana',p:'50001558 - GESVIAL B',due:'2026-05-28',comp:null,ok:false},
-{n:'Ingenieria Basica Motor GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-14',comp:'2026-06-08',ok:true},
-{n:'Analisis de costeo GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-22',comp:null,ok:false},
-{n:'Ingenieria basica Rodete GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Ingenieria Detalle GESVIAL B',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001558 - GESVIAL B',due:'2026-05-22',comp:'2026-06-08',ok:true},
-{n:'Planos preliminar OT 4342',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001558 - GESVIAL B',due:'2026-05-29',comp:null,ok:false},
-{n:'Planos preliminar OT 4344',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001558 - GESVIAL B',due:'2026-05-29',comp:null,ok:false},
-
-// ===== 50001557 - ATACAMA KOZAN OT4340 =====
-{n:'Planos preliminar OT 4340',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-06-11',comp:'2026-06-08',ok:true},
-{n:'Planos definitivos OT 4340',sec:'Ingeniería y Diseño',u:'Hernan Roberto Gutierrez Barrientos',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-08-03',comp:null,ok:false},
-{n:'Motor OT 4340',sec:'Compras',u:'Eliana',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-09-25',comp:null,ok:false},
-{n:'Rodete OT 4340',sec:'Compras',u:'Eliana',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-07-16',comp:null,ok:false},
-{n:'Alabe OT 4340',sec:'Compras',u:'Eliana',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-10-29',comp:null,ok:false},
-{n:'propuesta nucleo rodete OT 4340',sec:'Propuesta compras',u:'benjamin.bustos@zitron.com',p:'50001557 - ATACAMA KOZAN OT4340',due:'2026-05-26',comp:null,ok:false},
-
-// ===== 50001559 - FERROVIAL =====
-{n:'Ingenieria Electrica FERROVIAL',sec:'Ingeniería Servicios',u:'Francisca Alejandra Ramos Aravales',p:'50001559 - FERROVIAL',due:'2026-05-25',comp:null,ok:false},
-{n:'Analisis de costeo FERROVIAL',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001559 - FERROVIAL',due:'2026-05-29',comp:null,ok:false},
-{n:'Ingenieria Detalle FERROVIAL',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001559 - FERROVIAL',due:'2026-05-29',comp:null,ok:false},
-{n:'Ingenieria basica Rodete FERROVIAL',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001559 - FERROVIAL',due:'2026-05-29',comp:null,ok:false},
-{n:'Ingenieria Basica Motor FERROVIAL',sec:'Ingeniería JP',u:'Francisca Alejandra Ramos Aravales',p:'50001559 - FERROVIAL',due:'2026-05-22',comp:null,ok:false},
-];
-
-// Normalizar nombres de usuario
-T.forEach(function(t){t.u=canonUser(t.u);t.eq=getEquipo(t.u);});
-var PAISES=['all','Chile','Peru','Mexico','Colombia','Rep. Dominicana','Nicaragua'];
-var pfilt='all';
-
-function buildKPIs(){
-  var tot=T.length,ok=T.filter(function(x){return x.ok;}).length;
-  var vc=T.filter(function(x){return isV(x);}).length;
-  var pe=T.filter(function(x){return !x.ok&&!isV(x);}).length;
-  var avg=Math.round(PROJS.reduce(function(s,p){return s+p.pct;},0)/PROJS.length);
-  document.getElementById('kpis').innerHTML=
-    '<div class="kpi"><div class="kl">Proyectos</div><div class="kv" style="color:var(--blu)">'+PROJS.length+'</div></div>'+
-    '<div class="kpi"><div class="kl">Avance promedio</div><div class="kv" style="color:'+cp(avg)+'">'+avg+'%</div></div>'+
-    '<div class="kpi"><div class="kl">Tareas (N1+N2)</div><div class="kv" style="color:var(--text)">'+tot+'</div></div>'+
-    '<div class="kpi"><div class="kl">Completadas</div><div class="kv" style="color:var(--grn)">'+ok+'<span style="font-size:12px"> ('+Math.round(ok/tot*100)+'%)</span></div></div>'+
-    '<div class="kpi"><div class="kl">Vencidas</div><div class="kv" style="color:var(--red)">'+vc+'</div></div>';
-}
-
-// ===== EQUIPOS =====
-function renderEq(){
-  var eqs={};
-  T.forEach(function(t){
-    var eq=t.eq||'Otro';
-    if(!eqs[eq])eqs[eq]={ok:0,tot:0,vc:0,members:{}};
-    eqs[eq].tot++;
-    if(t.ok)eqs[eq].ok++;
-    if(isV(t))eqs[eq].vc++;
-    var u=t.u||'Sin asignar';
-    if(!eqs[eq].members[u])eqs[eq].members[u]={ok:0,tot:0};
-    eqs[eq].members[u].tot++;
-    if(t.ok)eqs[eq].members[u].ok++;
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('pwInput').focus();
   });
+})();
+const DATA = {"kpis":{"total":2185,"completed":1009,"green":204,"yellow":50,"red":755,"projects":43},"persons":[{"name":"David Blázquez","team":"Equipo Proyecto","total":57,"completed":57,"green":18,"yellow":10,"red":29,"gray":0,"perf":100.0,"avg_days":40.7,"avg_late":31.0},{"name":"Gonzalo Dávila","team":"Ingeniería","total":4,"completed":4,"green":1,"yellow":0,"red":3,"gray":0,"perf":100.0,"avg_days":23.8,"avg_late":19.8},{"name":"Sergio de la Fuente","team":"Equipo Proyecto","total":80,"completed":80,"green":0,"yellow":0,"red":80,"gray":0,"perf":100.0,"avg_days":37.0,"avg_late":28.1},{"name":"Francisca Ramos","team":"Equipo Proyecto","total":329,"completed":260,"green":9,"yellow":14,"red":237,"gray":69,"perf":79.0,"avg_days":43.9,"avg_late":43.2},{"name":"Hernán Gutierrez","team":"Ingeniería","total":120,"completed":77,"green":13,"yellow":2,"red":62,"gray":43,"perf":64.2,"avg_days":35.2,"avg_late":31.2},{"name":"Eliana","team":"Compras","total":155,"completed":94,"green":30,"yellow":5,"red":59,"gray":61,"perf":60.6,"avg_days":66.6,"avg_late":14.4},{"name":"Carlos Pérez","team":"Equipo Proyecto","total":84,"completed":49,"green":0,"yellow":0,"red":49,"gray":35,"perf":58.3,"avg_days":69.3,"avg_late":67.0},{"name":"Yerlia","team":"Compras","total":92,"completed":48,"green":20,"yellow":5,"red":23,"gray":44,"perf":52.2,"avg_days":47.1,"avg_late":7.8},{"name":"Rose","team":"Compras","total":41,"completed":16,"green":3,"yellow":0,"red":13,"gray":25,"perf":39.0,"avg_days":74.9,"avg_late":27.4},{"name":"Víctor Muñoz","team":"Bodega","total":268,"completed":90,"green":31,"yellow":5,"red":54,"gray":178,"perf":33.6,"avg_days":18.2,"avg_late":20.1},{"name":"Gabriel Venegas","team":"Ingeniería","total":3,"completed":1,"green":0,"yellow":0,"red":1,"gray":2,"perf":33.3,"avg_days":65.0,"avg_late":61.0},{"name":"Hugo Isla","team":"Producción","total":93,"completed":31,"green":7,"yellow":2,"red":22,"gray":62,"perf":33.3,"avg_days":29.9,"avg_late":29.0},{"name":"Ignacio García","team":"Servicios","total":88,"completed":26,"green":2,"yellow":0,"red":24,"gray":62,"perf":29.5,"avg_days":51.1,"avg_late":47.4},{"name":"Benjamín Bustos","team":"Producción","total":351,"completed":91,"green":36,"yellow":4,"red":51,"gray":260,"perf":25.9,"avg_days":21.6,"avg_late":16.6},{"name":"Nicolás Mol","team":"Producción","total":159,"completed":37,"green":15,"yellow":2,"red":20,"gray":122,"perf":23.3,"avg_days":15.8,"avg_late":11.0},{"name":"Francisca González","team":"Ingeniería","total":41,"completed":9,"green":5,"yellow":0,"red":4,"gray":32,"perf":22.0,"avg_days":8.2,"avg_late":2.9},{"name":"Nicolás López","team":"Producción","total":180,"completed":37,"green":13,"yellow":0,"red":24,"gray":143,"perf":20.6,"avg_days":19.4,"avg_late":19.4},{"name":"Karin Pinto","team":"Logística","total":30,"completed":2,"green":1,"yellow":1,"red":0,"gray":28,"perf":6.7,"avg_days":-23.5,"avg_late":-32.0},{"name":"Sergio Saavedra","team":"Servicios","total":10,"completed":0,"green":0,"yellow":0,"red":0,"gray":10,"perf":0.0,"avg_days":null,"avg_late":null}],"teams":[{"team":"Equipo Proyecto","total":550,"completed":446,"green":27,"yellow":24,"red":395,"perf":81.1,"avg_days":46.5,"avg_late":41.5},{"team":"Compras","total":288,"completed":158,"green":53,"yellow":10,"red":95,"perf":54.9,"avg_days":61.5,"avg_late":13.7},{"team":"Ingeniería","total":168,"completed":91,"green":19,"yellow":2,"red":70,"perf":54.2,"avg_days":32.2,"avg_late":28.2},{"team":"Bodega","total":268,"completed":90,"green":31,"yellow":5,"red":54,"perf":33.6,"avg_days":18.2,"avg_late":20.1},{"team":"Servicios","total":98,"completed":26,"green":2,"yellow":0,"red":24,"perf":26.5,"avg_days":51.1,"avg_late":47.4},{"team":"Producción","total":783,"completed":196,"green":71,"yellow":8,"red":117,"perf":25.0,"avg_days":21.4,"avg_late":18.0},{"team":"Logística","total":30,"completed":2,"green":1,"yellow":1,"red":0,"perf":6.7,"avg_days":-23.5,"avg_late":-32.0}],"projects_by_person":{"Benjamín Bustos":[{"p":"50001504 ZITRON PERU CODESTABLE","t":17,"c":17,"g":4,"y":1,"r":12},{"p":"50001309 ZITRON COLOMBIA BUGA BUENAVENTURA","t":9,"c":1,"g":0,"y":0,"r":1},{"p":"50001446 MINERA FRESNILLO","t":9,"c":1,"g":0,"y":0,"r":1},{"p":"50001451 ZITRON COLOMBIA","t":9,"c":9,"g":4,"y":3,"r":2},{"p":"50001466 ZITRON PERU PODEROSA","t":9,"c":0,"g":0,"y":0,"r":0},{"p":"50001477 TRITON MINERA","t":9,"c":9,"g":0,"y":0,"r":9},{"p":"50001485 CALABRESSE METRO STO DOMINGO","t":9,"c":1,"g":0,"y":0,"r":1},{"p":"50001497 XEMORTIZ IMMSA STA. BBR","t":9,"c":1,"g":0,"y":0,"r":1}],"Carlos Pérez":[{"p":"50001446 MINERA FRESNILLO","t":12,"c":12,"g":0,"y":0,"r":12},{"p":"50001499 EQ. CHAPARRAL","t":12,"c":12,"g":0,"y":0,"r":12},{"p":"50001477 TRITON MINERA","t":9,"c":9,"g":0,"y":0,"r":9},{"p":"50001485 CALABRESSE METRO STO DOMINGO","t":8,"c":8,"g":0,"y":0,"r":8},{"p":"50001498 CALABRESSE METRO STO DOMINGO POZOS","t":8,"c":8,"g":0,"y":0,"r":8},{"p":"50001543 ZITRON COLOMBIA EGM","t":7,"c":0,"g":0,"y":0,"r":0},{"p":"50001553 ARIS MINING SEGOVIA OT4324-4325","t":7,"c":0,"g":0,"y":0,"r":0},{"p":"50001553 ARIS MINING SEGOVIA OT4326","t":7,"c":0,"g":0,"y":0,"r":0}],"David Blázquez":[{"p":"50001490 ZITRON PERU METRO PV04-PV05","t":15,"c":15,"g":0,"y":0,"r":15},{"p":"50001525 ZITRON PERU METRO E07","t":15,"c":15,"g":9,"y":5,"r":1},{"p":"50001534 ZITRON PERU METRO E04-06","t":15,"c":15,"g":9,"y":5,"r":1},{"p":"50001415 ZITRON PERU METRO E05","t":12,"c":12,"g":0,"y":0,"r":12}],"Eliana":[{"p":"50001490 ZITRON PERU METRO PV04-PV05","t":6,"c":2,"g":1,"y":0,"r":1},{"p":"50001504 ZITRON PERU CODESTABLE","t":6,"c":6,"g":1,"y":0,"r":5},{"p":"50001501 EQ. MIN. LA HACIENDA","t":5,"c":4,"g":0,"y":0,"r":4},{"p":"50001525 ZITRON PERU METRO E07","t":5,"c":1,"g":0,"y":1,"r":0},{"p":"50001415 ZITRON PERU METRO E05","t":4,"c":4,"g":2,"y":0,"r":2},{"p":"50001446 MINERA FRESNILLO","t":4,"c":4,"g":3,"y":0,"r":1},{"p":"50001451 ZITRON COLOMBIA","t":4,"c":4,"g":0,"y":0,"r":4},{"p":"50001534 ZITRON PERU METRO E04-06","t":5,"c":1,"g":0,"y":1,"r":0}],"Francisca González":[{"p":"50001504 ZITRON PERU CODESTABLE","t":2,"c":2,"g":1,"y":0,"r":1},{"p":"50001518 EQ. CHAPARRAL","t":2,"c":1,"g":1,"y":0,"r":0},{"p":"50001524 ATACAMA KOZAN","t":2,"c":2,"g":1,"y":0,"r":1},{"p":"50001415 ZITRON PERU METRO E05","t":1,"c":1,"g":0,"y":0,"r":1},{"p":"50001451 ZITRON COLOMBIA","t":1,"c":1,"g":1,"y":0,"r":0},{"p":"50001466 ZITRON PERU PODEROSA","t":1,"c":0,"g":0,"y":0,"r":0}],"Francisca Ramos":[{"p":"50001504 ZITRON PERU CODESTABLE","t":23,"c":23,"g":1,"y":0,"r":22},{"p":"50001518 EQ. CHAPARRAL","t":15,"c":14,"g":0,"y":1,"r":13},{"p":"50001451 ZITRON COLOMBIA","t":14,"c":14,"g":0,"y":0,"r":14},{"p":"50001466 ZITRON PERU PODEROSA","t":13,"c":12,"g":7,"y":5,"r":0},{"p":"50001497 XEMORTIZ IMMSA STA. BBR","t":13,"c":12,"g":0,"y":0,"r":12},{"p":"50001473 MAPIMI","t":12,"c":11,"g":0,"y":0,"r":11},{"p":"50001506 ZCO EPM FRIO AIRE","t":12,"c":12,"g":0,"y":0,"r":12},{"p":"50001524 ATACAMA KOZAN","t":12,"c":12,"g":0,"y":0,"r":12}],"Gabriel Venegas":[{"p":"50001525 ZITRON PERU METRO E07","t":2,"c":0,"g":0,"y":0,"r":0},{"p":"50001490 ZITRON PERU METRO PV04-PV05","t":1,"c":1,"g":0,"y":0,"r":1}],"Gonzalo Dávila":[{"p":"50001534 ZITRON PERU METRO E04-06","t":2,"c":2,"g":1,"y":0,"r":1},{"p":"50001415 ZITRON PERU METRO E05","t":1,"c":1,"g":0,"y":0,"r":1},{"p":"50001533 GESVIAL","t":1,"c":1,"g":0,"y":0,"r":1}],"Hernán Gutierrez":[{"p":"50001504 ZITRON PERU CODESTABLE","t":6,"c":6,"g":0,"y":0,"r":6},{"p":"50001498 CALABRESSE METRO STO DOMINGO POZOS","t":4,"c":3,"g":0,"y":0,"r":3},{"p":"50001506 ZCO EPM FRIO AIRE","t":4,"c":3,"g":0,"y":0,"r":3},{"p":"50001515 CLIENTE POR DEFINIR","t":4,"c":4,"g":1,"y":0,"r":3},{"p":"50001309 ZITRON COLOMBIA BUGA BUENAVENTURA","t":3,"c":1,"g":0,"y":0,"r":1},{"p":"50001446 MINERA FRESNILLO","t":3,"c":3,"g":0,"y":0,"r":3},{"p":"50001451 ZITRON COLOMBIA","t":3,"c":3,"g":0,"y":0,"r":3},{"p":"50001466 ZITRON PERU PODEROSA","t":3,"c":3,"g":3,"y":0,"r":0}],"Hugo Isla":[{"p":"50001466 ZITRON PERU PODEROSA","t":4,"c":4,"g":4,"y":0,"r":0},{"p":"50001499 EQ. CHAPARRAL","t":4,"c":0,"g":0,"y":0,"r":0},{"p":"50001541 XEMORTIZ MINERA FRISCO","t":4,"c":3,"g":3,"y":0,"r":0},{"p":"50001544 DMC MINING SERVICES","t":4,"c":4,"g":0,"y":0,"r":4},{"p":"50001543 ZITRON COLOMBIA EGM","t":4,"c":0,"g":0,"y":0,"r":0},{"p":"50001545 XEMORTIZ MINERA FRISCO 2","t":4,"c":0,"g":0,"y":0,"r":0}],"Ignacio García":[{"p":"50001446 MINERA FRESNILLO","t":4,"c":2,"g":1,"y":0,"r":1},{"p":"50001451 ZITRON COLOMBIA","t":4,"c":2,"g":0,"y":0,"r":2},{"p":"50001473 MAPIMI","t":4,"c":2,"g":0,"y":0,"r":2},{"p":"50001477 TRITON MINERA","t":4,"c":2,"g":0,"y":0,"r":2},{"p":"50001485 CALABRESSE METRO STO DOMINGO","t":4,"c":1,"g":0,"y":0,"r":1},{"p":"50001497 XEMORTIZ IMMSA STA. BBR","t":4,"c":1,"g":0,"y":0,"r":1},{"p":"50001498 CALABRESSE METRO POZOS","t":4,"c":1,"g":0,"y":0,"r":1},{"p":"50001499 EQ. CHAPARRAL","t":4,"c":1,"g":0,"y":0,"r":1}],"Karin Pinto":[{"p":"50001451 ZITRON COLOMBIA","t":1,"c":1,"g":0,"y":1,"r":0},{"p":"50001309 ZITRON COLOMBIA BUGA","t":1,"c":0,"g":0,"y":0,"r":0},{"p":"50001415 ZITRON PERU METRO E05","t":1,"c":0,"g":0,"y":0,"r":0},{"p":"50001466 ZITRON PERU PODEROSA","t":1,"c":0,"g":0,"y":0,"r":0}],"Nicolás López":[{"p":"50001504 ZITRON PERU CODESTABLE","t":8,"c":4,"g":0,"y":0,"r":4},{"p":"50001534 ZITRON PERU METRO E04-06","t":7,"c":0,"g":0,"y":0,"r":0},{"p":"50001541 XEMORTIZ MINERA FRISCO","t":6,"c":3,"g":3,"y":0,"r":0},{"p":"50001477 TRITON MINERA","t":5,"c":3,"g":0,"y":0,"r":3},{"p":"50001544 DMC MINING SERVICES","t":5,"c":4,"g":4,"y":0,"r":0},{"p":"50001525 ZITRON PERU METRO E07","t":5,"c":0,"g":0,"y":0,"r":0}],"Nicolás Mol":[{"p":"50001504 ZITRON PERU CODESTABLE","t":8,"c":8,"g":2,"y":0,"r":6},{"p":"50001466 ZITRON PERU PODEROSA","t":5,"c":3,"g":3,"y":0,"r":0},{"p":"50001532 XEMORTIZ AMERICAS GOLD","t":5,"c":1,"g":0,"y":0,"r":1},{"p":"50001533 GESVIAL","t":5,"c":0,"g":0,"y":0,"r":0},{"p":"50001543 ZITRON COLOMBIA EGM","t":5,"c":0,"g":0,"y":0,"r":0},{"p":"50001547 XEMORTIZ AMERICAS GOLD 2","t":5,"c":0,"g":0,"y":0,"r":0}],"Rose":[{"p":"50001477 TRITON MINERA","t":6,"c":6,"g":0,"y":0,"r":6},{"p":"50001451 ZITRON COLOMBIA","t":3,"c":3,"g":0,"y":0,"r":3},{"p":"50001499 EQ. CHAPARRAL","t":3,"c":0,"g":0,"y":0,"r":0},{"p":"50001485 CALABRESSE METRO STO DOMINGO","t":2,"c":2,"g":0,"y":0,"r":2},{"p":"50001497 XEMORTIZ IMMSA STA. BBR","t":2,"c":2,"g":0,"y":0,"r":2}],"Sergio Saavedra":[{"p":"50001415 ZITRON PERU METRO E05","t":1,"c":0,"g":0,"y":0,"r":0},{"p":"50001490 ZITRON PERU METRO PV04-PV05","t":1,"c":0,"g":0,"y":0,"r":0},{"p":"50001544 DMC MINING SERVICES","t":1,"c":0,"g":0,"y":0,"r":0},{"p":"50001514 CLIENTE POR DEFINIR","t":1,"c":0,"g":0,"y":0,"r":0}],"Sergio de la Fuente":[{"p":"50001543 ZITRON COLOMBIA EGM","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001545 XEMORTIZ MINERA FRISCO","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001553 ARIS MINING SEGOVIA OT4324-4325","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001553 ARIS MINING SEGOVIA OT4326","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001553 ARIS MINING SEGOVIA OT4327","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001554 MAPIMI","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001555 ZITRON COL ARIS MINING SEGOVIA","t":5,"c":5,"g":0,"y":0,"r":5},{"p":"50001547 XEMORTIZ AMERICAS GOLD","t":5,"c":5,"g":0,"y":0,"r":5}],"Víctor Muñoz":[{"p":"50001499 EQ. CHAPARRAL","t":9,"c":0,"g":0,"y":0,"r":0},{"p":"50001504 ZITRON PERU CODESTABLE","t":9,"c":9,"g":1,"y":2,"r":6},{"p":"50001466 ZITRON PERU PODEROSA","t":8,"c":3,"g":3,"y":0,"r":0},{"p":"50001544 DMC MINING SERVICES","t":8,"c":7,"g":4,"y":1,"r":2},{"p":"50001490 ZITRON PERU METRO PV04-PV05","t":8,"c":0,"g":0,"y":0,"r":0},{"p":"50001525 ZITRON PERU METRO E07","t":8,"c":0,"g":0,"y":0,"r":0},{"p":"50001534 ZITRON PERU METRO E04-06","t":8,"c":0,"g":0,"y":0,"r":0},{"p":"50001554 MAPIMI","t":8,"c":0,"g":0,"y":0,"r":0}],"Yerlia":[{"p":"50001466 ZITRON PERU PODEROSA","t":4,"c":4,"g":4,"y":0,"r":0},{"p":"50001499 EQ. CHAPARRAL","t":4,"c":2,"g":0,"y":1,"r":1},{"p":"50001504 ZITRON PERU CODESTABLE","t":3,"c":3,"g":0,"y":1,"r":2},{"p":"50001541 XEMORTIZ MINERA FRISCO","t":3,"c":3,"g":3,"y":0,"r":0},{"p":"50001544 DMC MINING SERVICES","t":3,"c":3,"g":0,"y":3,"r":0},{"p":"50001543 ZITRON COLOMBIA EGM","t":3,"c":0,"g":0,"y":0,"r":0}]}};
 
-  var eqOrder=['Producción','Compras','Proyectos','Ingeniería','Bodega','Logística','Servicios'];
-  var html='';
-  eqOrder.forEach(function(eq){
-    if(!eqs[eq])return;
-    var d=eqs[eq];
-    var pct=Math.round(d.ok/d.tot*100);
-    var col=EQUIPO_COLORS[eq]||'#8B949E';
-    var mems=Object.keys(d.members).sort(function(a,b){
-      return(d.members[b].ok/d.members[b].tot)-(d.members[a].ok/d.members[a].tot);
-    });
-    var memsHtml=mems.map(function(u){
-      var m=d.members[u];
-      var mp=Math.round(m.ok/m.tot*100);
-      return '<div class="eq-member"><div class="av" style="width:20px;height:20px;font-size:8px;background:'+gc(u)+'">'+ini(u)+'</div>'+
-        '<span class="eq-mname" style="font-size:11px">'+u+'</span>'+
-        '<div class="eq-mpb"><div class="eq-mpf" style="width:'+mp+'%;background:'+cp(mp)+'"></div></div>'+
-        '<span class="eq-mpct" style="color:'+cp(mp)+'">'+mp+'%</span>'+
-        '<span style="font-size:9px;color:var(--sub);min-width:28px;text-align:right;font-family:IBM Plex Mono,monospace">'+m.ok+'/'+m.tot+'</span>'+
-      '</div>';
-    }).join('');
-    html+='<div class="eq-card">'+
-      '<div class="eq-title" style="color:'+col+'">'+eq+'</div>'+
-      '<div class="eq-badge" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'44">'+d.tot+' tareas &middot; '+d.vc+' vencidas</div>'+
-      '<div class="eq-pct" style="color:'+cp(pct)+'">'+pct+'%</div>'+
-      '<div class="eq-sub">'+d.ok+'/'+d.tot+' tareas completadas</div>'+
-      '<div class="eq-bar"><div class="eq-fill" style="width:'+pct+'%;background:'+cp(pct)+'"></div></div>'+
-      '<div class="eq-members">'+memsHtml+'</div>'+
-    '</div>';
+const teamIcons = {'Equipo Proyecto':'👥','Compras':'🛒','Ingeniería':'📐','Bodega':'🏭','Servicios':'🔧','Producción':'⚙️','Logística':'🚛'};
+const teamBadge = {'Producción':'b-prod','Ingeniería':'b-ing','Equipo Proyecto':'b-proy','Compras':'b-comp','Bodega':'b-bod','Logística':'b-log','Servicios':'b-serv'};
+const perfColor = p => p>=70?'var(--green)':p>=35?'var(--yellow)':'var(--red)';
+const barColor  = p => p>=70?'var(--green-mid)':p>=35?'var(--yellow-mid)':'var(--red-mid)';
+function pillClass(p){return p>=70?'pill-hi':p>=35?'pill-md':'pill-lo';}
+function lateChip(v){
+  if(v===null)return '<span style="color:var(--text3)">—</span>';
+  const cls=v<0?'chip-ok':v<=10?'chip-warn':'chip-bad';
+  return `<span class="chip ${cls}">${v<0?'':'+'}${v}d</span>`;
+}
+function miniBar(g,y,r,tot){
+  if(!tot)return '<span style="color:var(--text3);font-size:11px">sin datos</span>';
+  const gw=Math.round(g/tot*100),yw=Math.round(y/tot*100),rw=Math.round(r/tot*100),xw=Math.max(0,100-gw-yw-rw);
+  return `<div class="mini-bar"><div class="seg-g" style="width:${gw}%"></div><div class="seg-y" style="width:${yw}%"></div><div class="seg-r" style="width:${rw}%"></div><div class="seg-x" style="width:${xw}%"></div></div>`;
+}
+
+// Render team cards
+const grid = document.getElementById('teamsGrid');
+DATA.teams.forEach(t=>{
+  grid.innerHTML += `<div class="team-card">
+    <div class="team-name"><span class="team-icon">${teamIcons[t.team]||'📋'}</span>${t.team}</div>
+    <div class="team-perf" style="color:${perfColor(t.perf)}">${t.perf}%</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${t.perf}%;background:${barColor(t.perf)}"></div></div>
+    <div class="team-meta">${t.total} tareas · ${t.completed} completadas</div>
+    <div class="team-meta" style="margin-top:4px">
+      <span><span class="dot dot-g"></span>${t.green}</span>&nbsp;
+      <span><span class="dot dot-y"></span>${t.yellow}</span>&nbsp;
+      <span><span class="dot dot-r"></span>${t.red}</span>
+    </div>
+    <div class="team-meta" style="margin-top:4px">
+      ${t.avg_days!=null?t.avg_days+'d háb. prom.':'—'} ·
+      <span style="color:${t.avg_late!=null&&t.avg_late<0?'var(--green)':t.avg_late!=null&&t.avg_late<=15?'var(--yellow)':'var(--red)'}">
+        ${t.avg_late!=null?(t.avg_late<0?'':'+')+t.avg_late+'d atraso':'—'}
+      </span>
+    </div>
+  </div>`;
+});
+
+let currentFilter='all', sortKey='perf', sortDir=-1;
+const expanded={};
+
+function renderPeople(){
+  let list=currentFilter==='all'?[...DATA.persons]:DATA.persons.filter(p=>p.team===currentFilter);
+  list.sort((a,b)=>{const av=a[sortKey]??-Infinity,bv=b[sortKey]??-Infinity;return typeof av==='string'?sortDir*av.localeCompare(bv,'es'):sortDir*(av-bv);});
+  let html='';
+  list.forEach(p=>{
+    const isOpen=!!expanded[p.name];
+    html+=`<tr class="person-row" onclick="toggle('${p.name.replace(/'/g,"\\'")}')">
+      <td><span class="chevron${isOpen?' open':''}">▶</span></td>
+      <td style="font-weight:600">${p.name}</td>
+      <td><span class="badge ${teamBadge[p.team]||'b-serv'}">${p.team}</span></td>
+      <td style="text-align:right;color:var(--text2)">${p.total}</td>
+      <td style="text-align:right;color:var(--text2)">${p.completed}</td>
+      <td style="text-align:right"><span class="pill ${pillClass(p.perf)}">${p.perf}%</span></td>
+      <td>${miniBar(p.green,p.yellow,p.red,p.completed)}</td>
+      <td style="text-align:right;color:var(--text2)">${p.avg_days!=null?p.avg_days+'d':'—'}</td>
+      <td style="text-align:right">${lateChip(p.avg_late)}</td>
+    </tr>`;
+    if(isOpen){
+      const projs=(DATA.projects_by_person[p.name]||[]);
+      let sub=projs.map(pr=>`<tr>
+        <td>${pr.p}</td>
+        <td style="text-align:right">${pr.t}</td>
+        <td style="text-align:right">${pr.c}</td>
+        <td style="text-align:right"><span class="pill ${pillClass(pr.t?Math.round(pr.c/pr.t*100):0)}">${pr.t?Math.round(pr.c/pr.t*100):0}%</span></td>
+        <td>${miniBar(pr.g,pr.y,pr.r,pr.c)}</td>
+        <td colspan="3"></td>
+      </tr>`).join('');
+      html+=`<tr><td colspan="9" style="padding:0;border:none"><div class="sub-wrap">
+        <table>
+          <thead><tr>
+            <th>Proyecto</th><th style="text-align:right">Tareas</th><th style="text-align:right">Compl.</th>
+            <th style="text-align:right">%</th><th>Distribución</th><th colspan="3"></th>
+          </tr></thead>
+          <tbody>${sub}</tbody>
+        </table>
+      </div></td></tr>`;
+    }
   });
-  document.getElementById('eq-grid').innerHTML=html;
-
-  // Summary stats
-  var totOk=T.filter(function(x){return x.ok;}).length;
-  var totAll=T.length;
-  var totVc=T.filter(function(x){return isV(x);}).length;
-  document.getElementById('sg-e').innerHTML=
-    '<div class="sc"><h3>Global Portfolio</h3><div style="font-size:32px;font-weight:700;font-family:IBM Plex Mono,monospace;color:var(--grn);margin-bottom:8px">'+Math.round(totOk/totAll*100)+'%</div><div class="pb" style="height:8px;margin-bottom:8px"><div class="pf" style="width:'+Math.round(totOk/totAll*100)+'%;background:var(--grn)"></div></div><div style="font-size:11px;color:var(--sub)">'+totOk+'/'+totAll+' tareas &middot; '+PROJS.length+' proyectos &middot; '+totVc+' vencidas</div></div>'+
-    '<div class="sc"><h3>Equipos activos</h3>'+eqOrder.filter(function(e){return eqs[e];}).map(function(eq){var d=eqs[eq];var p=Math.round(d.ok/d.tot*100);var col=EQUIPO_COLORS[eq]||'#8B949E';return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="font-size:11px;min-width:90px;color:'+col+'">'+eq+'</span><div class="pb"><div class="pf" style="width:'+p+'%;background:'+cp(p)+'"></div></div><span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+cp(p)+';min-width:30px;text-align:right">'+p+'%</span></div>';}).join('')+'</div>'+
-    '<div class="sc"><h3>Por país</h3>'+['Chile','Peru','Mexico','Colombia','Rep. Dominicana','Nicaragua'].map(function(pa){var pp=PROJS.filter(function(x){return x.p===pa;});if(!pp.length)return'';var avg2=Math.round(pp.reduce(function(s,x){return s+x.pct;},0)/pp.length);return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="font-size:11px;min-width:100px;color:var(--sub)">'+pa+'</span><div class="pb"><div class="pf" style="width:'+avg2+'%;background:'+cp(avg2)+'"></div></div><span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+cp(avg2)+';min-width:30px;text-align:right">'+avg2+'%</span><span style="font-size:9px;color:var(--sub);margin-left:2px">'+pp.length+'p</span></div>';}).join('')+'</div>';
-}
-
-// ===== USUARIOS =====
-function renderU(){
-  var users=[];
-  T.forEach(function(t){if(t.u&&users.indexOf(t.u)<0)users.push(t.u);});
-  users.sort();
-  var ok=T.filter(function(x){return x.ok;}).length;
-  var tot=T.length;
-  var top={u:'',pct:0};
-  users.forEach(function(u){var ut=T.filter(function(t){return t.u===u;});var p=Math.round(ut.filter(function(t){return t.ok;}).length/ut.length*100);if(p>top.pct)top={u:u,pct:p};});
-  var mv={u:'',vc:0};
-  users.forEach(function(u){var v=T.filter(function(t){return t.u===u&&isV(t);}).length;if(v>mv.vc)mv={u:u,vc:v};});
-  var secs=[];T.forEach(function(t){if(secs.indexOf(t.sec)<0)secs.push(t.sec);});
-  document.getElementById('sg').innerHTML=
-    '<div class="sc"><h3>Avance global</h3><div style="font-size:32px;font-weight:700;font-family:IBM Plex Mono,monospace;color:var(--grn);margin-bottom:8px">'+Math.round(ok/tot*100)+'%</div><div class="pb" style="height:8px;margin-bottom:8px"><div class="pf" style="width:'+Math.round(ok/tot*100)+'%;background:var(--grn)"></div></div><div style="font-size:11px;color:var(--sub)">'+ok+'/'+tot+' tareas &middot; '+secs.length+' secciones &middot; '+T.filter(function(x){return isV(x);}).length+' vencidas</div></div>'+
-    '<div class="sc"><h3>Top desempeño</h3><div class="uc" style="margin-bottom:8px"><div class="av" style="width:32px;height:32px;font-size:12px;background:'+gc(top.u)+'">'+ini(top.u)+'</div><div><div style="font-size:13px;font-weight:500">'+top.u+'</div><div style="font-size:11px;color:var(--sub)">'+top.pct+'% completado</div></div></div><div class="pb"><div class="pf" style="width:'+top.pct+'%;background:var(--grn)"></div></div></div>'+
-    '<div class="sc"><h3>Requiere atención</h3><div class="uc" style="margin-bottom:8px"><div class="av" style="width:32px;height:32px;font-size:12px;background:var(--red)">'+ini(mv.u)+'</div><div><div style="font-size:13px;font-weight:500">'+mv.u+'</div><div style="font-size:11px;color:var(--red)">'+mv.vc+' tarea'+(mv.vc!==1?'s':'')+' vencida'+(mv.vc!==1?'s':'')+'</div></div></div></div>'+
-    '<div class="sc"><h3>Por equipo</h3>'+Object.keys(EQUIPO_COLORS).map(function(eq){var eqt=T.filter(function(t){return t.eq===eq;});if(!eqt.length)return'';var p=Math.round(eqt.filter(function(t){return t.ok;}).length/eqt.length*100);var col=EQUIPO_COLORS[eq];return'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="font-size:10px;min-width:80px;color:'+col+'">'+eq+'</span><div class="pb"><div class="pf" style="width:'+p+'%;background:'+cp(p)+'"></div></div><span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+cp(p)+';min-width:28px;text-align:right">'+p+'%</span></div>';}).join('')+'</div>';
-  var h='';
-  users.forEach(function(u){
-    var ut=T.filter(function(t){return t.u===u;});
-    var okc=ut.filter(function(t){return t.ok;}).length;
-    var vc=ut.filter(function(t){return isV(t);}).length;
-    var pct=Math.round(okc/ut.length*100),col=gc(u),fc=cp(pct),bc2=bcc(pct);
-    var lc=null;ut.filter(function(t){return t.ok&&t.comp;}).forEach(function(t){if(!lc||t.comp>lc)lc=t.comp;});
-    var nd=null;ut.filter(function(t){return !t.ok&&t.due;}).forEach(function(t){if(!nd||t.due<nd)nd=t.due;});
-    var ps=[];ut.forEach(function(t){if(ps.indexOf(t.p)<0)ps.push(t.p);});
-    var eq=getEquipo(u);
-    var eqCol=EQUIPO_COLORS[eq]||'#8B949E';
-    h+='<tr><td><div class="uc"><div class="av" style="background:'+col+'">'+ini(u)+'</div>'+u+'</div></td>'+
-      '<td><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+eqCol+'22;color:'+eqCol+';border:1px solid '+eqCol+'44">'+eq+'</span></td>'+
-      '<td style="text-align:center;font-family:IBM Plex Mono,monospace;font-weight:600">'+ut.length+'</td>'+
-      '<td style="text-align:center;color:var(--grn);font-family:IBM Plex Mono,monospace">'+okc+'</td>'+
-      '<td style="text-align:center;color:'+(vc>0?'var(--red)':'var(--sub)')+';font-family:IBM Plex Mono,monospace">'+(vc||'--')+'</td>'+
-      '<td><div class="pc"><div class="pb"><div class="pf" style="width:'+pct+'%;background:'+fc+'"></div></div><span class="badge '+bc2+'" style="min-width:36px;text-align:center">'+pct+'%</span></div></td>'+
-      '<td style="font-size:11px;color:var(--sub);font-family:IBM Plex Mono,monospace">'+fd(lc)+'</td>'+
-      '<td style="font-size:11px;color:'+(nd&&new Date(nd.split('T')[0])<TODAY?'var(--red)':'var(--text)')+';font-family:IBM Plex Mono,monospace">'+fd(nd)+'</td>'+
-      '<td style="font-size:11px;color:var(--sub)">'+ps.length+' proy.</td></tr>';
+  document.getElementById('peopleBody').innerHTML=html;
+  document.querySelectorAll('#peopleTable th').forEach((th,i)=>{
+    th.classList.remove('sort-asc','sort-desc');
+    const keys=[null,'name','team','total','completed','perf',null,'avg_days','avg_late'];
+    if(keys[i]===sortKey)th.classList.add(sortDir===1?'sort-asc':'sort-desc');
   });
-  document.getElementById('tbu').innerHTML=h;
 }
-
-// ===== PROYECTOS =====
-function renderP(){
-  var q=document.getElementById('sp').value.toLowerCase();
-  var srt=document.getElementById('srtp').value;
-  var data=PROJS.filter(function(x){
-    if(q&&x.n.toLowerCase().indexOf(q)<0&&x.p.toLowerCase().indexOf(q)<0)return false;
-    if(pfilt!=='all'&&x.p!==pfilt)return false;
-    return true;
-  });
-  if(srt==='pd')data.sort(function(a,b){return b.pct-a.pct;});
-  else if(srt==='pa')data.sort(function(a,b){return a.pct-b.pct;});
-  else data.sort(function(a,b){return a.n.localeCompare(b.n);});
-  document.getElementById('pillsp').innerHTML=PAISES.map(function(f){return'<button class="pill'+(pfilt===f?' on':'')+'" onclick="setPF(\''+f+'\')">'+( f==='all'?'Todos':f)+'</button>';}).join('');
-  document.getElementById('plist').innerHTML=data.map(function(x,i){
-    var c=cp(x.pct),bc2=bcc(x.pct),lbl=bll(x.pct);
-    var phs=x.ph.map(function(ph){var pp=ph[1]>0?Math.round(ph[2]/ph[1]*100):0;return'<div class="phrow"><span class="phname">'+ph[0]+'</span><div class="phbg"><div class="phfill" style="width:'+pp+'%;background:'+cp(pp)+'"></div></div><span class="phpct" style="color:'+cp(pp)+'">'+pp+'%</span><span class="phct">'+ph[2]+'/'+ph[1]+'</span></div>';}).join('');
-    return'<div class="pcard" id="pc'+i+'" onclick="togP('+i+')">'+'<div class="ptop"><span class="pname">'+x.n+'</span><span class="pcntry">'+x.p+'</span><span class="badge '+bc2+'">'+lbl+'</span><span class="ppct" style="color:'+c+'">'+x.pct+'%</span><span class="pchev">&#9662;</span></div>'+
-      '<div style="display:flex;align-items:center;gap:10px"><div class="pbg" style="flex:1"><div class="pfill" style="width:'+x.pct+'%;background:'+c+'"></div></div><span class="pcnt">'+x.ok+'/'+x.tot+' Asana</span></div>'+
-      '<div class="pdet" id="pd'+i+'">'+phs+'</div></div>';
-  }).join('')||'<div style="text-align:center;padding:40px;color:var(--sub)">Sin resultados</div>';
+function toggle(n){expanded[n]=!expanded[n];renderPeople();}
+function sortBy(k){sortKey===k?sortDir*=-1:(sortKey=k,sortDir=-1);renderPeople();}
+function filterTeam(t,btn){currentFilter=t;document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderPeople();}
+function switchTab(tab,btn){
+  document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='personas')renderPeople();
 }
-function togP(i){var d=document.getElementById('pd'+i),c=document.getElementById('pc'+i);var o=d.style.display==='block';d.style.display=o?'none':'block';c&&c.classList.toggle('open',!o);}
-function setPF(f){pfilt=f;renderP();}
-
-// ===== TAREAS =====
-function initFilters(){
-  var users=[];T.forEach(function(t){if(t.u&&users.indexOf(t.u)<0)users.push(t.u);});users.sort();
-  var secs=[];T.forEach(function(t){if(secs.indexOf(t.sec)<0)secs.push(t.sec);});secs.sort();
-  var eqs=[];T.forEach(function(t){if(t.eq&&eqs.indexOf(t.eq)<0)eqs.push(t.eq);});eqs.sort();
-  var fu=document.getElementById('fu'),fsec=document.getElementById('fsec'),feq=document.getElementById('feq');
-  users.forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fu.appendChild(o);});
-  secs.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;fsec.appendChild(o);});
-  eqs.forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;feq.appendChild(o);});
-  buildProjSel(null,null);
-}
-function buildProjSel(fu,feq){
-  var fp=document.getElementById('fp');var cur=fp.value;
-  var allP=[];PROJS.forEach(function(p){if(allP.indexOf(p.n)<0)allP.push(p.n);});
-  T.forEach(function(t){if(allP.indexOf(t.p)<0)allP.push(t.p);});allP.sort();
-  var filter=null;
-  if(fu){filter={};T.filter(function(t){return t.u===fu;}).forEach(function(t){filter[t.p]=1;});}
-  else if(feq){filter={};T.filter(function(t){return t.eq===feq;}).forEach(function(t){filter[t.p]=1;});}
-  fp.innerHTML='<option value="">Todos ('+PROJS.length+' proyectos)</option>';
-  allP.forEach(function(p){if(filter&&!filter[p])return;var o=document.createElement('option');o.value=p;o.textContent=p.length>38?p.substring(0,38)+'...':p;if(p===cur)o.selected=true;fp.appendChild(o);});
-}
-function onUC(){var fu=document.getElementById('fu').value;document.getElementById('fp').value='';document.getElementById('feq').value='';buildProjSel(fu||null,null);renderT();}
-function onEqC(){var feq=document.getElementById('feq').value;document.getElementById('fp').value='';document.getElementById('fu').value='';buildProjSel(null,feq||null);renderT();}
-
-function renderT(){
-  var fu=document.getElementById('fu').value;
-  var feq=document.getElementById('feq').value;
-  var fst=document.getElementById('fst').value;
-  var fp=document.getElementById('fp').value;
-  var fsec=document.getElementById('fsec').value;
-  var d=T.filter(function(t){
-    if(fu&&t.u!==fu)return false;
-    if(feq&&t.eq!==feq)return false;
-    if(fp&&t.p!==fp)return false;
-    if(fsec&&t.sec!==fsec)return false;
-    var st=t.ok?'c':isV(t)?'v':'p';
-    if(fst&&st!==fst)return false;
-    return true;
-  });
-  var pcs=[];d.forEach(function(t){if(pcs.indexOf(t.p)<0)pcs.push(t.p);});
-  document.getElementById('tc').textContent=d.length+' tareas · '+pcs.length+' proyectos';
-  var byU={};
-  d.forEach(function(t){
-    var u=t.u||'Sin asignar';
-    if(!byU[u])byU[u]={};
-    if(!byU[u][t.sec])byU[u][t.sec]=[];
-    byU[u][t.sec].push(t);
-  });
-  var h='';
-  Object.keys(byU).sort().forEach(function(u){
-    var allUt=d.filter(function(t){return(t.u||'Sin asignar')===u;});
-    var ok=allUt.filter(function(t){return t.ok;}).length;
-    var col=gc(u);
-    var upct=Math.round(ok/allUt.length*100);
-    var eq=getEquipo(u);var eqCol=EQUIPO_COLORS[eq]||'#8B949E';
-    h+='<tr class="gh"><td colspan="9"><div class="uc"><div class="av" style="background:'+col+'">'+ini(u)+'</div><strong>'+u+'</strong><span style="font-weight:400;margin-left:6px;color:var(--sub)">· '+ok+'/'+allUt.length+' completadas</span><span class="badge '+bcc(upct)+'" style="margin-left:8px">'+upct+'%</span><span style="font-size:10px;padding:1px 7px;border-radius:10px;background:'+eqCol+'22;color:'+eqCol+';border:1px solid '+eqCol+'44;margin-left:6px">'+eq+'</span></div></td></tr>';
-    Object.keys(byU[u]).sort().forEach(function(sec){
-      var st=byU[u][sec];
-      var sok=st.filter(function(t){return t.ok;}).length;
-      h+='<tr class="sh"><td colspan="9">&#11043; '+sec+'&nbsp;<span style="color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0">'+sok+'/'+st.length+'</span></td></tr>';
-      st.forEach(function(t){
-        var st2=t.ok?'c':isV(t)?'v':'p';
-        var ds='--',dcls='';
-        if(t.ok&&t.due&&t.comp){var dd=wd(t.due,t.comp);if(dd!==null){if(dd<=0){ds='+'+(Math.abs(dd))+'d antes';dcls='dok';}else{ds=dd+'d tarde';dcls='dlate';}}}
-        else if(!t.ok&&t.due){if(isV(t)){var l=wd(t.due,'2026-06-08');ds=l+'d vencida';dcls='dlate';}else{var r=wd('2026-06-08',t.due);ds=r+'d rest.';dcls='dpend';}}
-        var badge=st2==='c'?'<span class="badge bg">&#10003; Lista</span>':st2==='v'?'<span class="badge br">&#9888; Vencida</span>':'<span class="badge ba">En curso</span>';
-        var pshort=t.p.replace(/50001\d+\s*-\s*/,'').substring(0,16)+'...';
-        var eq2=t.eq||'Otro';var eqCol2=EQUIPO_COLORS[eq2]||'#8B949E';
-        h+='<tr><td title="'+t.n+'" style="padding-left:26px">'+t.n+'</td>'+
-          '<td style="font-size:10px;color:var(--pur)">'+sec+'</td>'+
-          '<td style="font-size:11px;color:var(--sub)">'+u.split(' ')[0]+'</td>'+
-          '<td><span style="font-size:9px;padding:1px 6px;border-radius:8px;background:'+eqCol2+'22;color:'+eqCol2+';border:1px solid '+eqCol2+'44">'+eq2+'</span></td>'+
-          '<td style="font-size:10px;color:var(--sub)" title="'+t.p+'">'+pshort+'</td>'+
-          '<td style="font-size:11px;font-family:IBM Plex Mono,monospace">'+fd(t.due)+'</td>'+
-          '<td style="font-size:11px;font-family:IBM Plex Mono,monospace">'+(t.ok?fd(t.comp):'--')+'</td>'+
-          '<td class="'+dcls+'" style="font-size:11px;font-family:IBM Plex Mono,monospace">'+ds+'</td>'+
-          '<td>'+badge+'</td></tr>';
-      });
-    });
-  });
-  document.getElementById('tbt').innerHTML=h||'<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--sub)">Sin tareas para los filtros seleccionados</td></tr>';
-}
-
-function sw(tab,el){
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
-  el.classList.add('on');
-  ['e','u','p','t'].forEach(function(v){document.getElementById('v'+v).classList.toggle('on',v===tab);});
-}
-
-buildKPIs();renderEq();renderU();renderP();initFilters();renderT();
 </script>
 </body>
 </html>
