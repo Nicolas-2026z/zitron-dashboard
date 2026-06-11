@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Bodega / Recepciones - Cumplimiento</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1419; --card:#1a2230; --card2:#222c3d; --text:#e6edf3; --muted:#8b98a9;
+    --rojo:#e5484d; --amarillo:#f2a93b; --verde:#3fb950; --na:#3a4555; --accent:#5b9dff;
+    --border:#2d3748;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px;}
+  .nav{display:flex;gap:8px;margin-bottom:18px;}
+  .nav a{color:var(--muted);text-decoration:none;font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);}
+  .nav a.active{color:var(--text);background:var(--card2);border-color:var(--accent);}
+  h1{font-size:22px;margin:0 0 4px;}
+  .subtitle{color:var(--muted);font-size:13px;margin-bottom:24px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+  .kpi h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  .kpi .big{font-size:30px;font-weight:700;}
+  .kpi .sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  .badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;}
+  .b-rojo{background:rgba(229,72,77,.15);color:var(--rojo);}
+  .b-amarillo{background:rgba(242,169,59,.15);color:var(--amarillo);}
+  .b-verde{background:rgba(63,185,80,.15);color:var(--verde);}
+  .b-na{background:rgba(58,69,85,.3);color:var(--muted);}
+  .charts-row{display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:24px;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .chart-card h3{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:600;}
+  .chart-card canvas{max-height:220px;}
+  .filters{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .filters select, .filters input{background:var(--card2);color:var(--text);border:1px solid var(--border);
+    border-radius:6px;padding:6px 10px;font-size:13px;}
+  .filters label{font-size:12px;color:var(--muted);}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;font-size:13px;}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  th{background:var(--card2);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+     position:sticky;top:0;cursor:pointer;user-select:none;}
+  th:hover{color:var(--text);}
+  tr:hover{background:rgba(255,255,255,.03);}
+  tr.detail-row{display:none;background:#15191f;}
+  tr.detail-row td{padding:0;}
+  .detail-inner{padding:12px 24px;}
+  .detail-inner h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;}
+  .detail-inner ul{margin:0;padding-left:0;list-style:none;font-size:12px;columns:2;}
+  .detail-inner li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--border);break-inside:avoid;}
+  .delay-pos{color:var(--rojo);font-weight:600;}
+  .delay-neg{color:var(--verde);font-weight:600;}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .dot-rojo{background:var(--rojo);} .dot-amarillo{background:var(--amarillo);} .dot-verde{background:var(--verde);} .dot-na{background:var(--na);}
+  .pedido-cell{font-weight:600;}
+  .small{color:var(--muted);font-size:11px;}
+  .legend{font-size:12px;color:var(--muted);margin-top:8px;}
+  .legend span{margin-right:14px;}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="dashboard_produccion.html" >Producción</a>
+  <a href="dashboard_ingenieria.html" >Ingeniería</a>
+  <a href="dashboard_calidad.html" >Calidad</a>
+  <a href="dashboard_bodega.html" class="active">Bodega / Recepciones</a>
+</div>
+<h1>📦 Bodega — Cumplimiento de Recepciones (Compras)</h1>
+<div class="subtitle">Tareas "Recepción..." de materiales/componentes tras generar la reserva de compra (OC) · Fecha de referencia: 11/06/2026</div>
+
+<div class="kpi-row" id="kpiRow"></div>
+
+<div class="charts-row">
+  <div class="chart-card"><h3>Estado por pedido</h3><canvas id="chartStatus"></canvas></div>
+  <div class="chart-card">
+    <h3>Top pedidos con mayor atraso medio</h3>
+    <canvas id="chartTop"></canvas>
+  </div>
+</div>
+
+<div class="filters">
+  <label>Filtrar por estado:</label>
+  <select id="filterStatus">
+    <option value="all">Todos</option>
+    <option value="rojo">🔴 Crítico</option>
+    <option value="amarillo">🟡 En riesgo</option>
+    <option value="verde">🟢 OK</option>
+    <option value="n/a">⚪ Sin tareas</option>
+  </select>
+  <label>Buscar cliente / pedido:</label>
+  <input id="search" placeholder="ej. ZITRON, 50001485...">
+  <span class="small" id="countInfo"></span>
+</div>
+
+<table id="mainTable">
+  <thead>
+    <tr>
+      <th data-key="pedido">Pedido</th>
+      <th data-key="cliente">Cliente</th>
+      <th data-key="n">Nº recepciones</th>
+      <th data-key="ontime_pct">% a tiempo</th>
+      <th data-key="avg_delay">Atraso medio</th>
+      <th data-key="status">Estado</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+<div class="legend">
+  <span><span class="dot dot-verde"></span>A tiempo / sin atraso relevante</span>
+  <span><span class="dot dot-amarillo"></span>Atraso moderado (riesgo, 1-15 días)</span>
+  <span><span class="dot dot-rojo"></span>Atraso crítico (&gt;15 días promedio)</span>
+  <span><span class="dot dot-na"></span>Sin tareas de esta categoría en el pedido</span>
+</div>
+<div class="small" style="margin-top:14px;">
+  <b>Cómo se calcula:</b> indicador "Compras: cumplimiento de plazos tras recibir la reserva". Para cada pedido se toman las tareas "Recepción..." (llegada física a bodega de rodetes, álabes, motores, tableros, sensores, materiales, etc.) y se compara su fecha límite vs la fecha real de recepción (o vs hoy si aún no llegó).
+  Click en una fila para ver el detalle de tareas.
+</div>
+
+<script>
+const DATA = [{"pedido": "50001473", "cliente": "MAPIMI", "descripcion": "ZVN", "n": 5, "ontime_pct": 0.0, "avg_delay": 166.2, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2025-10-27", "comp": null, "delay": 227, "done": false}, {"name": "Recepcion Rodete", "due": "2025-11-12", "comp": null, "delay": 211, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2025-11-20", "comp": "2026-04-10", "delay": 141, "done": true}, {"name": "Recepcion motor", "due": "2025-11-28", "comp": "2026-04-10", "delay": 133, "done": true}, {"name": "Recepcion Tableros", "due": "2025-12-18", "comp": "2026-04-16", "delay": 119, "done": true}]}, {"pedido": "50001501", "cliente": "EQ MIN LA HACIENDA", "descripcion": "ZVN", "n": 5, "ontime_pct": 0.0, "avg_delay": 102.8, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2025-12-23", "comp": "2026-05-15", "delay": 143, "done": true}, {"name": "Recepcion Rodete", "due": "2026-01-08", "comp": "2026-05-15", "delay": 127, "done": true}, {"name": "Recepcion Tableros", "due": "2026-02-16", "comp": null, "delay": 115, "done": false}, {"name": "Recepcion motor", "due": "2026-01-26", "comp": "2026-04-10", "delay": 74, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-01-20", "comp": "2026-03-16", "delay": 55, "done": true}]}, {"pedido": "50001500", "cliente": "EQ MIN LA HACIENDA", "descripcion": "ZVN", "n": 5, "ontime_pct": 0.0, "avg_delay": 78.4, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2025-12-24", "comp": "2026-04-10", "delay": 107, "done": true}, {"name": "Recepcion Rodete", "due": "2026-01-09", "comp": "2026-04-10", "delay": 91, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-01-20", "comp": "2026-04-10", "delay": 80, "done": true}, {"name": "Recepcion Motor", "due": "2026-01-27", "comp": "2026-04-10", "delay": 73, "done": true}, {"name": "Recepcion Tableros", "due": "2026-05-01", "comp": null, "delay": 41, "done": false}]}, {"pedido": "50001451", "cliente": "-", "descripcion": "-", "n": 6, "ontime_pct": 0.0, "avg_delay": 75.0, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2025-11-11", "comp": "2026-03-26", "delay": 135, "done": true}, {"name": "Recepcion Tableros", "due": "2026-01-06", "comp": "2026-03-26", "delay": 79, "done": true}, {"name": "Recepcion Sensores", "due": "2026-01-13", "comp": "2026-03-26", "delay": 72, "done": true}, {"name": "Recepcion Alabe", "due": "2026-01-20", "comp": "2026-03-26", "delay": 65, "done": true}, {"name": "Recepcion motor", "due": "2026-02-04", "comp": "2026-03-26", "delay": 50, "done": true}, {"name": "Recepcion Fabricacion Externa", "due": "2026-02-05", "comp": "2026-03-26", "delay": 49, "done": true}]}, {"pedido": "50001490", "cliente": "ZITRON PERU PV04-PV05", "descripcion": "ZVR", "n": 8, "ontime_pct": 0.0, "avg_delay": 72.9, "status": "rojo", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-11", "comp": null, "delay": 120, "done": false}, {"name": "Recepcion Rodete", "due": "2026-03-17", "comp": null, "delay": 86, "done": false}, {"name": "Recepcion  Damper", "due": "2026-03-18", "comp": null, "delay": 85, "done": false}, {"name": "Recepcion Atenuador", "due": "2026-03-24", "comp": null, "delay": 79, "done": false}, {"name": "Recepcion Tableros", "due": "2026-04-08", "comp": null, "delay": 64, "done": false}, {"name": "Recepcion Sensor", "due": "2026-04-10", "comp": null, "delay": 62, "done": false}]}, {"pedido": "50001499", "cliente": "EQ CHAPARRAL", "descripcion": "ZVN", "n": 9, "ontime_pct": 0.0, "avg_delay": 70.2, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2026-02-19", "comp": null, "delay": 112, "done": false}, {"name": "Recepcion Corte Laser", "due": "2026-03-16", "comp": null, "delay": 87, "done": false}, {"name": "Recepcion Corte Plasma", "due": "2026-03-16", "comp": null, "delay": 87, "done": false}, {"name": "Recepcion Mecanizado", "due": "2026-03-16", "comp": null, "delay": 87, "done": false}, {"name": "Recepcion Fabricación externa", "due": "2026-04-03", "comp": null, "delay": 69, "done": false}, {"name": "Recepción sensores", "due": "2026-04-13", "comp": null, "delay": 59, "done": false}]}, {"pedido": "50001520", "cliente": "XEMORTIZ DDG", "descripcion": "ZVN", "n": 4, "ontime_pct": 0.0, "avg_delay": 69.2, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2026-03-16", "comp": null, "delay": 87, "done": false}, {"name": "Recepcion Rodete", "due": "2026-04-01", "comp": null, "delay": 71, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-04-09", "comp": null, "delay": 63, "done": false}, {"name": "Recepcion Motor", "due": "2026-04-16", "comp": null, "delay": 56, "done": false}]}, {"pedido": "50001498", "cliente": "CALABRESSE METRO STO DOMINGO POZOS", "descripcion": "ZVN", "n": 6, "ontime_pct": 0.0, "avg_delay": 69.0, "status": "rojo", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-17", "comp": null, "delay": 114, "done": false}, {"name": "Recepcion Rodete", "due": "2026-02-19", "comp": null, "delay": 112, "done": false}, {"name": "Recepcion Tableros", "due": "2026-04-06", "comp": null, "delay": 66, "done": false}, {"name": "Recepcion Alabe", "due": "2026-04-24", "comp": null, "delay": 48, "done": false}, {"name": "Recepción Sensores", "due": "2026-04-28", "comp": null, "delay": 44, "done": false}, {"name": "Recepcion motor", "due": "2026-05-12", "comp": null, "delay": 30, "done": false}]}, {"pedido": "50001504", "cliente": "-", "descripcion": "-", "n": 9, "ontime_pct": 11.1, "avg_delay": 68.9, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2026-01-09", "comp": "2026-06-08", "delay": 150, "done": true}, {"name": "Recepcion Rodete", "due": "2026-01-27", "comp": "2026-06-08", "delay": 132, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-05", "comp": "2026-06-08", "delay": 123, "done": true}, {"name": "Recepcion motor", "due": "2026-02-12", "comp": "2026-06-08", "delay": 116, "done": true}, {"name": "Recepcion Rodete", "due": "2026-03-10", "comp": "2026-05-15", "delay": 66, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-03-05", "comp": "2026-04-15", "delay": 41, "done": true}]}, {"pedido": "50001508", "cliente": "XEMORTIZ STOCK", "descripcion": "ZVN", "n": 4, "ontime_pct": 0.0, "avg_delay": 68.5, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2026-02-12", "comp": null, "delay": 119, "done": false}, {"name": "Recepcion Alabe", "due": "2026-01-27", "comp": "2026-04-15", "delay": 78, "done": true}, {"name": "Recepcion motor", "due": "2026-03-02", "comp": "2026-04-10", "delay": 39, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-20", "comp": "2026-03-30", "delay": 38, "done": true}]}, {"pedido": "50001485", "cliente": "CALABRESSE METRO STO DOMINGO ESTACIONES", "descripcion": "ZVN", "n": 6, "ontime_pct": 16.7, "avg_delay": 51.0, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2026-02-06", "comp": "2026-05-15", "delay": 98, "done": true}, {"name": "Recepcion Tableros", "due": "2026-03-20", "comp": null, "delay": 83, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-06", "comp": "2026-04-15", "delay": 68, "done": true}, {"name": "Recepcion Alabe", "due": "2026-04-13", "comp": null, "delay": 59, "done": false}, {"name": "Recepción Sensores", "due": "2026-04-15", "comp": "2026-05-15", "delay": 30, "done": true}, {"name": "Recepcion motor", "due": "2026-05-11", "comp": "2026-04-09", "delay": -32, "done": true}]}, {"pedido": "50001532", "cliente": "XEMORTIZ AMERICAS GOLD", "descripcion": "ZVN", "n": 4, "ontime_pct": 0.0, "avg_delay": 47.8, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2026-04-01", "comp": null, "delay": 71, "done": false}, {"name": "Recepcion Rodete", "due": "2026-04-17", "comp": null, "delay": 55, "done": false}, {"name": "Recepcion motor", "due": "2026-05-04", "comp": null, "delay": 38, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-05-12", "comp": "2026-06-08", "delay": 27, "done": true}]}, {"pedido": "50001497", "cliente": "XEMORTIZ IMMSA STA BBR", "descripcion": "ZVN", "n": 6, "ontime_pct": 16.7, "avg_delay": 39.0, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2026-03-03", "comp": null, "delay": 100, "done": false}, {"name": "Recepcion Tableros", "due": "2026-04-17", "comp": null, "delay": 55, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-27", "comp": "2026-04-10", "delay": 42, "done": true}, {"name": "Recepcion Alabe", "due": "2026-05-06", "comp": null, "delay": 36, "done": false}, {"name": "Recepcion Motor", "due": "2026-05-21", "comp": null, "delay": 21, "done": false}, {"name": "Recepcion sensores y accesorios", "due": "2026-04-30", "comp": "2026-04-10", "delay": -20, "done": true}]}, {"pedido": "50001477", "cliente": "-", "descripcion": "-", "n": 7, "ontime_pct": 14.3, "avg_delay": 35.1, "status": "rojo", "detail": [{"name": "Recepcion Rodete", "due": "2026-01-12", "comp": "2026-04-08", "delay": 86, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-01-08", "comp": "2026-03-17", "delay": 68, "done": true}, {"name": "Recepción Sensores", "due": "2026-03-09", "comp": "2026-04-08", "delay": 30, "done": true}, {"name": "Recepcion Tableros", "due": "2026-03-11", "comp": "2026-04-08", "delay": 28, "done": true}, {"name": "Recepcion Fabricación Externa", "due": "2026-03-19", "comp": "2026-04-14", "delay": 26, "done": true}, {"name": "Recepcion Alabe", "due": "2026-03-17", "comp": "2026-04-01", "delay": 15, "done": true}]}, {"pedido": "50001309", "cliente": "ZITRON COLOMBIA BUGA", "descripcion": "JZRi 10-55/4", "n": 5, "ontime_pct": 40.0, "avg_delay": 29.4, "status": "rojo", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-03-16", "comp": null, "delay": 87, "done": false}, {"name": "Recepcion Rodete", "due": "2026-03-18", "comp": null, "delay": 85, "done": false}, {"name": "Recepcion Alabe", "due": "2026-05-20", "comp": null, "delay": 22, "done": false}, {"name": "Recepcion motor", "due": "2026-06-11", "comp": null, "delay": 0, "done": false}, {"name": "Recepcion sensores", "due": "2026-05-14", "comp": "2026-03-28", "delay": -47, "done": true}]}, {"pedido": "50001506", "cliente": "ZITRON COLOMBIA EPM FRIO AIRE", "descripcion": "ZVN", "n": 6, "ontime_pct": 16.7, "avg_delay": 24.2, "status": "rojo", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-03-09", "comp": "2026-05-15", "delay": 67, "done": true}, {"name": "Recepcion Tableros", "due": "2026-05-05", "comp": null, "delay": 37, "done": false}, {"name": "Recepcion Rodete", "due": "2026-03-11", "comp": "2026-04-15", "delay": 35, "done": true}, {"name": "Recepcion Alabe", "due": "2026-05-13", "comp": null, "delay": 29, "done": false}, {"name": "Recepcion sensores y accesorios", "due": "2026-05-15", "comp": null, "delay": 27, "done": false}, {"name": "Recepcion Motor", "due": "2026-06-04", "comp": "2026-04-15", "delay": -50, "done": true}]}, {"pedido": "50001514", "cliente": "CLIENTE POR DEFINIR", "descripcion": "ZVN", "n": 5, "ontime_pct": 0.0, "avg_delay": 19.4, "status": "rojo", "detail": [{"name": "Recepcion Alabe", "due": "2026-02-17", "comp": "2026-03-26", "delay": 37, "done": true}, {"name": "Recepcion Tableros", "due": "2026-04-17", "comp": "2026-05-12", "delay": 25, "done": true}, {"name": "Recepcion Rodete", "due": "2026-03-04", "comp": "2026-03-26", "delay": 22, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-03-16", "comp": "2026-03-26", "delay": 10, "done": true}, {"name": "Recepcion motor", "due": "2026-03-23", "comp": "2026-03-26", "delay": 3, "done": true}]}, {"pedido": "50001415", "cliente": "ZITRON PERU E05", "descripcion": "ZVR", "n": 6, "ontime_pct": 50.0, "avg_delay": 19.0, "status": "rojo", "detail": [{"name": "Recepcion Tableros OT 4115 - 4116 - 4117 - 4118", "due": "2026-03-13", "comp": "2026-06-08", "delay": 87, "done": true}, {"name": "Recepcion Rodete", "due": "2026-01-22", "comp": "2026-03-18", "delay": 55, "done": true}, {"name": "Recepción Sensores", "due": "2026-03-02", "comp": "2026-03-18", "delay": 16, "done": true}, {"name": "Recepcion Fabricacion externa", "due": "2026-04-10", "comp": "2026-04-08", "delay": -2, "done": true}, {"name": "Recepcion Alabe", "due": "2026-03-26", "comp": "2026-03-18", "delay": -8, "done": true}, {"name": "Recepcion motor", "due": "2026-04-21", "comp": "2026-03-18", "delay": -34, "done": true}]}, {"pedido": "50001515", "cliente": "CLIENTE POR DEFINIR", "descripcion": "ZVN", "n": 5, "ontime_pct": 20.0, "avg_delay": 8.2, "status": "amarillo", "detail": [{"name": "Recepcion Alabe", "due": "2026-02-17", "comp": "2026-03-26", "delay": 37, "done": true}, {"name": "Recepcion Rodete", "due": "2026-03-05", "comp": "2026-03-26", "delay": 21, "done": true}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-03-12", "comp": "2026-03-26", "delay": 14, "done": true}, {"name": "Recepcion Motor", "due": "2026-03-23", "comp": "2026-03-26", "delay": 3, "done": true}, {"name": "Recepcion Tableros", "due": "2026-06-15", "comp": "2026-05-12", "delay": -34, "done": true}]}, {"pedido": "50001544", "cliente": "DMC MINING", "descripcion": "VDF", "n": 8, "ontime_pct": 62.5, "avg_delay": 3.8, "status": "amarillo", "detail": [{"name": "Recepcion Alabe", "due": "2026-04-29", "comp": "2026-06-08", "delay": 40, "done": true}, {"name": "Recepcion Rodete", "due": "2026-05-18", "comp": "2026-06-08", "delay": 21, "done": true}, {"name": "Recepcion motor", "due": "2026-06-01", "comp": "2026-06-08", "delay": 7, "done": true}, {"name": "Recepcion materiales corte laser", "due": "2026-06-08", "comp": "2026-06-08", "delay": 0, "done": true}, {"name": "Recepcion Materiales corte plasma", "due": "2026-06-08", "comp": "2026-06-08", "delay": 0, "done": true}, {"name": "Recepcion mecanizado", "due": "2026-06-08", "comp": "2026-06-08", "delay": 0, "done": true}]}, {"pedido": "50001446", "cliente": "MINERA FRESNILLO", "descripcion": "ZVNv", "n": 6, "ontime_pct": 66.7, "avg_delay": -0.3, "status": "verde", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-02-23", "comp": "2026-04-08", "delay": 44, "done": true}, {"name": "Recepcion Rodete", "due": "2026-02-26", "comp": "2026-04-10", "delay": 43, "done": true}, {"name": "Recepcion Sensores", "due": "2026-04-23", "comp": "2026-04-17", "delay": -6, "done": true}, {"name": "Recepcion Alabe", "due": "2026-05-04", "comp": "2026-04-15", "delay": -19, "done": true}, {"name": "Recepcion Tableros", "due": "2026-05-04", "comp": "2026-04-10", "delay": -24, "done": true}, {"name": "Recepcion motor", "due": "2026-05-25", "comp": "2026-04-15", "delay": -40, "done": true}]}, {"pedido": "50001543", "cliente": "ZITRON COLOMBIA EGM", "descripcion": "ZVN", "n": 7, "ontime_pct": 71.4, "avg_delay": -3.6, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-14", "comp": null, "delay": 28, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-02", "comp": null, "delay": 9, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-06-18", "comp": null, "delay": -7, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-06-18", "comp": null, "delay": -7, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-06-18", "comp": null, "delay": -7, "done": false}, {"name": "Recepcion motor", "due": "2026-06-18", "comp": null, "delay": -7, "done": false}]}, {"pedido": "50001541", "cliente": "XEMORTIZ MINERA FRISCO", "descripcion": "ZVN", "n": 6, "ontime_pct": 66.7, "avg_delay": -5.2, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-04", "comp": null, "delay": 38, "done": false}, {"name": "Recepcion motor", "due": "2026-06-03", "comp": null, "delay": 8, "done": false}, {"name": "Recepcion Rodete", "due": "2026-05-20", "comp": "2026-05-15", "delay": -5, "done": true}, {"name": "Recepcion corte laser", "due": "2026-06-08", "comp": "2026-05-15", "delay": -24, "done": true}, {"name": "Recepcion corte plasma", "due": "2026-06-08", "comp": "2026-05-15", "delay": -24, "done": true}, {"name": "Recepcion mecanizado", "due": "2026-06-08", "comp": "2026-05-15", "delay": -24, "done": true}]}, {"pedido": "50001518", "cliente": "EQ CHAPARRAL", "descripcion": "ZVN", "n": 6, "ontime_pct": 66.7, "avg_delay": -8.0, "status": "verde", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-05-06", "comp": null, "delay": 36, "done": false}, {"name": "Recepcion Rodete", "due": "2026-05-08", "comp": null, "delay": 34, "done": false}, {"name": "Recepcion Tableros", "due": "2026-06-26", "comp": null, "delay": -15, "done": false}, {"name": "Recepcion Sensores", "due": "2026-07-02", "comp": null, "delay": -21, "done": false}, {"name": "Recepcion Alabe", "due": "2026-07-10", "comp": null, "delay": -29, "done": false}, {"name": "Recepcion motor", "due": "2026-08-03", "comp": null, "delay": -53, "done": false}]}, {"pedido": "50001546", "cliente": "XEMORTIZ TOREX GOLD", "descripcion": "ZVN", "n": 7, "ontime_pct": 71.4, "avg_delay": -14.7, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-22", "comp": null, "delay": 20, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-08", "comp": null, "delay": 3, "done": false}, {"name": "Recepcion motor", "due": "2026-06-24", "comp": null, "delay": -13, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-06-30", "comp": null, "delay": -19, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-06-30", "comp": null, "delay": -19, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-07-09", "comp": null, "delay": -28, "done": false}]}, {"pedido": "50001545", "cliente": "XEMORTIZ MINERA FRISCO 2", "descripcion": "ZVN", "n": 7, "ontime_pct": 71.4, "avg_delay": -14.7, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-22", "comp": null, "delay": 20, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-08", "comp": null, "delay": 3, "done": false}, {"name": "Recepcion motor", "due": "2026-06-24", "comp": null, "delay": -13, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-06-30", "comp": null, "delay": -19, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-06-30", "comp": null, "delay": -19, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-07-09", "comp": null, "delay": -28, "done": false}]}, {"pedido": "50001533", "cliente": "GESVIAL", "descripcion": "ZVN", "n": 5, "ontime_pct": 60.0, "avg_delay": -21.0, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-05-27", "comp": null, "delay": 15, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-06-01", "comp": null, "delay": 10, "done": false}, {"name": "Recepcion Tableros y componentes electricos", "due": "2026-06-17", "comp": null, "delay": -6, "done": false}, {"name": "Recepcion Alabe", "due": "2026-07-31", "comp": null, "delay": -50, "done": false}, {"name": "Recepcion motor", "due": "2026-08-24", "comp": null, "delay": -74, "done": false}]}, {"pedido": "50001554", "cliente": "MAPIMI", "descripcion": "ZVN", "n": 8, "ontime_pct": 87.5, "avg_delay": -23.0, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-25", "comp": null, "delay": 17, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-11", "comp": null, "delay": 0, "done": false}, {"name": "Recepcion motor", "due": "2026-06-29", "comp": null, "delay": -18, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-07-03", "comp": null, "delay": -22, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-07-03", "comp": null, "delay": -22, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-07-03", "comp": null, "delay": -22, "done": false}]}, {"pedido": "50001553", "cliente": "ZITRON COLOMBIA ARIS SEGOVIA", "descripcion": "ZVN", "n": 21, "ontime_pct": 76.2, "avg_delay": -30.8, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-05-19", "comp": null, "delay": 23, "done": false}, {"name": "Recepcion Alabe", "due": "2026-05-19", "comp": null, "delay": 23, "done": false}, {"name": "Recepcion Rodete", "due": "2026-05-19", "comp": null, "delay": 23, "done": false}, {"name": "Recepcion Alabe", "due": "2026-05-19", "comp": null, "delay": 23, "done": false}, {"name": "Recepcion Rodete", "due": "2026-05-28", "comp": null, "delay": 14, "done": false}, {"name": "Recepcion motor", "due": "2026-06-23", "comp": null, "delay": -12, "done": false}]}, {"pedido": "50001525", "cliente": "ZITRON PERU ESTACION07", "descripcion": "ZVR", "n": 7, "ontime_pct": 100.0, "avg_delay": -47.4, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-06-11", "comp": null, "delay": 0, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-07-09", "comp": null, "delay": -28, "done": false}, {"name": "Recepción Sensores", "due": "2026-07-20", "comp": null, "delay": -39, "done": false}, {"name": "Recepcion Tableros y componentes electricos", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion Fabricacion externa", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion Alabe", "due": "2026-08-13", "comp": null, "delay": -63, "done": false}]}, {"pedido": "50001466", "cliente": "ZITRON PERU PODEROSA", "descripcion": "ZVN", "n": 8, "ontime_pct": 100.0, "avg_delay": -49.6, "status": "verde", "detail": [{"name": "Recepcion Sensor", "due": "2026-06-17", "comp": null, "delay": -6, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-19", "comp": null, "delay": -8, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-07-14", "comp": "2026-06-08", "delay": -36, "done": true}, {"name": "Recepcion mecanizado", "due": "2026-07-17", "comp": "2026-06-08", "delay": -39, "done": true}, {"name": "Recepcion Materiales corte plasma", "due": "2026-07-21", "comp": "2026-06-08", "delay": -43, "done": true}, {"name": "Recepcion fabricación externa", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}]}, {"pedido": "50001557", "cliente": "ATACAMA KOZAN", "descripcion": "ZVN", "n": 15, "ontime_pct": 93.3, "avg_delay": -49.8, "status": "verde", "detail": [{"name": "Recepcion Alabe", "due": "2026-05-26", "comp": null, "delay": 16, "done": false}, {"name": "Recepcion Rodete", "due": "2026-06-12", "comp": null, "delay": -1, "done": false}, {"name": "Recepcion motor", "due": "2026-06-26", "comp": null, "delay": -15, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-07-02", "comp": null, "delay": -21, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-07-02", "comp": null, "delay": -21, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-07-02", "comp": null, "delay": -21, "done": false}]}, {"pedido": "50001534", "cliente": "ZITRON PERU LIMA E04-05-06", "descripcion": "ZVR", "n": 7, "ontime_pct": 100.0, "avg_delay": -52.0, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-06-11", "comp": null, "delay": 0, "done": false}, {"name": "Recepción Sensores", "due": "2026-07-20", "comp": null, "delay": -39, "done": false}, {"name": "Recepcion Fabricacion externa", "due": "2026-08-05", "comp": null, "delay": -55, "done": false}, {"name": "Recepcion Tableros y componentes electricos", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-08-11", "comp": null, "delay": -61, "done": false}, {"name": "Recepcion Alabe", "due": "2026-08-13", "comp": null, "delay": -63, "done": false}]}, {"pedido": "50001547", "cliente": "XEMORTIZ AMERICAS GOLD2", "descripcion": "ZVN", "n": 7, "ontime_pct": 85.7, "avg_delay": -54.1, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-05-13", "comp": null, "delay": 29, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-07-27", "comp": null, "delay": -46, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-07-27", "comp": null, "delay": -46, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-07-27", "comp": null, "delay": -46, "done": false}, {"name": "Recepcion fabricación externa", "due": "2026-08-24", "comp": null, "delay": -74, "done": false}, {"name": "Recepcion Alabe", "due": "2026-09-04", "comp": null, "delay": -85, "done": false}]}, {"pedido": "50001555", "cliente": "ZITRON COLOMBIA ARIS MARMATO", "descripcion": "ZVN", "n": 7, "ontime_pct": 85.7, "avg_delay": -61.9, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-06-02", "comp": null, "delay": 9, "done": false}, {"name": "Recepcion fabricación externa", "due": "2026-08-04", "comp": null, "delay": -54, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-08-06", "comp": null, "delay": -56, "done": false}, {"name": "Recepcion Alabe", "due": "2026-09-21", "comp": null, "delay": -102, "done": false}]}, {"pedido": "50001524", "cliente": "-", "descripcion": "-", "n": 6, "ontime_pct": 100.0, "avg_delay": -63.3, "status": "verde", "detail": [{"name": "Recepcion materiales a codigos // compras locales aprovisionamiento", "due": "2026-05-08", "comp": "2026-04-21", "delay": -17, "done": true}, {"name": "Recepcion Rodete", "due": "2026-05-13", "comp": "2026-04-21", "delay": -22, "done": true}, {"name": "Recepcion Tableros", "due": "2026-06-29", "comp": "2026-04-29", "delay": -61, "done": true}, {"name": "Recepcion Alabe", "due": "2026-07-14", "comp": "2026-04-21", "delay": -84, "done": true}, {"name": "Recepcion sensores", "due": "2026-07-08", "comp": "2026-04-09", "delay": -90, "done": true}, {"name": "Recepcion  motor", "due": "2026-07-24", "comp": "2026-04-09", "delay": -106, "done": true}]}, {"pedido": "50001559", "cliente": "FERROVIAL", "descripcion": "ZVN", "n": 8, "ontime_pct": 87.5, "avg_delay": -63.9, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-06-10", "comp": null, "delay": 1, "done": false}, {"name": "Recepcion motor", "due": "2026-07-24", "comp": null, "delay": -43, "done": false}, {"name": "Recepcion Tableros", "due": "2026-07-24", "comp": null, "delay": -43, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-08-19", "comp": null, "delay": -69, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-08-19", "comp": null, "delay": -69, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-08-19", "comp": null, "delay": -69, "done": false}]}, {"pedido": "50001558", "cliente": "GESVIAL", "descripcion": "ZVN", "n": 8, "ontime_pct": 87.5, "avg_delay": -72.8, "status": "verde", "detail": [{"name": "Recepcion Rodete", "due": "2026-06-01", "comp": null, "delay": 10, "done": false}, {"name": "Recepcion Tableros", "due": "2026-07-17", "comp": null, "delay": -36, "done": false}, {"name": "Recepcion materiales corte laser", "due": "2026-08-25", "comp": null, "delay": -75, "done": false}, {"name": "Recepcion Materiales corte plasma", "due": "2026-08-25", "comp": null, "delay": -75, "done": false}, {"name": "Recepcion mecanizado", "due": "2026-08-25", "comp": null, "delay": -75, "done": false}, {"name": "Recepcion fabricación externa", "due": "2026-09-22", "comp": null, "delay": -103, "done": false}]}];
+
+function fmtDelay(d){
+  if(d===null||d===undefined) return '-';
+  const cls = d>0 ? 'delay-pos' : 'delay-neg';
+  const sign = d>0?'+':'';
+  return `<span class="${cls}">${sign}${d} d</span>`;
+}
+function badge(status){
+  const map={rojo:'🔴 Crítico', amarillo:'🟡 Riesgo', verde:'🟢 OK', 'n/a':'⚪ N/D'};
+  return `<span class="badge b-${status==='n/a'?'na':status}">${map[status]||status}</span>`;
+}
+function dot(status){
+  return `<span class="dot dot-${status==='n/a'?'na':status}"></span>`;
+}
+
+function buildKPIs(){
+  const total = DATA.filter(d=>d.n>0).length;
+  function pct(val){ return total? Math.round(DATA.filter(d=>d.n>0 && d.status===val).length/total*100):0; }
+  const allDelays = DATA.filter(d=>d.n>0).map(d=>d.avg_delay);
+  const avgAll = allDelays.length ? Math.round(allDelays.reduce((a,b)=>a+b,0)/allDelays.length*10)/10 : 0;
+  const kpis = [
+    {title:'Pedidos con tareas en esta área', big: total, sub:'Pedidos con tareas de recepción registradas'},
+    {title:'A tiempo (verde)', big: pct('verde')+'%', sub:`${DATA.filter(d=>d.n>0&&d.status==='verde').length} pedidos sin atraso`},
+    {title:'En riesgo (amarillo)', big: pct('amarillo')+'%', sub:`${DATA.filter(d=>d.n>0&&d.status==='amarillo').length} pedidos con atraso 1-15 días`},
+    {title:'Crítico (rojo)', big: pct('rojo')+'%', sub:`${DATA.filter(d=>d.n>0&&d.status==='rojo').length} pedidos con atraso &gt;15 días`},
+    {title:'Atraso medio global', big: (avgAll>0?'+':'')+avgAll+' d', sub:'Promedio de atraso/adelanto sobre todos los pedidos con tareas'},
+  ];
+  const row = document.getElementById('kpiRow');
+  kpis.forEach(k=>{
+    const div=document.createElement('div'); div.className='kpi';
+    div.innerHTML=`<h3>${k.title}</h3><div class="big">${k.big}</div><div class="sub">${k.sub}</div>`;
+    row.appendChild(div);
+  });
+}
+
+function donut(){
+  const order=['verde','amarillo','rojo','n/a'];
+  const labels=['OK','Riesgo','Crítico','Sin tareas'];
+  const colors=['#3fb950','#f2a93b','#e5484d','#3a4555'];
+  const counts=order.map(s=>DATA.filter(d=>d.status===s).length);
+  new Chart(document.getElementById('chartStatus'),{
+    type:'doughnut',
+    data:{labels, datasets:[{data:counts, backgroundColor:colors, borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#8b98a9',font:{size:11},boxWidth:10}}},cutout:'60%'}
+  });
+}
+
+function topChart(){
+  const top = [...DATA].filter(d=>d.n>0 && d.avg_delay>0).sort((a,b)=>b.avg_delay-a.avg_delay).slice(0,10);
+  new Chart(document.getElementById('chartTop'),{
+    type:'bar',
+    data:{labels: top.map(d=>`${d.pedido} - ${d.cliente}`.slice(0,30)),
+          datasets:[{data:top.map(d=>d.avg_delay), backgroundColor:'#e5484d'}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'Atraso medio (días)',color:'#8b98a9'},ticks:{color:'#8b98a9'}},
+              y:{ticks:{color:'#8b98a9',font:{size:10}}}}}
+  });
+}
+
+function renderTable(rows){
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  rows.forEach(d=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="pedido-cell">${d.pedido}</td>
+      <td>${d.cliente}<div class="small">${d.descripcion||''}</div></td>
+      <td>${d.n}</td>
+      <td>${d.ontime_pct!==null?d.ontime_pct+'%':'-'}</td>
+      <td>${fmtDelay(d.avg_delay)}</td>
+      <td>${dot(d.status)}${badge(d.status)}</td>
+    `;
+    const detailTr=document.createElement('tr');
+    detailTr.className='detail-row';
+    detailTr.innerHTML=`<td colspan="6"><div class="detail-inner">
+      <h4>Tareas de Recepción (Bodega)</h4>
+      <ul>${(d.detail||[]).map(o=>`<li><span>${o.name}${o.due?` <span class="small">(límite ${o.due}${o.comp?', cierre '+o.comp:''})</span>`:''}</span>${fmtDelay(o.delay)}</li>`).join('') || '<li>Sin tareas</li>'}</ul>
+    </div></td>`;
+    tr.addEventListener('click',()=>{
+      detailTr.style.display = detailTr.style.display==='table-row' ? 'none':'table-row';
+    });
+    tbody.appendChild(tr);
+    tbody.appendChild(detailTr);
+  });
+  document.getElementById('countInfo').textContent = `${rows.length} pedidos`;
+}
+
+function applyFilters(){
+  const status=document.getElementById('filterStatus').value;
+  const q=document.getElementById('search').value.toLowerCase();
+  let rows=DATA.filter(d=>{
+    if(q && !(d.pedido.toLowerCase().includes(q) || (d.cliente||'').toLowerCase().includes(q))) return false;
+    if(status==='all') return true;
+    return d.status===status;
+  });
+  renderTable(rows);
+}
+
+document.getElementById('filterStatus').addEventListener('change',applyFilters);
+document.getElementById('search').addEventListener('input',applyFilters);
+
+let sortDir={};
+document.querySelectorAll('th[data-key]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const key=th.dataset.key;
+    sortDir[key]=!sortDir[key];
+    DATA.sort((a,b)=>{
+      let va=a[key], vb=b[key];
+      if(va===null) va = sortDir[key]? Infinity:-Infinity;
+      if(vb===null) vb = sortDir[key]? Infinity:-Infinity;
+      if(typeof va==='string'){ va=va.toLowerCase(); vb=(vb||'').toLowerCase(); }
+      if(va<vb) return sortDir[key]?-1:1;
+      if(va>vb) return sortDir[key]?1:-1;
+      return 0;
+    });
+    applyFilters();
+  });
+});
+
+buildKPIs();
+donut();
+topChart();
+applyFilters();
+</script>
+</body>
+</html>
