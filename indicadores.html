@@ -253,7 +253,7 @@ function renderTable_prod(rows){
     detailTr.className='detail-row';
     detailTr.innerHTML=`<td colspan="8"><div class="detail-inner" style="grid-template-columns:1fr;">
       <div><h4>Propuestas de Producción (Núcleo Rodete / Corte Láser / Corte Plasma / Mecanizado / Aprovisionamiento a código)</h4>
-      <ul style="columns:3;">${(d.prop_detail||[]).map(o=>`<li><span>${o.name}${o.due?` <span class="small">(límite ${o.due}${o.comp?', cierre '+o.comp:''})</span>`:''}</span>${fmtDelay_prod(o.delay)}</li>`).join('') || '<li>Sin tareas de propuesta registradas para este pedido</li>'}</ul></div>
+      <ul style="columns:3;">${(d.prop_detail||[]).map(o=>`<li><span>${o.name}${o.due?` <span class="small">(límite ${o.due}${o.comp?', cierre '+o.comp:''})</span>`:''}</span><span>${o.done?'<span class="badge_prod b-verde">✅ Lista</span>':'<span class="badge_prod b-rojo">⏳ Pendiente</span>'} ${fmtDelay_prod(o.delay)}</span></li>`).join('') || '<li>Sin tareas de propuesta registradas para este pedido</li>'}</ul></div>
     </div></td>`;
     tr.addEventListener('click',()=>{
       detailTr.style.display = detailTr.style.display==='table-row' ? 'none':'table-row';
