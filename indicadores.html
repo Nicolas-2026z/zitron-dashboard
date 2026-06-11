@@ -219,13 +219,13 @@ function buildKPIs_prod(){
   });
 }
 
-function statusCounts_prod(field){
+function statusCounts_prod(field, labels){
   const order=['verde','amarillo','rojo','n/a'];
   const counts=order.map(s=>DATA_prod.filter(d=>d[field]===s).length);
-  return {labels:['OK','Riesgo','Crítico','Sin datos'], data:counts, colors:['#3fb950','#f2a93b','#e5484d','#3a4555']};
+  return {labels:labels||['OK','Riesgo','Crítico','Sin datos'], data:counts, colors:['#3fb950','#f2a93b','#e5484d','#3a4555']};
 }
-function donut_prod(id,field){
-  const c=statusCounts_prod(field);
+function donut_prod(id,field,labels){
+  const c=statusCounts_prod(field,labels);
   new Chart(document.getElementById(id+'_prod'),{
     type:'doughnut',
     data:{labels:c.labels, datasets:[{data:c.data, backgroundColor:c.colors, borderWidth:0}]},
@@ -303,7 +303,7 @@ document.querySelectorAll('th[data-key]').forEach(th=>{
 function init_prod(){
 buildKPIs_prod();
 donut_prod('chartFab','fab_status');
-donut_prod('chartEntrega','ent_status');
+donut_prod('chartEntrega','ent_status',['En tiempo','Por vencer','Atrasado','Despachado']);
 donut_prod('chartProp','prop_status');
 applyFilters_prod();
 }
