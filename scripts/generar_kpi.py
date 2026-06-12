@@ -588,7 +588,9 @@ def main():
     html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
     html_out = html_out.replace("__FECHA__", today.strftime("%b %Y"))
 
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    out_dir = os.path.dirname(output_file)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as fh:
         fh.write(html_out)
 
