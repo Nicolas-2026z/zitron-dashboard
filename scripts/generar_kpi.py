@@ -1,0 +1,602 @@
+#!/usr/bin/env python3
+"""
+Genera KPI.html - "Dashboard Desempeño de Equipos"
+basado en exports de Asana (.xlsx), replicando la estructura de las
+capturas: tarjetas globales, Resumen por área, Detalle por persona,
+Detalle de tareas, con semáforo en días hábiles de Chile.
+
+REGLAS
+------
+- "Tarea nivel 2"  = filas cuyo campo 'Parent task' NO está vacío
+                     (subtareas de una tarea padre).
+- Semáforo:
+    VERDE = completada en la fecha de entrega o antes (días hábiles Chile)
+    ROJO  = todo lo demás:
+              - completada 1+ día hábil después de la fecha de entrega
+              - o no completada y la fecha de entrega ya pasó (1+ día hábil)
+    (tareas en curso, sin vencer aún -> estado "En curso", no entran al %)
+
+- Área del equipo: se determina por assignee (diccionario editable
+  ASSIGNEE_AREA) y, si no está mapeado, por palabras clave en
+  'Section/Column' (ver SECTION_AREA_KEYWORDS).
+
+USO
+---
+  python3 generar_kpi.py <carpeta_con_excels> <archivo_salida_html>
+
+Por defecto:
+  carpeta_con_excels  = /mnt/user-data/uploads
+  archivo_salida_html = /mnt/user-data/outputs/KPI.html
+
+INTEGRACIÓN CON LA AUTOMATIZACIÓN DE GITHUB
+--------------------------------------------
+Este script no "escucha" cambios por sí mismo. Se integra como un paso
+más del flujo que ya descarga los 41 Excel desde Asana:
+
+  1) (paso existente) descargar los .xlsx actualizados a /data/excels
+  2) python3 generar_kpi.py /data/excels /docs/KPI.html
+  3) git add /docs/KPI.html && git commit -m "Actualiza KPI" && git push
+
+Si esa automatización corre con GitHub Actions, basta agregar un
+"step" que ejecute este script después del step de descarga, y otro
+que haga commit/push del KPI.html (o publicarlo con GitHub Pages
+desde /docs). Así el dashboard queda "actualizado solo" cada vez que
+corre el workflow.
+"""
+
+import sys
+import os
+import glob
+import json
+import datetime
+import warnings
+import openpyxl
+
+warnings.filterwarnings("ignore")
+
+# ---------------------------------------------------------------------
+# CONFIGURACIÓN EDITABLE
+# ---------------------------------------------------------------------
+
+FERIADOS_CHILE = {
+    datetime.date(2025, 1, 1), datetime.date(2025, 4, 18), datetime.date(2025, 4, 19),
+    datetime.date(2025, 5, 1), datetime.date(2025, 5, 21), datetime.date(2025, 6, 20),
+    datetime.date(2025, 6, 29), datetime.date(2025, 7, 16), datetime.date(2025, 8, 15),
+    datetime.date(2025, 9, 18), datetime.date(2025, 9, 19), datetime.date(2025, 10, 12),
+    datetime.date(2025, 10, 31), datetime.date(2025, 11, 1), datetime.date(2025, 12, 8),
+    datetime.date(2025, 12, 25),
+    datetime.date(2026, 1, 1), datetime.date(2026, 4, 3), datetime.date(2026, 4, 4),
+    datetime.date(2026, 5, 1), datetime.date(2026, 5, 21), datetime.date(2026, 6, 20),
+    datetime.date(2026, 6, 29), datetime.date(2026, 7, 16), datetime.date(2026, 8, 15),
+    datetime.date(2026, 9, 18), datetime.date(2026, 9, 19), datetime.date(2026, 10, 12),
+    datetime.date(2026, 10, 31), datetime.date(2026, 11, 1), datetime.date(2026, 12, 8),
+    datetime.date(2026, 12, 25),
+}
+
+ASSIGNEE_AREA = {
+    "Francisca Ramos": "Equipo Proyecto",
+    "Benjamín Bustos": "Producción",
+    "Víctor Muñoz": "Bodega",
+    "Nicolás López": "Producción",
+    "Hugo Isla": "Producción",
+    "Eliana": "Compras",
+    "Nicolás Mol": "Producción",
+    "Ignacio García": "Servicios",
+    "Yerlia": "Compras",
+    "Hernán Gutierrez": "Ingeniería",
+    "Sergio Saavedra": "Servicios",
+    "Rose": "Compras",
+    "Francisca González": "Ingeniería",
+    "Karin Pinto": "Logística",
+}
+
+SECTION_AREA_KEYWORDS = [
+    ("produccion", "Producción"), ("producción", "Producción"),
+    ("ingenier", "Ingeniería"),
+    ("compra", "Compras"),
+    ("bodega", "Bodega"),
+    ("servicio", "Servicios"),
+    ("logist", "Logística"), ("logíst", "Logística"),
+]
+
+# ---------------------------------------------------------------------
+# UTILIDADES DE FECHAS (días hábiles Chile)
+# ---------------------------------------------------------------------
+
+def es_habil(d: datetime.date) -> bool:
+    return d.weekday() < 5 and d not in FERIADOS_CHILE
+
+
+def dias_habiles_entre(d1: datetime.date, d2: datetime.date) -> int:
+    """Días hábiles desde d1 (exclusive) hasta d2 (inclusive).
+    Positivo si d2 > d1, negativo si d2 < d1."""
+    if d1 == d2:
+        return 0
+    a, b = (d1, d2) if d2 > d1 else (d2, d1)
+    count = 0
+    cur = a + datetime.timedelta(days=1)
+    while cur <= b:
+        if es_habil(cur):
+            count += 1
+        cur += datetime.timedelta(days=1)
+    return count if d2 > d1 else -count
+
+
+def to_date(val):
+    if val is None:
+        return None
+    if isinstance(val, datetime.datetime):
+        return val.date()
+    if isinstance(val, datetime.date):
+        return val
+    return None
+
+
+# ---------------------------------------------------------------------
+# LECTURA DE EXCELS
+# ---------------------------------------------------------------------
+
+def find_header_row(ws, max_scan=10):
+    for r in range(1, max_scan + 1):
+        values = [c.value for c in ws[r]]
+        if "Task ID" in values and "Name" in values:
+            return r, values
+    return None, None
+
+
+def area_for(assignee, section):
+    if assignee:
+        for k, v in ASSIGNEE_AREA.items():
+            if k.lower() == str(assignee).strip().lower():
+                return v
+    sec = (section or "").lower()
+    for kw, area in SECTION_AREA_KEYWORDS:
+        if kw in sec:
+            return area
+    return "Equipo Proyecto"
+
+
+def process_file(path, today):
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = wb.active
+    project_name = ws.title.strip()
+
+    header_row, headers = find_header_row(ws)
+    if header_row is None:
+        return None
+
+    col = {name: idx for idx, name in enumerate(headers) if name is not None}
+    required = ["Name", "Due Date", "Completed At", "Parent task"]
+    if not all(r in col for r in required):
+        return None
+
+    tasks = []
+    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
+        if row[col["Name"]] in (None, ""):
+            continue
+
+        parent = row[col["Parent task"]]
+        if parent in (None, ""):
+            continue  # solo "nivel 2" = tiene tarea padre
+
+        name = str(row[col["Name"]]).strip()
+        section = row[col.get("Section/Column")] if "Section/Column" in col else ""
+        assignee = row[col.get("Assignee")] if "Assignee" in col else ""
+        due = to_date(row[col["Due Date"]])
+        completed = to_date(row[col["Completed At"]])
+
+        area = area_for(assignee, section)
+
+        if completed is not None:
+            if due is not None:
+                diff = dias_habiles_entre(due, completed)
+                if diff <= 0:
+                    estado = "verde"
+                    estado_plazo = "a tiempo" if diff == 0 else f"{abs(diff)}d antes"
+                else:
+                    estado = "rojo"
+                    estado_plazo = f"{diff}d tarde"
+            else:
+                estado = "verde"
+                estado_plazo = "sin fecha"
+            estado_general = "Completada"
+        else:
+            if due is not None:
+                diff = dias_habiles_entre(due, today)
+                if diff > 0:
+                    estado = "rojo"
+                    estado_plazo = f"{diff}d vencida"
+                    estado_general = "Vencida"
+                else:
+                    estado = "encurso"
+                    estado_plazo = f"{abs(diff)}d rest." if diff < 0 else "vence hoy"
+                    estado_general = "En curso"
+            else:
+                estado = "encurso"
+                estado_plazo = "sin fecha"
+                estado_general = "En curso"
+
+        tasks.append({
+            "name": name,
+            "section": section or "",
+            "assignee": assignee or "(sin asignar)",
+            "area": area,
+            "project": project_name,
+            "due_fmt": due.strftime("%d/%m/%y") if due else "--",
+            "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
+            "estado": estado,
+            "estado_plazo": estado_plazo,
+            "estado_general": estado_general,
+        })
+
+    return {"project": project_name, "file": os.path.basename(path), "tasks": tasks}
+
+
+TEMPLATE = r"""<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Desempeño de Equipos</title>
+<style>
+  :root {
+    --verde: #1e8e3e; --verde-bg: #e6f4ea;
+    --rojo: #b3261e; --rojo-bg: #fce8e6;
+    --azul: #1a73e8;
+    --gris: #80868b; --gris-bg: #f1f3f4;
+    --bg: #f1efe9; --card: #ffffff; --texto: #202124; --borde: #e6e3dc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--texto); margin: 0; padding: 28px;
+  }
+  h1 { font-size: 26px; margin: 0 0 4px 0; }
+  .subt { color: #5f6368; font-size: 14px; margin: 2px 0; }
+  .subt2 { color: #9aa0a6; font-size: 12px; margin: 2px 0 18px 0; }
+
+  .selector {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
+    padding: 8px 14px; font-size: 14px; margin-bottom: 18px; cursor: pointer;
+  }
+  .selector select { border: none; background: transparent; font-size: 14px; font-weight: 600; }
+
+  .cards-globales { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .card-g {
+    background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
+    padding: 14px 22px; min-width: 180px; flex: 1;
+  }
+  .card-g .lbl { font-size: 12px; color: #80868b; text-transform: uppercase; letter-spacing: .04em; }
+  .card-g .val { font-size: 30px; font-weight: 700; margin: 4px 0; }
+  .card-g .sub { font-size: 12px; color: #9aa0a6; }
+  .card-g .val.verde { color: var(--verde); }
+  .card-g .val.rojo { color: var(--rojo); }
+
+  .tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--borde); margin-bottom: 18px; }
+  .tab { padding: 10px 2px; cursor: pointer; font-size: 14px; color: #5f6368; border-bottom: 2px solid transparent; }
+  .tab.active { color: var(--texto); font-weight: 600; border-bottom-color: var(--texto); }
+  .tabcontent { display: none; }
+  .tabcontent.active { display: block; }
+
+  .area-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  .area-card {
+    background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
+    padding: 16px; width: 175px;
+  }
+  .area-card .titulo { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .area-card .pct { font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .area-card .pct.verde { color: var(--verde); }
+  .area-card .pct.rojo { color: var(--rojo); }
+  .area-card .meta { font-size: 12px; color: #5f6368; margin-top: 6px; line-height: 1.5; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+  .dot.verde { background: var(--verde); } .dot.rojo { background: var(--rojo); } .dot.gris { background: var(--gris); }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+  thead th {
+    text-align: left; background: #fafafa; border-bottom: 2px solid var(--borde);
+    padding: 9px 10px; font-size: 12px; color: #5f6368; text-transform: uppercase; letter-spacing: .03em;
+  }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--borde); font-size: 13px; }
+  tbody tr:hover { background: #fafafa; }
+  .pill { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .pill.verde { background: var(--verde-bg); color: var(--verde); }
+  .pill.rojo { background: var(--rojo-bg); color: var(--rojo); }
+  .estado-txt.rojo { color: var(--rojo); font-weight: 600; }
+  .estado-txt.verde { color: var(--verde); font-weight: 600; }
+  .estado-txt.encurso { color: var(--azul); font-weight: 600; }
+
+  .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filtros select {
+    padding: 6px 10px; border: 1px solid var(--borde); border-radius: 6px; background: var(--card); font-size: 13px;
+  }
+  .resumen-linea { font-size: 13px; color: #5f6368; margin-bottom: 10px; }
+  .resumen-linea b.rojo { color: var(--rojo); } .resumen-linea b.azul { color: var(--azul); } .resumen-linea b.verde { color: var(--verde); }
+
+  .leyenda { margin-top: 18px; font-size: 12px; color: #80868b; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .area-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .area-pill {
+    padding: 6px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--borde);
+    font-size: 13px; cursor: pointer;
+  }
+  .area-pill.active { background: var(--texto); color: #fff; border-color: var(--texto); }
+</style>
+</head>
+<body>
+
+<h1>Dashboard Desempeño de Equipos</h1>
+<div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
+<div class="subt2">Días calculados en días hábiles Chile · Actualizado __FECHA__</div>
+
+<div class="selector">📁 Proyecto:
+  <select id="selProyecto" onchange="cambiarProyecto()"></select>
+</div>
+
+<div id="globales"></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="cambiarTab('area')">Resumen por área</div>
+  <div class="tab" onclick="cambiarTab('persona')">Detalle por persona</div>
+  <div class="tab" onclick="cambiarTab('tareas')">📄 Detalle tareas</div>
+</div>
+
+<div class="tabcontent active" id="tab-area">
+  <div class="area-grid" id="areaGrid"></div>
+</div>
+
+<div class="tabcontent" id="tab-persona">
+  <div class="area-pills" id="areaPills"></div>
+  <table>
+    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>En tiempo</th><th>Fuera de tiempo</th></tr></thead>
+    <tbody id="personaBody"></tbody>
+  </table>
+</div>
+
+<div class="tabcontent" id="tab-tareas">
+  <div class="filtros">
+    <select id="fUsuario" onchange="renderTareas()"><option value="">Usuario: Todos</option></select>
+    <select id="fArea" onchange="renderTareas()"><option value="">Área: Todas</option></select>
+    <select id="fSeccion" onchange="renderTareas()"><option value="">Sección: Todas</option></select>
+    <select id="fEstado" onchange="renderTareas()">
+      <option value="">Estado: Todos</option>
+      <option value="Completada">Completada</option>
+      <option value="Vencida">Vencida</option>
+      <option value="En curso">En curso</option>
+    </select>
+  </div>
+  <div class="resumen-linea" id="resumenTareas"></div>
+  <table>
+    <thead><tr><th>Tarea</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Vence</th><th>Completó</th><th>Estado plazo</th><th>Estado</th></tr></thead>
+    <tbody id="tareasBody"></tbody>
+  </table>
+</div>
+
+<div class="leyenda">
+  <span><span class="dot verde"></span> Verde: cerrada en fecha o antes</span>
+  <span><span class="dot rojo"></span> Rojo: 1+ día hábil de atraso</span>
+  <span style="margin-left:auto;">Solo tareas nivel 2 (con tarea padre) · días hábiles Chile</span>
+</div>
+
+<script>
+const DATA = __DATA__;
+let proyectoActual = Object.keys(DATA)[0];
+let areaFiltroPersona = "Todos";
+
+function cambiarTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+  const idx = tab === 'area' ? 1 : (tab === 'persona' ? 2 : 3);
+  document.querySelector(`.tab:nth-child(${idx})`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function cambiarProyecto() {
+  proyectoActual = document.getElementById('selProyecto').value;
+  areaFiltroPersona = "Todos";
+  render();
+}
+
+function pct(verde, total) { return total ? (100 * verde / total) : 0; }
+
+function render() {
+  const tasks = DATA[proyectoActual];
+  const total = tasks.length;
+  const completadas = tasks.filter(t => t.estado_general === "Completada").length;
+  const verdes = tasks.filter(t => t.estado === "verde").length;
+  const rojos = tasks.filter(t => t.estado === "rojo").length;
+  const enPlazoPct = pct(verdes, total).toFixed(0);
+  const atrasoPct = pct(rojos, total).toFixed(0);
+
+  document.getElementById('globales').innerHTML = `
+    <div class="cards-globales">
+      <div class="card-g"><div class="lbl">Tareas nivel 2</div><div class="val">${total}</div><div class="sub">${proyectoActual}</div></div>
+      <div class="card-g"><div class="lbl">Completadas</div><div class="val">${completadas}</div><div class="sub">${pct(completadas,total).toFixed(0)}% del total</div></div>
+      <div class="card-g"><div class="lbl">En plazo</div><div class="val verde">${enPlazoPct}%</div><div class="sub">${verdes} cerradas en fecha o antes</div></div>
+      <div class="card-g"><div class="lbl">Con atraso</div><div class="val rojo">${atrasoPct}%</div><div class="sub">${rojos} cerradas/vencidas 1+ día tarde</div></div>
+    </div>`;
+
+  renderAreas(tasks);
+  renderPersonas(tasks);
+  fillFiltrosTareas(tasks);
+  renderTareas();
+}
+
+function renderAreas(tasks) {
+  const areas = {};
+  tasks.forEach(t => {
+    areas[t.area] = areas[t.area] || {total:0, verde:0, rojo:0};
+    areas[t.area].total++;
+    if (t.estado === 'verde') areas[t.area].verde++;
+    if (t.estado === 'rojo') areas[t.area].rojo++;
+  });
+  let html = '';
+  Object.keys(areas).forEach(area => {
+    const a = areas[area];
+    const p = pct(a.verde, a.total);
+    const cls = a.total === 0 ? '' : (p >= 50 ? 'verde' : 'rojo');
+    html += `<div class="area-card">
+      <div class="titulo">${area}</div>
+      <div class="pct ${cls}">${p.toFixed(0)}%</div>
+      <div class="meta">${a.total} tareas<br>
+        <span class="dot verde"></span>${a.verde} en tiempo
+        &nbsp;<span class="dot rojo"></span>${a.rojo} fuera de tiempo
+      </div>
+    </div>`;
+  });
+  document.getElementById('areaGrid').innerHTML = html || '<i>Sin tareas nivel 2 en este proyecto</i>';
+}
+
+function renderPersonas(tasks) {
+  const areasSet = new Set(tasks.map(t => t.area));
+  const pillsHtml = ['Todos', ...Array.from(areasSet)].map(a =>
+    `<div class="area-pill ${a===areaFiltroPersona?'active':''}" onclick="setAreaPersona('${a}')">${a}</div>`).join('');
+  document.getElementById('areaPills').innerHTML = pillsHtml;
+
+  const filtradas = areaFiltroPersona === 'Todos' ? tasks : tasks.filter(t => t.area === areaFiltroPersona);
+
+  const personas = {};
+  filtradas.forEach(t => {
+    const key = t.assignee;
+    personas[key] = personas[key] || {area: t.area, total:0, compl:0, verde:0, rojo:0};
+    personas[key].total++;
+    if (t.estado_general === 'Completada') personas[key].compl++;
+    if (t.estado === 'verde') personas[key].verde++;
+    if (t.estado === 'rojo') personas[key].rojo++;
+  });
+
+  const ordenadas = Object.entries(personas).sort((a,b) => b[1].total - a[1].total);
+  let html = '';
+  ordenadas.forEach(([nombre, d]) => {
+    const p = pct(d.compl, d.total);
+    html += `<tr>
+      <td></td>
+      <td><b>${nombre}</b></td>
+      <td>${d.area}</td>
+      <td>${d.total}</td>
+      <td>${d.compl}</td>
+      <td><span class="pill ${p>=50?'verde':'rojo'}">${p.toFixed(0)}%</span></td>
+      <td><span class="dot verde"></span>${d.verde}</td>
+      <td><span class="dot rojo"></span>${d.rojo}</td>
+    </tr>`;
+  });
+  document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="8"><i>Sin datos</i></td></tr>';
+}
+
+function setAreaPersona(a) { areaFiltroPersona = a; renderPersonas(DATA[proyectoActual]); }
+
+function fillFiltrosTareas(tasks) {
+  const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
+  const areas = [...new Set(tasks.map(t => t.area))].sort();
+  const secciones = [...new Set(tasks.map(t => t.section).filter(s => s))].sort();
+
+  const fill = (id, items, label) => {
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    sel.innerHTML = `<option value="">${label}: Todos</option>` +
+      items.map(i => `<option value="${i}">${i}</option>`).join('');
+    sel.value = current;
+  };
+  fill('fUsuario', usuarios, 'Usuario');
+  fill('fArea', areas, 'Área');
+  fill('fSeccion', secciones, 'Sección');
+}
+
+function renderTareas() {
+  const tasks = DATA[proyectoActual];
+  const fu = document.getElementById('fUsuario').value;
+  const fa = document.getElementById('fArea').value;
+  const fs = document.getElementById('fSeccion').value;
+  const fe = document.getElementById('fEstado').value;
+
+  const filtradas = tasks.filter(t =>
+    (!fu || t.assignee === fu) &&
+    (!fa || t.area === fa) &&
+    (!fs || t.section === fs) &&
+    (!fe || t.estado_general === fe)
+  );
+
+  const completadas = filtradas.filter(t => t.estado_general === 'Completada').length;
+  const enCurso = filtradas.filter(t => t.estado_general === 'En curso').length;
+  const vencidas = filtradas.filter(t => t.estado_general === 'Vencida').length;
+
+  document.getElementById('resumenTareas').innerHTML =
+    `${filtradas.length} tareas &nbsp; <b class="verde">${completadas} completadas (${pct(completadas,filtradas.length).toFixed(0)}%)</b> &nbsp; ` +
+    `<b class="azul">${enCurso} en curso</b> &nbsp; <b class="rojo">${vencidas} vencidas</b>`;
+
+  let html = '';
+  filtradas.forEach(t => {
+    const cls = t.estado === 'verde' ? 'verde' : (t.estado === 'rojo' ? 'rojo' : 'encurso');
+    const estadoLabel = t.estado_general === 'Vencida' ? '⚠ Vencida' :
+                         t.estado_general === 'En curso' ? '● En curso' : '✓ Completada';
+    html += `<tr>
+      <td>${t.name}</td>
+      <td>${t.section}</td>
+      <td><b>${t.assignee}</b></td>
+      <td>${t.area}</td>
+      <td>${t.due_fmt}</td>
+      <td>${t.completed_fmt}</td>
+      <td class="estado-txt ${cls}">${t.estado_plazo}</td>
+      <td><span class="estado-txt ${cls}">${estadoLabel}</span></td>
+    </tr>`;
+  });
+  document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="8"><i>Sin tareas</i></td></tr>';
+}
+
+const selProyecto = document.getElementById('selProyecto');
+Object.keys(DATA).forEach(p => {
+  const opt = document.createElement('option');
+  opt.value = p; opt.textContent = p;
+  selProyecto.appendChild(opt);
+});
+
+render();
+</script>
+</body>
+</html>
+"""
+
+
+def main():
+    input_dir = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
+    output_file = sys.argv[2] if len(sys.argv) > 2 else "/mnt/user-data/outputs/KPI.html"
+
+    files = sorted(glob.glob(os.path.join(input_dir, "*.xlsx")))
+    files = [f for f in files if not os.path.basename(f).startswith("~$")]
+    if not files:
+        print(f"No se encontraron archivos .xlsx en {input_dir}")
+        sys.exit(1)
+
+    today = datetime.date.today()
+    data = {}
+    errores = []
+    for f in files:
+        try:
+            r = process_file(f, today)
+            if r is None:
+                errores.append((f, "encabezados/columnas no reconocidas (revisar 'Parent task', 'Due Date', 'Completed At')"))
+                continue
+            data[r["project"]] = r["tasks"]
+        except Exception as e:
+            errores.append((f, str(e)))
+
+    if not data:
+        print("No se pudo procesar ningun archivo.")
+        for f, e in errores:
+            print(f"  - {f}: {e}")
+        sys.exit(1)
+
+    html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
+    html_out = html_out.replace("__FECHA__", today.strftime("%b %Y"))
+
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with open(output_file, "w", encoding="utf-8") as fh:
+        fh.write(html_out)
+
+    print(f"Proyectos procesados: {len(data)} / {len(files)}")
+    for f, e in errores:
+        print(f"  [ERROR] {os.path.basename(f)}: {e}")
+    print(f"KPI generado en: {output_file}")
+
+
+if __name__ == "__main__":
+    main()
