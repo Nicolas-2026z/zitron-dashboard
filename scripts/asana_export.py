@@ -81,9 +81,13 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
         menu.first.click(timeout=15000)
         time.sleep(0.8)
 
-        # 2) Hover/click en "Exportar o sincronizar"
+        # 2) Hover en "Exportar o sincronizar" para desplegar el submenu
         export_menu = page.get_by_text("Exportar o sincronizar", exact=False)
-        export_menu.first.click(timeout=10000)
+        export_menu.first.wait_for(state="visible", timeout=10000)
+        export_menu.first.hover(timeout=10000)
+        time.sleep(1.0)
+        # algunos navegadores necesitan un segundo hover para abrir el submenu
+        export_menu.first.hover(timeout=10000)
         time.sleep(0.8)
 
         # 3) Click en "Tareas del proyecto en formato CSV/XLSX" -> abre dialogo
