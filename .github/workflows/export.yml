@@ -24,7 +24,7 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install playwright
+          pip install playwright openpyxl
           playwright install chromium --with-deps
 
       - name: Restaurar sesion de Asana
@@ -45,10 +45,14 @@ jobs:
         if: always()
         run: rm -f auth.json
 
+      # <-- NUEVO: genera el dashboard KPI.HTML a partir de los xlsx en data/
+      - name: Generar KPI.HTML
+        run: python scripts/generar_kpi.py data KPI.HTML
+
       - name: Commit y push de los CSV actualizados
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
-          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git add data/ KPI.HTML
+          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
