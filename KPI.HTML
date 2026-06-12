@@ -204,6 +204,17 @@ tr.person-row:hover td { background: var(--bg2); cursor: pointer; }
   .kpi-grid { grid-template-columns: repeat(2,1fr); }
   .teams-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* Project filter */
+.proj-filter-wrap{position:relative;display:inline-block;margin-top:10px;}
+.proj-filter-btn{font-size:12px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit;}
+.proj-filter-btn:hover{border-color:var(--text2);}
+.proj-filter-panel{display:none;position:absolute;top:110%;left:0;z-index:50;background:var(--bg);border:0.5px solid var(--border2);border-radius:8px;padding:10px;width:360px;max-height:340px;overflow:auto;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.proj-filter-panel.open{display:block;}
+.proj-filter-actions{display:flex;gap:8px;margin-bottom:8px;}
+.proj-filter-actions button{font-size:11px;padding:4px 10px;border:0.5px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;}
+.proj-item{display:block;font-size:12px;padding:3px 0;cursor:pointer;color:var(--text);}
+.proj-item input{margin-right:6px;}
 </style>
 </head>
 <body>
@@ -226,13 +237,23 @@ tr.person-row:hover td { background: var(--bg2); cursor: pointer; }
     <h1>Dashboard Desempeño de Equipos</h1>
     <p>Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (sin cabeceras de sección)</p>
     <div class="updated">Días calculados en días hábiles Chile · Actualizado jun 2026</div>
+    <div class="proj-filter-wrap">
+      <button class="proj-filter-btn" id="projFilterBtn" onclick="toggleProjFilter()">📁 Proyectos: <span id="projFilterCount">Todos</span> ▾</button>
+      <div class="proj-filter-panel" id="projFilterPanel">
+        <div class="proj-filter-actions">
+          <button onclick="setAllProjects(true)">Seleccionar todos</button>
+          <button onclick="setAllProjects(false)">Ninguno</button>
+        </div>
+        <div class="proj-filter-list" id="projFilterList"></div>
+      </div>
+    </div>
   </div>
 
   <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Tareas nivel 2</div><div class="kpi-val">2,185</div><div class="kpi-sub">42 proyectos · 7 equipos</div></div>
-    <div class="kpi"><div class="kpi-label">Completadas</div><div class="kpi-val">1,009</div><div class="kpi-sub">46.2% del total</div></div>
-    <div class="kpi"><div class="kpi-label">En plazo</div><div class="kpi-val" style="color:var(--green)">20.2%</div><div class="kpi-sub">204 cerradas en fecha o antes</div></div>
-    <div class="kpi"><div class="kpi-label">Con atraso</div><div class="kpi-val" style="color:var(--red)">79.8%</div><div class="kpi-sub">805 cerradas 1+ día tarde</div></div>
+    <div class="kpi"><div class="kpi-label">Tareas nivel 2</div><div class="kpi-val" id="kpiTotal">2,185</div><div class="kpi-sub" id="kpiTotalSub">42 proyectos · 7 equipos</div></div>
+    <div class="kpi"><div class="kpi-label">Completadas</div><div class="kpi-val" id="kpiCompleted">1,009</div><div class="kpi-sub" id="kpiCompletedSub">46.2% del total</div></div>
+    <div class="kpi"><div class="kpi-label">En plazo</div><div class="kpi-val" id="kpiOnTime" style="color:var(--green)">20.2%</div><div class="kpi-sub" id="kpiOnTimeSub">204 cerradas en fecha o antes</div></div>
+    <div class="kpi"><div class="kpi-label">Con atraso</div><div class="kpi-val" id="kpiLate" style="color:var(--red)">79.8%</div><div class="kpi-sub" id="kpiLateSub">805 cerradas 1+ día tarde</div></div>
   </div>
 
   <div class="tab-bar">
@@ -299,7 +320,6 @@ tr.person-row:hover td { background: var(--bg2); cursor: pointer; }
           <th onclick="sortTasks('project')">Proyecto</th>
           <th onclick="sortTasks('due')" style="text-align:right">Vence</th>
           <th onclick="sortTasks('completed')" style="text-align:right">Completó</th>
-          <th onclick="sortTasks('biz_days')" style="text-align:right">Días háb.</th>
           <th onclick="sortTasks('days_val')" style="text-align:right">Estado plazo</th>
           <th onclick="sortTasks('status')" style="text-align:center">Estado</th>
         </tr></thead>
@@ -360,7 +380,9 @@ function miniBar(g,y,r,tot){
 
 // Render team cards
 const grid = document.getElementById('teamsGrid');
-DATA.teams.forEach(t=>{
+function renderTeams(d){
+  grid.innerHTML = '';
+  d.teams.forEach(t=>{
   grid.innerHTML += `<div class="team-card">
     <div class="team-name"><span class="team-icon">${teamIcons[t.team]||'📋'}</span>${t.team}</div>
     <div class="team-perf" style="color:${perfColor(t.perf)}">${t.perf}%</div>
@@ -374,13 +396,14 @@ DATA.teams.forEach(t=>{
       ${t.avg_days_done!=null?t.avg_days_done+'d prom. (inicio-fin)':'—'}
     </div>
   </div>`;
-});
+  });
+}
 
 let currentFilter='all', sortKey='perf', sortDir=-1;
 const expanded={};
 
 function renderPeople(){
-  let list=currentFilter==='all'?[...DATA.persons]:DATA.persons.filter(p=>p.team===currentFilter);
+  let list=currentFilter==='all'?[...VDATA.persons]:VDATA.persons.filter(p=>p.team===currentFilter);
   list.sort((a,b)=>{const av=a[sortKey]??-Infinity,bv=b[sortKey]??-Infinity;return typeof av==='string'?sortDir*av.localeCompare(bv,'es'):sortDir*(av-bv);});
   let html='';
   list.forEach(p=>{
@@ -398,7 +421,7 @@ function renderPeople(){
       <td style="text-align:right">${lateChip(p.avg_late)}</td>
     </tr>`;
     if(isOpen){
-      const projs=(DATA.projects_by_person[p.name]||[]);
+      const projs=(VDATA.projects_by_person[p.name]||[]);
       let sub=projs.map(pr=>`<tr>
         <td>${pr.p}</td>
         <td style="text-align:right">${pr.t}</td>
@@ -446,11 +469,11 @@ const PAGE_SIZE=50;
 const TBADGE={'Producción':'b-prod','Ingeniería':'b-ing','Equipo Proyecto':'b-proy','Compras':'b-comp','Bodega':'b-bod','Logística':'b-log','Servicios':'b-serv'};
 
 function initTaskPanel(){
-  if(document.getElementById('taskFilters').children.length) return;
-  const users=[...new Set(TASKS.map(t=>t.user))].sort((a,b)=>a.localeCompare(b,'es'));
-  const teams=[...new Set(TASKS.map(t=>t.team))].sort();
-  const sections=[...new Set(TASKS.map(t=>t.section))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));
-  const projects=[...new Set(TASKS.map(t=>t.project))].sort((a,b)=>a.localeCompare(b,'es'));
+  const VT=visibleTasks();
+  const users=[...new Set(VT.map(t=>t.user))].sort((a,b)=>a.localeCompare(b,'es'));
+  const teams=[...new Set(VT.map(t=>t.team))].sort();
+  const sections=[...new Set(VT.map(t=>t.section))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));
+  const projects=[...new Set(VT.map(t=>t.project))].sort((a,b)=>a.localeCompare(b,'es'));
   const f=document.getElementById('taskFilters');
   f.innerHTML='<label>Usuario:</label>'
     +'<select onchange="tFilter.user=this.value;tPage=0;renderTasks()">'
@@ -479,7 +502,7 @@ function initTaskPanel(){
 }
 
 function getFilteredTasks(){
-  return TASKS.filter(t=>
+  return visibleTasks().filter(t=>
     (!tFilter.user    || t.user===tFilter.user) &&
     (!tFilter.team    || t.team===tFilter.team) &&
     (!tFilter.section || t.section===tFilter.section) &&
@@ -544,14 +567,13 @@ function renderTasks(){
     +'<td style="font-size:12px;color:var(--text2);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+t.project+'">'+t.project+'</td>'
     +'<td style="text-align:right;font-size:12px;white-space:nowrap">'+t.due+'</td>'
     +'<td style="text-align:right;font-size:12px;color:var(--text2);white-space:nowrap">'+t.completed+'</td>'
-    +'<td style="text-align:right;font-size:12px;color:var(--text2)">'+(t.biz_days!=null?t.biz_days+'d':'—')+'</td>'
     +'<td style="text-align:right;font-size:12px;font-weight:600;color:'+dayColor(t)+';white-space:nowrap">'+(t.days_str||'—')+'</td>'
     +'<td style="text-align:center">'+stBadge(t)+'</td>'
     +'</tr>').join('');
 
   document.querySelectorAll('#taskTable th').forEach((th,i)=>{
     th.classList.remove('sort-asc','sort-desc');
-    const keys=['task','section','user','team','project','due','completed','biz_days','days_val','status'];
+    const keys=['task','section','user','team','project','due','completed','days_val','status'];
     if(keys[i]===tSort.key) th.classList.add(tSort.dir===1?'sort-asc':'sort-desc');
   });
 
@@ -564,6 +586,130 @@ function renderTasks(){
   ph+='<button class="pager-btn" onclick="tPage=Math.min('+(pages-1)+',tPage+1);renderTasks()"'+(tPage===pages-1?' disabled':'')+'>Sig. ›</button>';
   pager.innerHTML=ph;
 }
+
+// ── Global project filter ──
+function visibleTasks(){ return TASKS.filter(t=>selectedProjects.has(t.project)); }
+
+function computeData(tasks){
+  const persons={}, teams={}, ppByPerson={};
+  const round1=v=>Math.round(v*10)/10;
+  tasks.forEach(t=>{
+    if(!persons[t.user]) persons[t.user]={name:t.user,team:t.team,total:0,completed:0,green:0,yellow:0,red:0,_dd:0,_ddn:0,_dp:0,_dpn:0,_la:0,_lan:0};
+    if(!teams[t.team]) teams[t.team]={team:t.team,total:0,completed:0,green:0,yellow:0,red:0,_dd:0,_ddn:0,_dp:0,_dpn:0};
+    const p=persons[t.user], tm=teams[t.team];
+    p.total++; tm.total++;
+    if(t.is_done){
+      p.completed++; tm.completed++;
+      if(t.color==='green'){p.green++;tm.green++;}
+      else if(t.color==='yellow'){p.yellow++;tm.yellow++;}
+      else if(t.color==='red'){p.red++;tm.red++;}
+      if(t.biz_days!=null){p._dd+=t.biz_days;p._ddn++;tm._dd+=t.biz_days;tm._ddn++;}
+      if(t.days_val!=null){
+        const v=(t.days_str&&t.days_str.includes('antes'))?-t.days_val:t.days_val;
+        p._la+=v; p._lan++;
+      }
+    } else if(t.has_start && t.biz_pending!=null){
+      p._dp+=t.biz_pending; p._dpn++;
+      tm._dp+=t.biz_pending; tm._dpn++;
+    }
+    if(!ppByPerson[t.user]) ppByPerson[t.user]={};
+    if(!ppByPerson[t.user][t.project]) ppByPerson[t.user][t.project]={p:t.project,t:0,c:0,g:0,y:0,r:0};
+    const pr=ppByPerson[t.user][t.project];
+    pr.t++;
+    if(t.is_done){
+      pr.c++;
+      if(t.color==='green')pr.g++; else if(t.color==='yellow')pr.y++; else if(t.color==='red')pr.r++;
+    }
+  });
+  Object.values(persons).forEach(p=>{
+    p.perf=p.total?round1(p.completed/p.total*100):0;
+    p.avg_days_done=p._ddn?round1(p._dd/p._ddn):null;
+    p.avg_days_pending=p._dpn?round1(p._dp/p._dpn):null;
+    p.avg_late=p._lan?round1(p._la/p._lan):null;
+  });
+  Object.values(teams).forEach(tm=>{
+    tm.perf=tm.total?round1(tm.completed/tm.total*100):0;
+    tm.avg_days_done=tm._ddn?round1(tm._dd/tm._ddn):null;
+    tm.avg_days_pending=tm._dpn?round1(tm._dp/tm._dpn):null;
+  });
+  const projects_by_person={};
+  Object.keys(ppByPerson).forEach(u=>{ projects_by_person[u]=Object.values(ppByPerson[u]).sort((a,b)=>b.t-a.t); });
+  const total=tasks.length, completed=tasks.filter(t=>t.is_done).length;
+  const green=tasks.filter(t=>t.is_done&&t.color==='green').length;
+  const yellow=tasks.filter(t=>t.is_done&&t.color==='yellow').length;
+  const red=tasks.filter(t=>t.is_done&&t.color==='red').length;
+  const projectsCount=new Set(tasks.map(t=>t.project)).size;
+  return {
+    kpis:{total,completed,green,yellow,red,projects:projectsCount,
+      on_time_pct: completed?round1(green/completed*100):0,
+      late_pct: completed?round1((yellow+red)/completed*100):0},
+    persons: Object.values(persons).sort((a,b)=>b.total-a.total),
+    teams: Object.values(teams),
+    projects_by_person
+  };
+}
+
+function renderKPIs(d){
+  document.getElementById('kpiTotal').textContent=d.kpis.total.toLocaleString('es-CL');
+  document.getElementById('kpiTotalSub').textContent=d.kpis.projects+' proyectos · '+d.teams.length+' equipos';
+  document.getElementById('kpiCompleted').textContent=d.kpis.completed.toLocaleString('es-CL');
+  document.getElementById('kpiCompletedSub').textContent=(d.kpis.total?Math.round(d.kpis.completed/d.kpis.total*1000)/10:0)+'% del total';
+  document.getElementById('kpiOnTime').textContent=d.kpis.on_time_pct+'%';
+  document.getElementById('kpiOnTimeSub').textContent=d.kpis.green+' cerradas en fecha o antes';
+  document.getElementById('kpiLate').textContent=d.kpis.late_pct+'%';
+  document.getElementById('kpiLateSub').textContent=(d.kpis.yellow+d.kpis.red)+' cerradas 1+ día tarde';
+}
+
+function toggleProjFilter(){
+  document.getElementById('projFilterPanel').classList.toggle('open');
+}
+function updateProjFilterCount(){
+  const total=new Set(TASKS.map(t=>t.project)).size;
+  const sel=selectedProjects.size;
+  document.getElementById('projFilterCount').textContent = sel===total?'Todos':(sel+' de '+total);
+}
+function toggleProject(p,checked){
+  if(checked) selectedProjects.add(p); else selectedProjects.delete(p);
+  updateProjFilterCount();
+  applyProjectFilter();
+}
+function setAllProjects(all){
+  const allProjects=[...new Set(TASKS.map(t=>t.project))];
+  selectedProjects=new Set(all?allProjects:[]);
+  document.querySelectorAll('#projFilterList input[type=checkbox]').forEach(cb=>cb.checked=all);
+  updateProjFilterCount();
+  applyProjectFilter();
+}
+function applyProjectFilter(){
+  VDATA=computeData(visibleTasks());
+  renderKPIs(VDATA);
+  renderTeams(VDATA);
+  renderPeople();
+  document.getElementById('taskFilters').innerHTML='';
+  tFilter={user:'',team:'',section:'',status:'',project:''};
+  tPage=0;
+  if(document.getElementById('panel-tareas').classList.contains('active')) initTaskPanel();
+}
+function buildProjectFilterUI(){
+  const allProjects=[...new Set(TASKS.map(t=>t.project))].sort((a,b)=>a.localeCompare(b,'es'));
+  const list=document.getElementById('projFilterList');
+  list.innerHTML=allProjects.map(p=>'<label class="proj-item"><input type="checkbox" checked onchange="toggleProject(\''+p.replace(/'/g,"\\'")+'\',this.checked)"> '+p+'</label>').join('');
+  updateProjFilterCount();
+}
+
+// Close filter panel when clicking outside
+document.addEventListener('click', function(e){
+  const wrap=document.querySelector('.proj-filter-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('projFilterPanel').classList.remove('open');
+});
+
+// Init
+let selectedProjects = new Set(TASKS.map(t=>t.project));
+let VDATA = computeData(visibleTasks());
+renderKPIs(VDATA);
+renderTeams(VDATA);
+buildProjectFilterUI();
+
 
 </script>
 </body>
