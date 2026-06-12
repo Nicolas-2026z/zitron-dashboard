@@ -7,46 +7,46 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0A0F1E;--bg2:#0F1729;--card:#131D30;--card2:#1A2540;
-  --border:#1E2D47;--border2:#253558;
-  --blu:#3B82F6;--blu2:#60A5FA;--blu3:#1D4ED8;
-  --grn:#10B981;--grn2:#34D399;
-  --red:#EF4444;--red2:#FCA5A5;
-  --amb:#F59E0B;--amb2:#FCD34D;
-  --pur:#8B5CF6;--pur2:#A78BFA;
-  --txt:#F1F5F9;--sub:#64748B;--lite:#334155;
-  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
-  --sh:0 1px 3px rgba(0,0,0,.4);--sh2:0 4px 16px rgba(0,0,0,.5);
+--bg:#0A0F1E;--bg2:#0F1729;--card:#131D30;--card2:#1A2540;
+--border:#1E2D47;--border2:#253558;
+--blu:#3B82F6;--blu2:#60A5FA;--blu3:#1D4ED8;
+--grn:#10B981;--grn2:#34D399;
+--red:#EF4444;--red2:#FCA5A5;
+--amb:#F59E0B;--amb2:#FCD34D;
+--pur:#8B5CF6;--pur2:#A78BFA;
+--txt:#F1F5F9;--sub:#64748B;--lite:#334155;
+--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+--sh:0 1px 3px rgba(0,0,0,.4);--sh2:0 4px 16px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13px;}
 #login{display:flex;min-height:100vh;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 60% 40%,#0D1B3E 0%,#060C1A 70%);
-  position:fixed;inset:0;z-index:9999;}
+background:radial-gradient(ellipse at 60% 40%,#0D1B3E 0%,#060C1A 70%);
+position:fixed;inset:0;z-index:9999;}
 .lbox{background:var(--card);border:1px solid var(--border2);border-radius:20px;
-  padding:44px 40px;width:360px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.7);}
+padding:44px 40px;width:360px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.7);}
 .llogo{width:64px;height:64px;background:linear-gradient(135deg,#0D1B2E,#1A3A5C);
-  border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
 .ltitle{font-size:20px;font-weight:700;margin-bottom:4px;}
 .lsub{font-size:11px;color:var(--sub);margin-bottom:28px;}
 .lbox input{width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border2);
-  border-radius:10px;font-size:20px;text-align:center;letter-spacing:6px;margin-bottom:12px;
-  outline:none;font-family:var(--mono);color:var(--txt);transition:border-color .2s;}
+border-radius:10px;font-size:20px;text-align:center;letter-spacing:6px;margin-bottom:12px;
+outline:none;font-family:var(--mono);color:var(--txt);transition:border-color .2s;}
 .lbox input:focus{border-color:var(--blu);}
 .lbox button{width:100%;padding:12px;background:var(--blu3);color:#fff;border:none;
-  border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);}
 .lbox button:hover{opacity:.88;}
 #lerr{color:var(--red);font-size:11px;margin-top:8px;min-height:16px;}
 .hdr{background:var(--card);border-bottom:1px solid var(--border);height:56px;
-  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
-  position:sticky;top:0;z-index:100;box-shadow:var(--sh2);}
+display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+position:sticky;top:0;z-index:100;box-shadow:var(--sh2);}
 .hl{display:flex;align-items:center;gap:10px;}
 .htitle{font-size:14px;font-weight:600;}
 .hsub{font-size:10px;color:var(--sub);margin-top:1px;}
 .hr{font-size:10px;color:var(--sub);text-align:right;line-height:1.9;}
 .hbadge{display:inline-flex;align-items:center;gap:5px;background:var(--card2);
-  border:1px solid var(--border2);border-radius:20px;padding:3px 10px;
-  font-size:11px;color:var(--blu2);font-family:var(--mono);font-weight:600;}
+border:1px solid var(--border2);border-radius:20px;padding:3px 10px;
+font-size:11px;color:var(--blu2);font-family:var(--mono);font-weight:600;}
 .main{max-width:1400px;margin:0 auto;padding:20px 18px 60px;}
 .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:22px;}
 @media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr);}}
@@ -56,7 +56,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13p
 .kpi-val{font-size:28px;font-weight:700;color:var(--acc,var(--blu));font-family:var(--mono);line-height:1;}
 .kpi-sub{font-size:9px;color:var(--lite);margin-top:5px;}
 .sec{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
-  letter-spacing:.1em;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+letter-spacing:.1em;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
 .sec::after{content:'';flex:1;height:1px;background:var(--border);}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
@@ -65,7 +65,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13p
 .ctitle{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
 .xtbl{width:100%;border-collapse:collapse;font-size:11.5px;}
 .xtbl thead th{background:var(--card2);padding:6px 8px;font-size:9px;font-weight:700;color:var(--sub);
-  text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--border);text-align:center;}
+text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--border);text-align:center;}
 .xtbl thead th:first-child{text-align:left;}
 .xtbl tbody td{padding:5px 8px;border:1px solid var(--border);text-align:center;vertical-align:middle;}
 .xtbl tbody td:first-child{text-align:left;color:var(--sub);}
@@ -122,113 +122,107 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13p
 </head>
 <body>
 <div id="login">
-  <div class="lbox">
-    <div class="llogo">
-      <svg viewBox="0 0 200 200" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
-        <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
-      </svg>
-    </div>
-    <div class="ltitle">Ofertas Zitron 2026</div>
-    <div class="lsub">Dashboard comercial · Acceso privado</div>
-    <input id="pwi" type="password" placeholder="••••••••" maxlength="40" onkeydown="if(event.key==='Enter')chk()">
-    <button onclick="chk()">Ingresar</button>
-    <div id="lerr"></div>
-  </div>
+<div class="lbox">
+<div class="llogo">
+<svg viewBox="0 0 200 200" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
+<text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
+</svg>
+</div>
+<div class="ltitle">Ofertas Zitron 2026</div>
+<div class="lsub">Dashboard comercial · Acceso privado</div>
+<input id="pwi" type="password" placeholder="••••••••" maxlength="40" onkeydown="if(event.key==='Enter')chk()">
+<button onclick="chk()">Ingresar</button>
+<div id="lerr"></div>
+</div>
 </div>
 <script>
 function chk(){var v=document.getElementById('pwi').value;
-  if(v==='zitron2026!'){document.getElementById('login').style.display='none';sessionStorage.setItem('zpw','ok');}
-  else{document.getElementById('lerr').textContent='Contraseña incorrecta';document.getElementById('pwi').value='';}}
+if(v==='zitron2026!'){document.getElementById('login').style.display='none';sessionStorage.setItem('zpw','ok');}
+else{document.getElementById('lerr').textContent='Contraseña incorrecta';document.getElementById('pwi').value='';}}
 if(sessionStorage.getItem('zpw')==='ok')document.addEventListener('DOMContentLoaded',function(){document.getElementById('login').style.display='none';});
 window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok')document.getElementById('pwi').focus();});
 </script>
-
 <header class="hdr">
-  <div class="hl">
-    <svg viewBox="0 0 200 200" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
-      <path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
-      <text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
-    </svg>
-    <div><div class="htitle">Ofertas Zitron 2026</div><div class="hsub">Asana + Excel · 09/06/2026</div></div>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span class="hbadge">84 entradas · 46 enviadas</span>
-    <div class="hr"><div>Actualizado: 09/06/2026</div><div style="color:#34D399;font-weight:600">Asana sync ✓</div></div>
-  </div>
+<div class="hl">
+<svg viewBox="0 0 200 200" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
+<path d="M100 15 C52 15 15 52 15 100 C15 148 52 185 100 185 C128 185 153 172 170 151 L150 135 C137 151 120 160 100 160 C67 160 40 133 40 100 C40 67 67 40 100 40 C120 40 137 49 150 65 L170 49 C153 28 128 15 100 15 Z" fill="#009ede"/>
+<text x="108" y="128" text-anchor="middle" font-size="82" font-weight="900" font-family="Arial Black,sans-serif" fill="#009ede">Z</text>
+</svg>
+<div><div class="htitle">Ofertas Zitron 2026</div><div class="hsub">Asana + Excel · 12/06/2026</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;">
+<span class="hbadge">86 entradas · 52 enviadas</span>
+<div class="hr"><div>Actualizado: 12/06/2026</div><div style="color:#34D399;font-weight:600">Asana sync ✓</div></div>
+</div>
 </header>
-
 <main class="main">
 <div class="kpis">
-  <div class="kpi" style="--acc:#60A5FA"><div class="kpi-lbl">Entradas</div><div class="kpi-val">84</div><div class="kpi-sub">registradas</div></div>
-  <div class="kpi" style="--acc:#10B981"><div class="kpi-lbl">Enviadas</div><div class="kpi-val" id="k-env">46</div><div class="kpi-sub">consolidadas ✓</div></div>
-  <div class="kpi" style="--acc:#F59E0B"><div class="kpi-lbl">Parciales</div><div class="kpi-val" id="k-parc">—</div><div class="kpi-sub">técnica enviada</div></div>
-  <div class="kpi" style="--acc:#8B5CF6"><div class="kpi-lbl">En Progreso</div><div class="kpi-val" id="k-prog">—</div><div class="kpi-sub">revisión / asignadas</div></div>
-  <div class="kpi" style="--acc:#64748B"><div class="kpi-lbl">Pendientes</div><div class="kpi-val" id="k-pend">—</div><div class="kpi-sub">sin iniciar</div></div>
-  <div class="kpi" style="--acc:#EF4444"><div class="kpi-lbl">🚨 Urgentes</div><div class="kpi-val" id="k-urg">—</div><div class="kpi-sub">atención inmediata</div></div>
+<div class="kpi" style="--acc:#60A5FA"><div class="kpi-lbl">Entradas</div><div class="kpi-val">86</div><div class="kpi-sub">registradas</div></div>
+<div class="kpi" style="--acc:#10B981"><div class="kpi-lbl">Enviadas</div><div class="kpi-val" id="k-env">52</div><div class="kpi-sub">consolidadas ✓</div></div>
+<div class="kpi" style="--acc:#F59E0B"><div class="kpi-lbl">Parciales</div><div class="kpi-val" id="k-parc">—</div><div class="kpi-sub">técnica enviada</div></div>
+<div class="kpi" style="--acc:#8B5CF6"><div class="kpi-lbl">En Progreso</div><div class="kpi-val" id="k-prog">—</div><div class="kpi-sub">revisión / asignadas</div></div>
+<div class="kpi" style="--acc:#64748B"><div class="kpi-lbl">Pendientes</div><div class="kpi-val" id="k-pend">—</div><div class="kpi-sub">sin iniciar</div></div>
+<div class="kpi" style="--acc:#EF4444"><div class="kpi-lbl">🚨 Urgentes</div><div class="kpi-val" id="k-urg">—</div><div class="kpi-sub">atención inmediata</div></div>
 </div>
-
 <div class="sec">📊 Movimientos</div>
 <div class="g2">
-  <div class="card">
-    <div class="ctitle">Movimientos por período</div>
-    <div class="tgl-wrap">
-      <button class="tgl act" onclick="setTbl('dia',this)">Por día</button>
-      <button class="tgl" onclick="setTbl('sem',this)">Por semana</button>
-    </div>
-    <div id="tbl-mov" style="overflow-y:auto;max-height:300px;"></div>
-  </div>
-  <div class="card">
-    <div class="ctitle">Por país</div>
-    <div id="pais-bars"></div>
-    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
-      <div class="ctitle">Por responsable</div>
-      <div id="asig-bars"></div>
-    </div>
-  </div>
+<div class="card">
+<div class="ctitle">Movimientos por período</div>
+<div class="tgl-wrap">
+<button class="tgl act" onclick="setTbl('dia',this)">Por día</button>
+<button class="tgl" onclick="setTbl('sem',this)">Por semana</button>
 </div>
-
+<div id="tbl-mov" style="overflow-y:auto;max-height:300px;"></div>
+</div>
+<div class="card">
+<div class="ctitle">Por país</div>
+<div id="pais-bars"></div>
+<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+<div class="ctitle">Por responsable</div>
+<div id="asig-bars"></div>
+</div>
+</div>
+</div>
 <div class="g3">
-  <div class="card"><div class="ctitle">Entradas y salidas por día</div><div class="chart-wrap"><canvas id="ch-dia"></canvas></div></div>
-  <div class="card"><div class="ctitle">Entradas y salidas por semana</div><div class="chart-wrap"><canvas id="ch-sem"></canvas></div></div>
-  <div class="card"><div class="ctitle">Acumulado entradas vs salidas</div><div class="chart-wrap"><canvas id="ch-cum"></canvas></div></div>
+<div class="card"><div class="ctitle">Entradas y salidas por día</div><div class="chart-wrap"><canvas id="ch-dia"></canvas></div></div>
+<div class="card"><div class="ctitle">Entradas y salidas por semana</div><div class="chart-wrap"><canvas id="ch-sem"></canvas></div></div>
+<div class="card"><div class="ctitle">Acumulado entradas vs salidas</div><div class="chart-wrap"><canvas id="ch-cum"></canvas></div></div>
 </div>
-
 <div class="sec">📋 Detalle de ofertas</div>
 <div class="filters">
-  <input id="srch" type="text" placeholder="Buscar oferta, cliente, país, notas...">
-  <button class="fpill act" onclick="setF('all',this)">Todas</button>
-  <button class="fpill" onclick="setF('env',this)">✓ Enviadas</button>
-  <button class="fpill" onclick="setF('parc',this)">◑ Parciales</button>
-  <button class="fpill" onclick="setF('prog',this)">▷ En Progreso</button>
-  <button class="fpill" onclick="setF('pend',this)">● Pendientes</button>
-  <button class="fpill" onclick="setF('urg',this)">🚨 Urgentes</button>
-  <button class="fpill" onclick="setF('p1',this)">P1</button>
-  <button class="fpill" onclick="setF('p2',this)">P2</button>
-  <button class="fpill" onclick="setF('p3',this)">P3</button>
-  <button class="fpill" onclick="setF('cl',this)">🇨🇱</button>
-  <button class="fpill" onclick="setF('pe',this)">🇵🇪</button>
-  <button class="fpill" onclick="setF('mx',this)">🇲🇽</button>
-  <button class="fpill" onclick="setF('co',this)">🇨🇴</button>
-  <button class="fpill" onclick="setF('ar',this)">🇦🇷</button>
-  <button class="fpill" onclick="setF('sa',this)">Sin asignar</button>
-  <button class="fpill" onclick="setF('new',this)">🆕 Hoy</button>
+<input id="srch" type="text" placeholder="Buscar oferta, cliente, país, notas...">
+<button class="fpill act" onclick="setF('all',this)">Todas</button>
+<button class="fpill" onclick="setF('env',this)">✓ Enviadas</button>
+<button class="fpill" onclick="setF('parc',this)">◑ Parciales</button>
+<button class="fpill" onclick="setF('prog',this)">▷ En Progreso</button>
+<button class="fpill" onclick="setF('pend',this)">● Pendientes</button>
+<button class="fpill" onclick="setF('urg',this)">🚨 Urgentes</button>
+<button class="fpill" onclick="setF('p1',this)">P1</button>
+<button class="fpill" onclick="setF('p2',this)">P2</button>
+<button class="fpill" onclick="setF('p3',this)">P3</button>
+<button class="fpill" onclick="setF('cl',this)">🇨🇱</button>
+<button class="fpill" onclick="setF('pe',this)">🇵🇪</button>
+<button class="fpill" onclick="setF('mx',this)">🇲🇽</button>
+<button class="fpill" onclick="setF('co',this)">🇨🇴</button>
+<button class="fpill" onclick="setF('ar',this)">🇦🇷</button>
+<button class="fpill" onclick="setF('sa',this)">Sin asignar</button>
+<button class="fpill" onclick="setF('new',this)">🆕 Hoy</button>
 </div>
 <div class="dtbl-wrap">
-  <div class="dtbl-scroll">
-    <table class="dtbl">
-      <thead><tr>
-        <th>P</th><th>N° Oferta</th><th>Descripción</th><th>País</th><th>Cliente</th>
-        <th>Estado</th><th>Asana ✓</th><th>F.Entrada</th><th>F.Límite</th><th>F.Salida</th>
-        <th>Responsable</th><th>Notas</th>
-      </tr></thead>
-      <tbody id="dtbl-body"></tbody>
-    </table>
-  </div>
+<div class="dtbl-scroll">
+<table class="dtbl">
+<thead><tr>
+<th>P</th><th>N° Oferta</th><th>Descripción</th><th>País</th><th>Cliente</th>
+<th>Estado</th><th>Asana ✓</th><th>F.Entrada</th><th>F.Límite</th><th>F.Salida</th>
+<th>Responsable</th><th>Notas</th>
+</tr></thead>
+<tbody id="dtbl-body"></tbody>
+</table>
+</div>
 </div>
 <div class="tfoot-txt" id="dtbl-foot"></div>
 </main>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 var D={"offers":[
@@ -256,7 +250,7 @@ var D={"offers":[
 {"nro":"26CL0005","desc":"Motor INDUC 630kW WEG","pais":"Chile","cli":"Codelco","estado":"Enviada","status_xl":"Enviada","f_ent":"29-04-2026","f_lim":"","f_sal":"29-04-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0028","desc":"Reparación ventilador y tablero","pais":"Chile","cli":"AVO II","estado":"Enviada","status_xl":"Enviada","f_ent":"27-04-2026","f_lim":"","f_sal":"04-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0052","desc":"Equipos ventilación industrial","pais":"Chile","cli":"El Teniente","estado":"Enviada","status_xl":"Enviada","f_ent":"27-04-2026","f_lim":"","f_sal":"05-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
-{"nro":"26CL0049","desc":"Dimensiones Ventilación Punta del COBRE","pais":"Chile","cli":"Pucobre","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"","f_lim":"","f_sal":"","asig":"David","notas":"","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
+{"nro":"26CL0049","desc":"Dimensiones Ventilación Punta del COBRE","pais":"Chile","cli":"Pucobre","estado":"Enviada","status_xl":"Enviada 12/06","f_ent":"04-06-2026","f_lim":"","f_sal":"12-06-2026","asig":"David","notas":"","prio":2,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0044","desc":"Ventilación Tren Santiago-Batuco","pais":"Chile","cli":"AED Ingenieria","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"02-04-2026","f_lim":"","f_sal":"","asig":"David","notas":"","prio":2,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26CL0038","desc":"Vents. Inyección/Extracción TBM","pais":"Chile","cli":"Codelco Chuquicamata","estado":"Enviada","status_xl":"Enviada","f_ent":"27-03-2026","f_lim":"20-05-2026","f_sal":"04-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0048.A","desc":"Ventilacion definitiva Túnel Lo Ruiz","pais":"Chile","cli":"Indra","estado":"Enviada","status_xl":"Enviada","f_ent":"21-04-2026","f_lim":"","f_sal":"04-06-2026","asig":"Fran","notas":"Ver trato preferente INDRA","prio":1,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
@@ -269,7 +263,7 @@ var D={"offers":[
 {"nro":"26CL0015","desc":"Ventilacion definitiva Linea 9","pais":"Chile","cli":"Metro Santiago","estado":"En Aclaraciones","status_xl":"En ronda de aclaraciones","f_ent":"20-04-2026","f_lim":"29-09-2026","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26PE0017","desc":"Ventiladores Auxiliares Arcata","pais":"Peru","cli":"Sierra Minera Caraz","estado":"Enviada","status_xl":"Enviada","f_ent":"28-04-2026","f_lim":"07-05-2026","f_sal":"07-05-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26MX0038","desc":"Rodete repuesto monobloque Gel 9","pais":"Mexico","cli":"Concheño","estado":"Enviada","status_xl":"Enviada","f_ent":"28-04-2026","f_lim":"","f_sal":"20-05-2026","asig":"Fran","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
-{"nro":"26CL0056","desc":"Reparación ventiladores Van 110","pais":"Chile","cli":"PAN AMERICAN SILVER","estado":"Pendiente","status_xl":"Pendiente","f_ent":"05-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
+{"nro":"26CL0056","desc":"Reparación ventiladores Van 110","pais":"Chile","cli":"PAN AMERICAN SILVER","estado":"Enviada","status_xl":"Enviada 10/06","f_ent":"05-05-2026","f_lim":"","f_sal":"10-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CO0013","desc":"Silenciadores para ventiladores","pais":"Colombia","cli":"ARIS Segovia","estado":"En Revisión","status_xl":"En revision tecnica","f_ent":"19-04-2026","f_lim":"","f_sal":"","asig":"Carlos","notas":"","prio":3,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26CL0053","desc":"Subtramo 2A y 2B Línea 9","pais":"Chile","cli":"CRTG","estado":"Enviada","status_xl":"Enviada","f_ent":"28-04-2026","f_lim":"","f_sal":"03-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0057","desc":"Herramientas VDF","pais":"Chile","cli":"Codelco","estado":"Pendiente","status_xl":"Pendiente","f_ent":"06-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
@@ -288,8 +282,8 @@ var D={"offers":[
 {"nro":"26CL0061","desc":"3 ZVN 1-9-45/2 y 2 ZVN 1-9-90/2","pais":"Chile","cli":"DMC","estado":"En Progreso","status_xl":"Asignado","f_ent":"12-05-2026","f_lim":"13-05-2026","f_sal":"","asig":"Fran","notas":"","prio":4,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26PE0014","desc":"Reparacion 7 Ventiladores","pais":"Peru","cli":"Taller AEI","estado":"En Progreso","status_xl":"Asignado – URGENTE","f_ent":"17-04-2026","f_lim":"13-05-2026","f_sal":"","asig":"Hernan","notas":"","prio":1,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"25PE0013","desc":"5 Ventiladores extras Huaron","pais":"Peru","cli":"PanAmerican Silver","estado":"Enviada","status_xl":"Enviada","f_ent":"14-05-2026","f_lim":"","f_sal":"18-05-2026","asig":"Sergio","notas":"","prio":3,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
-{"nro":"26CR0001","desc":"Mina Bellavista Costa Rica","pais":"Costa Rica","cli":"Mina Bellavista","estado":"Pendiente","status_xl":"Pendiente","f_ent":"18-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
-{"nro":"26CL0062","desc":"Modelo MP","pais":"Chile","cli":"Mina Patagua","estado":"Pendiente","status_xl":"Pendiente","f_ent":"20-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
+{"nro":"26CR0001","desc":"Mina Bellavista Costa Rica","pais":"Costa Rica","cli":"Mina Bellavista","estado":"Enviada","status_xl":"Enviada 11/06","f_ent":"18-05-2026","f_lim":"","f_sal":"11-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
+{"nro":"26CL0062","desc":"Modelo MP","pais":"Chile","cli":"Mina Patagua","estado":"Enviada","status_xl":"Enviada 12/06","f_ent":"20-05-2026","f_lim":"","f_sal":"12-06-2026","asig":"David","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26MX0048","desc":"Cotización refacciones ventiladores","pais":"Mexico","cli":"Fresnillo","estado":"Pendiente","status_xl":"Pendiente","f_ent":"20-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26CL0063","desc":"Inyector N°1 31710-VEN-001","pais":"Chile","cli":"CODELCO Andina","estado":"Pendiente","status_xl":"Pendiente","f_ent":"20-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26PE0022","desc":"Ventiladores axiales Mina Marañón","pais":"Peru","cli":"Poderosa","estado":"Enviada","status_xl":"Enviada","f_ent":"20-05-2026","f_lim":"","f_sal":"25-05-2026","asig":"Fran","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
@@ -298,7 +292,7 @@ var D={"offers":[
 {"nro":"26CL0059B","desc":"Ventilación Licitacion Diamante (B)","pais":"Chile","cli":"Diamante","estado":"En Progreso","status_xl":"En progreso","f_ent":"21-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":true,"cons":false,"comp":1,"tot":3},
 {"nro":"26CL0059C","desc":"Ventilación Licitacion Diamante (C)","pais":"Chile","cli":"Diamante","estado":"En Progreso","status_xl":"En progreso","f_ent":"21-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":true,"cons":false,"comp":1,"tot":3},
 {"nro":"26MX0049","desc":"054-24 OC5630.090/119","pais":"Mexico","cli":"—","estado":"Pendiente","status_xl":"Pendiente","f_ent":"22-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
-{"nro":"26NI0005","desc":"HEMCO 10233811","pais":"Nicaragua","cli":"HEMCO","estado":"Pendiente","status_xl":"Pendiente","f_ent":"26-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
+{"nro":"26NI0005","desc":"HEMCO 10233811","pais":"Nicaragua","cli":"HEMCO","estado":"Enviada","status_xl":"Enviada 10/06","f_ent":"26-05-2026","f_lim":"","f_sal":"10-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CL0065","desc":"Cotización Ventilador + Partidor","pais":"Chile","cli":"—","estado":"Enviada","status_xl":"Enviada","f_ent":"26-05-2026","f_lim":"","f_sal":"05-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26MX0041","desc":"Oferta Técnica Sta Bárbara","pais":"Mexico","cli":"Santa Bárbara","estado":"Enviada","status_xl":"Enviada","f_ent":"27-05-2026","f_lim":"","f_sal":"27-05-2026","asig":"","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26CO0012","desc":"Cotización Ventiladores Colombia","pais":"Colombia","cli":"—","estado":"Enviada","status_xl":"Enviada","f_ent":"28-05-2026","f_lim":"","f_sal":"29-05-2026","asig":"Carlos","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
@@ -306,7 +300,7 @@ var D={"offers":[
 {"nro":"26CL0053B","desc":"Subtramo 2A y 2B Línea 9","pais":"Chile","cli":"CRTG","estado":"En Progreso","status_xl":"En progreso","f_ent":"28-05-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26PE0023","desc":"Solicitud Cotizacion 1000003267/1000003052","pais":"Peru","cli":"PODEROSA","estado":"Enviada","status_xl":"Enviada","f_ent":"29-05-2026","f_lim":"","f_sal":"05-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26VE0004","desc":"Asistencia ventilador 34204-50012392","pais":"Venezuela","cli":"—","estado":"Enviada","status_xl":"Enviada 03/06","f_ent":"29-05-2026","f_lim":"","f_sal":"02-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
-{"nro":"EX-22-1463","desc":"Conexión Valle de los Chillos","pais":"Ecuador","cli":"—","estado":"Enviada","status_xl":"Enviada","f_ent":"29-05-2026","f_lim":"","f_sal":"08-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
+{"nro":"EX-22-1463","desc":"Conexión Valle de los Chillos","pais":"Ecuador","cli":"—","estado":"Enviada","status_xl":"Enviada 12/06","f_ent":"29-05-2026","f_lim":"","f_sal":"12-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26PE0015","desc":"CATALINA HUANCA SOCIEDAD MINERA","pais":"Peru","cli":"CATALINA HUANCA","estado":"Enviada","status_xl":"Enviada","f_ent":"01-06-2026","f_lim":"","f_sal":"04-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
 {"nro":"26MX0025","desc":"Sist. monitoreo Ventilador Zitron","pais":"Mexico","cli":"JUANICIPIO","estado":"Pendiente","status_xl":"Nueva 02/06","f_ent":"02-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"26MX0040","desc":"ventiladores axiales Torex","pais":"Mexico","cli":"TOREXGOLD","estado":"Enviada","status_xl":"Enviada","f_ent":"03-06-2026","f_lim":"","f_sal":"05-06-2026","asig":"Sin Asignar","notas":"","prio":0,"ing":true,"proy":true,"cons":true,"comp":3,"tot":3},
@@ -315,178 +309,168 @@ var D={"offers":[
 {"nro":"26CL0041","desc":"Ventiladores Sierra Atacama","pais":"Chile","cli":"Sierra Atacama","estado":"Pendiente","status_xl":"Nueva 06/06","f_ent":"06-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"Valoracion","desc":"Valoración equipos ventilación AVO1","pais":"Chile","cli":"TEKIA","estado":"Pendiente","status_xl":"Nueva 06/06","f_ent":"06-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
 {"nro":"PAM3","desc":"Tunnel/Shaft Ventilation System Re-bidding","pais":"Sin país","cli":"hph","estado":"Pendiente","status_xl":"Nueva 08/06","f_ent":"08-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
-{"nro":"1092-18-P","desc":"Ficha técnica JZRi 12/45-4","pais":"Peru","cli":"Systra","estado":"Enviada","status_xl":"Solo técnico","f_ent":"13-05-2026","f_lim":"13-05-2026","f_sal":"15-05-2026","asig":"Hernan","notas":"","prio":1,"ing":null,"proy":null,"cons":true,"comp":1,"tot":1}
+{"nro":"1092-18-P","desc":"Ficha técnica JZRi 12/45-4","pais":"Peru","cli":"Systra","estado":"Enviada","status_xl":"Solo técnico","f_ent":"13-05-2026","f_lim":"13-05-2026","f_sal":"15-05-2026","asig":"Hernan","notas":"","prio":1,"ing":null,"proy":null,"cons":true,"comp":1,"tot":1},
+{"nro":"26CL0067","desc":"Nueva oferta ingresada","pais":"Chile","cli":"—","estado":"Pendiente","status_xl":"Nueva 10/06","f_ent":"10-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3},
+{"nro":"26CO0001","desc":"Nueva oferta ingresada","pais":"Colombia","cli":"—","estado":"Pendiente","status_xl":"Nueva 11/06","f_ent":"11-06-2026","f_lim":"","f_sal":"","asig":"Sin Asignar","notas":"","prio":0,"ing":false,"proy":false,"cons":false,"comp":0,"tot":3}
 ],
-"day_rows":[{"date":"2026-01-01","label":"Sem ≤16","dow":"—","ent":21,"sal":1,"week":16},{"date":"2026-04-21","label":"21-04","dow":"Martes","ent":3,"sal":0,"week":17},{"date":"2026-04-23","label":"23-04","dow":"Jueves","ent":2,"sal":1,"week":17},{"date":"2026-04-27","label":"27-04","dow":"Lunes","ent":4,"sal":0,"week":18},{"date":"2026-04-28","label":"28-04","dow":"Martes","ent":4,"sal":2,"week":18},{"date":"2026-04-29","label":"29-04","dow":"Miércoles","ent":2,"sal":2,"week":18},{"date":"2026-04-30","label":"30-04","dow":"Jueves","ent":0,"sal":2,"week":18},{"date":"2026-05-04","label":"04-05","dow":"Lunes","ent":0,"sal":1,"week":19},{"date":"2026-05-05","label":"05-05","dow":"Martes","ent":3,"sal":2,"week":19},{"date":"2026-05-06","label":"06-05","dow":"Miércoles","ent":2,"sal":3,"week":19},{"date":"2026-05-07","label":"07-05","dow":"Jueves","ent":3,"sal":3,"week":19},{"date":"2026-05-08","label":"08-05","dow":"Viernes","ent":1,"sal":0,"week":19},{"date":"2026-05-11","label":"11-05","dow":"Lunes","ent":2,"sal":0,"week":20},{"date":"2026-05-12","label":"12-05","dow":"Martes","ent":1,"sal":0,"week":20},{"date":"2026-05-13","label":"13-05","dow":"Miércoles","ent":4,"sal":2,"week":20},{"date":"2026-05-14","label":"14-05","dow":"Jueves","ent":1,"sal":0,"week":20},{"date":"2026-05-15","label":"15-05","dow":"Viernes","ent":0,"sal":2,"week":20},{"date":"2026-05-18","label":"18-05","dow":"Lunes","ent":1,"sal":3,"week":21},{"date":"2026-05-19","label":"19-05","dow":"Martes","ent":1,"sal":0,"week":21},{"date":"2026-05-20","label":"20-05","dow":"Miércoles","ent":6,"sal":1,"week":21},{"date":"2026-05-21","label":"21-05","dow":"Jueves","ent":3,"sal":0,"week":21},{"date":"2026-05-22","label":"22-05","dow":"Viernes","ent":1,"sal":0,"week":21},{"date":"2026-05-25","label":"25-05","dow":"Lunes","ent":0,"sal":1,"week":22},{"date":"2026-05-26","label":"26-05","dow":"Martes","ent":2,"sal":4,"week":22},{"date":"2026-05-27","label":"27-05","dow":"Miércoles","ent":1,"sal":2,"week":22},{"date":"2026-05-28","label":"28-05","dow":"Jueves","ent":2,"sal":1,"week":22},{"date":"2026-05-29","label":"29-05","dow":"Viernes","ent":5,"sal":1,"week":22},{"date":"2026-06-01","label":"01-06","dow":"Lunes","ent":1,"sal":0,"week":23},{"date":"2026-06-02","label":"02-06","dow":"Martes","ent":1,"sal":1,"week":23},{"date":"2026-06-03","label":"03-06","dow":"Miércoles","ent":2,"sal":3,"week":23},{"date":"2026-06-04","label":"04-06","dow":"Jueves","ent":0,"sal":5,"week":23},{"date":"2026-06-05","label":"05-06","dow":"Viernes","ent":0,"sal":3,"week":23},{"date":"2026-06-06","label":"06-06","dow":"Sábado","ent":2,"sal":0,"week":23},{"date":"2026-06-08","label":"08-06","dow":"Lunes","ent":1,"sal":1,"week":24},{"date":"2026-06-09","label":"09-06","dow":"Martes","ent":0,"sal":0,"week":24}],
-"week_rows":[{"week":16,"label":"Semana 16","ent":21,"sal":1},{"week":17,"label":"Semana 17","ent":5,"sal":1},{"week":18,"label":"Semana 18","ent":10,"sal":6},{"week":19,"label":"Semana 19","ent":9,"sal":9},{"week":20,"label":"Semana 20","ent":8,"sal":4},{"week":21,"label":"Semana 21","ent":12,"sal":4},{"week":22,"label":"Semana 22","ent":10,"sal":9},{"week":23,"label":"Semana 23","ent":6,"sal":12},{"week":24,"label":"Semana 24","ent":1,"sal":1}],
-"pais_rows":[["Chile",{"total":38,"env":18}],["Peru",{"total":15,"env":10}],["Mexico",{"total":14,"env":8}],["Colombia",{"total":5,"env":4}],["Argentina",{"total":3,"env":2}],["Nicaragua",{"total":2,"env":1}],["Ecuador",{"total":2,"env":2}],["Sin país",{"total":2,"env":1}],["Costa Rica",{"total":1,"env":0}],["Venezuela",{"total":1,"env":1}],["Bolivia",{"total":1,"env":0}]],
-"asig_rows":[["Sin Asignar",{"total":43,"env":20}],["Fran",{"total":18,"env":15}],["David",{"total":9,"env":5}],["Carlos",{"total":7,"env":4}],["Hernan",{"total":6,"env":2}],["Sergio",{"total":1,"env":1}]],
-"stats":{"entradas":84,"enviadas":47,"parciales":2,"en_progreso":18,"pendientes":18,"urgentes":2},
-"day_rows_chart":[{"date":"2026-04-21","label":"21-04","dow":"Martes","ent":3,"sal":0,"week":17},{"date":"2026-04-23","label":"23-04","dow":"Jueves","ent":2,"sal":1,"week":17},{"date":"2026-04-27","label":"27-04","dow":"Lunes","ent":4,"sal":0,"week":18},{"date":"2026-04-28","label":"28-04","dow":"Martes","ent":4,"sal":2,"week":18},{"date":"2026-04-29","label":"29-04","dow":"Miércoles","ent":2,"sal":2,"week":18},{"date":"2026-04-30","label":"30-04","dow":"Jueves","ent":0,"sal":2,"week":18},{"date":"2026-05-04","label":"04-05","dow":"Lunes","ent":0,"sal":1,"week":19},{"date":"2026-05-05","label":"05-05","dow":"Martes","ent":3,"sal":2,"week":19},{"date":"2026-05-06","label":"06-05","dow":"Miércoles","ent":2,"sal":3,"week":19},{"date":"2026-05-07","label":"07-05","dow":"Jueves","ent":3,"sal":3,"week":19},{"date":"2026-05-08","label":"08-05","dow":"Viernes","ent":1,"sal":0,"week":19},{"date":"2026-05-11","label":"11-05","dow":"Lunes","ent":2,"sal":0,"week":20},{"date":"2026-05-12","label":"12-05","dow":"Martes","ent":1,"sal":0,"week":20},{"date":"2026-05-13","label":"13-05","dow":"Miércoles","ent":4,"sal":2,"week":20},{"date":"2026-05-14","label":"14-05","dow":"Jueves","ent":1,"sal":0,"week":20},{"date":"2026-05-15","label":"15-05","dow":"Viernes","ent":0,"sal":2,"week":20},{"date":"2026-05-18","label":"18-05","dow":"Lunes","ent":1,"sal":3,"week":21},{"date":"2026-05-19","label":"19-05","dow":"Martes","ent":1,"sal":0,"week":21},{"date":"2026-05-20","label":"20-05","dow":"Miércoles","ent":6,"sal":1,"week":21},{"date":"2026-05-21","label":"21-05","dow":"Jueves","ent":3,"sal":0,"week":21},{"date":"2026-05-22","label":"22-05","dow":"Viernes","ent":1,"sal":0,"week":21},{"date":"2026-05-25","label":"25-05","dow":"Lunes","ent":0,"sal":1,"week":22},{"date":"2026-05-26","label":"26-05","dow":"Martes","ent":2,"sal":4,"week":22},{"date":"2026-05-27","label":"27-05","dow":"Miércoles","ent":1,"sal":2,"week":22},{"date":"2026-05-28","label":"28-05","dow":"Jueves","ent":2,"sal":1,"week":22},{"date":"2026-05-29","label":"29-05","dow":"Viernes","ent":5,"sal":1,"week":22},{"date":"2026-06-01","label":"01-06","dow":"Lunes","ent":1,"sal":0,"week":23},{"date":"2026-06-02","label":"02-06","dow":"Martes","ent":1,"sal":1,"week":23},{"date":"2026-06-03","label":"03-06","dow":"Miércoles","ent":2,"sal":3,"week":23},{"date":"2026-06-04","label":"04-06","dow":"Jueves","ent":0,"sal":5,"week":23},{"date":"2026-06-05","label":"05-06","dow":"Viernes","ent":0,"sal":3,"week":23},{"date":"2026-06-06","label":"06-06","dow":"Sábado","ent":2,"sal":0,"week":23},{"date":"2026-06-08","label":"08-06","dow":"Lunes","ent":1,"sal":1,"week":24},{"date":"2026-06-09","label":"09-06","dow":"Martes","ent":0,"sal":0,"week":24}],
-"week_rows_chart":[{"week":17,"label":"Semana 17","ent":5,"sal":1},{"week":18,"label":"Semana 18","ent":10,"sal":6},{"week":19,"label":"Semana 19","ent":9,"sal":9},{"week":20,"label":"Semana 20","ent":8,"sal":4},{"week":21,"label":"Semana 21","ent":12,"sal":4},{"week":22,"label":"Semana 22","ent":10,"sal":9},{"week":23,"label":"Semana 23","ent":6,"sal":12},{"week":24,"label":"Semana 24","ent":1,"sal":1}],
+"day_rows":[{"date":"2026-01-01","label":"Sem ≤16","dow":"—","ent":21,"sal":1,"week":16},{"date":"2026-04-21","label":"21-04","dow":"Martes","ent":3,"sal":0,"week":17},{"date":"2026-04-23","label":"23-04","dow":"Jueves","ent":2,"sal":1,"week":17},{"date":"2026-04-27","label":"27-04","dow":"Lunes","ent":4,"sal":0,"week":18},{"date":"2026-04-28","label":"28-04","dow":"Martes","ent":4,"sal":2,"week":18},{"date":"2026-04-29","label":"29-04","dow":"Miércoles","ent":2,"sal":2,"week":18},{"date":"2026-04-30","label":"30-04","dow":"Jueves","ent":0,"sal":2,"week":18},{"date":"2026-05-04","label":"04-05","dow":"Lunes","ent":0,"sal":1,"week":19},{"date":"2026-05-05","label":"05-05","dow":"Martes","ent":3,"sal":2,"week":19},{"date":"2026-05-06","label":"06-05","dow":"Miércoles","ent":2,"sal":3,"week":19},{"date":"2026-05-07","label":"07-05","dow":"Jueves","ent":3,"sal":3,"week":19},{"date":"2026-05-08","label":"08-05","dow":"Viernes","ent":1,"sal":0,"week":19},{"date":"2026-05-11","label":"11-05","dow":"Lunes","ent":2,"sal":0,"week":20},{"date":"2026-05-12","label":"12-05","dow":"Martes","ent":1,"sal":0,"week":20},{"date":"2026-05-13","label":"13-05","dow":"Miércoles","ent":4,"sal":2,"week":20},{"date":"2026-05-14","label":"14-05","dow":"Jueves","ent":1,"sal":0,"week":20},{"date":"2026-05-15","label":"15-05","dow":"Viernes","ent":0,"sal":2,"week":20},{"date":"2026-05-18","label":"18-05","dow":"Lunes","ent":1,"sal":3,"week":21},{"date":"2026-05-19","label":"19-05","dow":"Martes","ent":1,"sal":0,"week":21},{"date":"2026-05-20","label":"20-05","dow":"Miércoles","ent":6,"sal":1,"week":21},{"date":"2026-05-21","label":"21-05","dow":"Jueves","ent":3,"sal":0,"week":21},{"date":"2026-05-22","label":"22-05","dow":"Viernes","ent":1,"sal":0,"week":21},{"date":"2026-05-25","label":"25-05","dow":"Lunes","ent":0,"sal":1,"week":22},{"date":"2026-05-26","label":"26-05","dow":"Martes","ent":2,"sal":4,"week":22},{"date":"2026-05-27","label":"27-05","dow":"Miércoles","ent":1,"sal":2,"week":22},{"date":"2026-05-28","label":"28-05","dow":"Jueves","ent":2,"sal":1,"week":22},{"date":"2026-05-29","label":"29-05","dow":"Viernes","ent":5,"sal":1,"week":22},{"date":"2026-06-01","label":"01-06","dow":"Lunes","ent":1,"sal":0,"week":23},{"date":"2026-06-02","label":"02-06","dow":"Martes","ent":1,"sal":1,"week":23},{"date":"2026-06-03","label":"03-06","dow":"Miércoles","ent":2,"sal":3,"week":23},{"date":"2026-06-04","label":"04-06","dow":"Jueves","ent":0,"sal":5,"week":23},{"date":"2026-06-05","label":"05-06","dow":"Viernes","ent":0,"sal":3,"week":23},{"date":"2026-06-06","label":"06-06","dow":"Sábado","ent":2,"sal":0,"week":23},{"date":"2026-06-08","label":"08-06","dow":"Lunes","ent":1,"sal":1,"week":24},{"date":"2026-06-09","label":"09-06","dow":"Martes","ent":0,"sal":0,"week":24},{"date":"2026-06-10","label":"10-06","dow":"Miércoles","ent":1,"sal":2,"week":24},{"date":"2026-06-11","label":"11-06","dow":"Jueves","ent":1,"sal":1,"week":24},{"date":"2026-06-12","label":"12-06","dow":"Viernes","ent":0,"sal":3,"week":24}],
+"week_rows":[{"week":16,"label":"Semana 16","ent":21,"sal":1},{"week":17,"label":"Semana 17","ent":5,"sal":1},{"week":18,"label":"Semana 18","ent":10,"sal":6},{"week":19,"label":"Semana 19","ent":9,"sal":9},{"week":20,"label":"Semana 20","ent":8,"sal":4},{"week":21,"label":"Semana 21","ent":12,"sal":4},{"week":22,"label":"Semana 22","ent":10,"sal":9},{"week":23,"label":"Semana 23","ent":6,"sal":12},{"week":24,"label":"Semana 24","ent":3,"sal":7}],
+"pais_rows":[["Chile",{"total":39,"env":21}],["Peru",{"total":15,"env":10}],["Mexico",{"total":14,"env":8}],["Colombia",{"total":6,"env":4}],["Argentina",{"total":3,"env":2}],["Nicaragua",{"total":2,"env":2}],["Ecuador",{"total":2,"env":2}],["Sin país",{"total":2,"env":1}],["Costa Rica",{"total":1,"env":1}],["Venezuela",{"total":1,"env":1}],["Bolivia",{"total":1,"env":0}]],
+"asig_rows":[["Sin Asignar",{"total":45,"env":25}],["Fran",{"total":18,"env":15}],["David",{"total":9,"env":6}],["Carlos",{"total":7,"env":4}],["Hernan",{"total":6,"env":2}],["Sergio",{"total":1,"env":1}]],
+"stats":{"entradas":86,"enviadas":52,"parciales":2,"en_progreso":18,"pendientes":15,"urgentes":2},
+"day_rows_chart":[{"date":"2026-04-21","label":"21-04","dow":"Martes","ent":3,"sal":0,"week":17},{"date":"2026-04-23","label":"23-04","dow":"Jueves","ent":2,"sal":1,"week":17},{"date":"2026-04-27","label":"27-04","dow":"Lunes","ent":4,"sal":0,"week":18},{"date":"2026-04-28","label":"28-04","dow":"Martes","ent":4,"sal":2,"week":18},{"date":"2026-04-29","label":"29-04","dow":"Miércoles","ent":2,"sal":2,"week":18},{"date":"2026-04-30","label":"30-04","dow":"Jueves","ent":0,"sal":2,"week":18},{"date":"2026-05-04","label":"04-05","dow":"Lunes","ent":0,"sal":1,"week":19},{"date":"2026-05-05","label":"05-05","dow":"Martes","ent":3,"sal":2,"week":19},{"date":"2026-05-06","label":"06-05","dow":"Miércoles","ent":2,"sal":3,"week":19},{"date":"2026-05-07","label":"07-05","dow":"Jueves","ent":3,"sal":3,"week":19},{"date":"2026-05-08","label":"08-05","dow":"Viernes","ent":1,"sal":0,"week":19},{"date":"2026-05-11","label":"11-05","dow":"Lunes","ent":2,"sal":0,"week":20},{"date":"2026-05-12","label":"12-05","dow":"Martes","ent":1,"sal":0,"week":20},{"date":"2026-05-13","label":"13-05","dow":"Miércoles","ent":4,"sal":2,"week":20},{"date":"2026-05-14","label":"14-05","dow":"Jueves","ent":1,"sal":0,"week":20},{"date":"2026-05-15","label":"15-05","dow":"Viernes","ent":0,"sal":2,"week":20},{"date":"2026-05-18","label":"18-05","dow":"Lunes","ent":1,"sal":3,"week":21},{"date":"2026-05-19","label":"19-05","dow":"Martes","ent":1,"sal":0,"week":21},{"date":"2026-05-20","label":"20-05","dow":"Miércoles","ent":6,"sal":1,"week":21},{"date":"2026-05-21","label":"21-05","dow":"Jueves","ent":3,"sal":0,"week":21},{"date":"2026-05-22","label":"22-05","dow":"Viernes","ent":1,"sal":0,"week":21},{"date":"2026-05-25","label":"25-05","dow":"Lunes","ent":0,"sal":1,"week":22},{"date":"2026-05-26","label":"26-05","dow":"Martes","ent":2,"sal":4,"week":22},{"date":"2026-05-27","label":"27-05","dow":"Miércoles","ent":1,"sal":2,"week":22},{"date":"2026-05-28","label":"28-05","dow":"Jueves","ent":2,"sal":1,"week":22},{"date":"2026-05-29","label":"29-05","dow":"Viernes","ent":5,"sal":1,"week":22},{"date":"2026-06-01","label":"01-06","dow":"Lunes","ent":1,"sal":0,"week":23},{"date":"2026-06-02","label":"02-06","dow":"Martes","ent":1,"sal":1,"week":23},{"date":"2026-06-03","label":"03-06","dow":"Miércoles","ent":2,"sal":3,"week":23},{"date":"2026-06-04","label":"04-06","dow":"Jueves","ent":0,"sal":5,"week":23},{"date":"2026-06-05","label":"05-06","dow":"Viernes","ent":0,"sal":3,"week":23},{"date":"2026-06-06","label":"06-06","dow":"Sábado","ent":2,"sal":0,"week":23},{"date":"2026-06-08","label":"08-06","dow":"Lunes","ent":1,"sal":1,"week":24},{"date":"2026-06-09","label":"09-06","dow":"Martes","ent":0,"sal":0,"week":24},{"date":"2026-06-10","label":"10-06","dow":"Miércoles","ent":1,"sal":2,"week":24},{"date":"2026-06-11","label":"11-06","dow":"Jueves","ent":1,"sal":1,"week":24},{"date":"2026-06-12","label":"12-06","dow":"Viernes","ent":0,"sal":3,"week":24}],
+"week_rows_chart":[{"week":17,"label":"Semana 17","ent":5,"sal":1},{"week":18,"label":"Semana 18","ent":10,"sal":6},{"week":19,"label":"Semana 19","ent":9,"sal":9},{"week":20,"label":"Semana 20","ent":8,"sal":4},{"week":21,"label":"Semana 21","ent":12,"sal":4},{"week":22,"label":"Semana 22","ent":10,"sal":9},{"week":23,"label":"Semana 23","ent":6,"sal":12},{"week":24,"label":"Semana 24","ent":3,"sal":7}],
 "pre_sal_offset":1,"pre_ent_offset":21};
-
 var OFFERS=D.offers;
 var DAY=D.day_rows;
 var WEEK=D.week_rows;
 var FLAGS={Chile:'🇨🇱',Mexico:'🇲🇽',Peru:'🇵🇪',Colombia:'🇨🇴',Nicaragua:'🇳🇮',Argentina:'🇦🇷',Ecuador:'🇪🇨','Costa Rica':'🇨🇷',Venezuela:'🇻🇪'};
-var TODAY='2026-06-09';
-
+var TODAY='2026-06-12';
 document.getElementById('k-env').textContent=D.stats.enviadas;
 document.getElementById('k-parc').textContent=D.stats.parciales;
 document.getElementById('k-prog').textContent=D.stats.en_progreso;
 document.getElementById('k-pend').textContent=D.stats.pendientes;
 document.getElementById('k-urg').textContent=D.stats.urgentes;
-
 function sign(v){return v>0?'+'+v:String(v);}
 function cls(v){return v>0?'c-pos':v<0?'c-neg':'c-neu';}
-
 var TV='dia';
 function setTbl(v,b){TV=v;document.querySelectorAll('.tgl').forEach(function(x){x.classList.remove('act');});b.classList.add('act');renderMov();}
 function renderMov(){
-  var isDia=TV==='dia',rows=isDia?DAY:WEEK,totE=0,totS=0;
-  rows.forEach(function(r){totE+=r.ent;totS+=r.sal;});
-  var head=isDia?"<tr><th>Fecha</th><th>D</th><th>Ent.</th><th>Sal.</th><th>Dif</th><th>Sem</th></tr>"
-                :"<tr><th>Semana</th><th>Ent.</th><th>Sal.</th><th>Dif</th></tr>";
-  var body=rows.map(function(r){
-    var d=r.ent-r.sal,isT=isDia&&r.date===TODAY;
-    var rc=isT?' class="today-row"':'';
-    return isDia
-      ?"<tr"+rc+"><td>"+r.label+(isT?' <b style=\"color:var(--blu2)\">HOY</b>':'')+"</td><td style='color:var(--sub)'>"+r.dow+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(d)+"'>"+sign(d)+"</td><td><span class='wbadge'>"+r.week+"</span></td></tr>"
-      :"<tr><td style='font-weight:600'>"+r.label+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(r.ent-r.sal)+"'>"+sign(r.ent-r.sal)+"</td></tr>";
-  }).join('');
-  var foot=isDia
-    ?"<tr><td colspan='2' style='text-align:left;font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td><td></td></tr>"
-    :"<tr><td style='font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td></tr>";
-  document.getElementById('tbl-mov').innerHTML="<table class='xtbl'><thead>"+head+"</thead><tbody>"+body+"</tbody><tfoot>"+foot+"</tfoot></table>";
+var isDia=TV==='dia',rows=isDia?DAY:WEEK,totE=0,totS=0;
+rows.forEach(function(r){totE+=r.ent;totS+=r.sal;});
+var head=isDia?"<tr><th>Fecha</th><th>D</th><th>Ent.</th><th>Sal.</th><th>Dif</th><th>Sem</th></tr>"
+:"<tr><th>Semana</th><th>Ent.</th><th>Sal.</th><th>Dif</th></tr>";
+var body=rows.map(function(r){
+var d=r.ent-r.sal,isT=isDia&&r.date===TODAY;
+var rc=isT?' class="today-row"':'';
+return isDia
+?"<tr"+rc+"><td>"+r.label+(isT?' <b style=\"color:var(--blu2)\">HOY</b>':'')+"</td><td style='color:var(--sub)'>"+r.dow+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(d)+"'>"+sign(d)+"</td><td><span class='wbadge'>"+r.week+"</span></td></tr>"
+:"<tr><td style='font-weight:600'>"+r.label+"</td><td class='c-e'>"+r.ent+"</td><td class='c-s'>"+r.sal+"</td><td class='"+cls(r.ent-r.sal)+"'>"+sign(r.ent-r.sal)+"</td></tr>";
+}).join('');
+var foot=isDia
+?"<tr><td colspan='2' style='text-align:left;font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td><td></td></tr>"
+:"<tr><td style='font-weight:700'>TOTAL</td><td class='c-e'>"+totE+"</td><td class='c-s'>"+totS+"</td><td class='"+cls(totE-totS)+"'>"+sign(totE-totS)+"</td></tr>";
+document.getElementById('tbl-mov').innerHTML="<table class='xtbl'><thead>"+head+"</thead><tbody>"+body+"</tbody><tfoot>"+foot+"</tfoot></table>";
 }
-
 function buildBars(rows,id){
-  var max=Math.max.apply(null,rows.map(function(r){return r[1].total;}));
-  document.getElementById(id).innerHTML=rows.map(function(r){
-    var f=FLAGS[r[0]]||'';
-    return "<div class='pbar'><span class='pbar-lbl'>"+f+" "+r[0]+"</span>"
-      +"<div class='pbar-track'><div class='pbar-total' style='width:"+Math.round(r[1].total/max*100)+"%'></div>"
-      +"<div class='pbar-env' style='width:"+Math.round(r[1].env/max*100)+"%'></div></div>"
-      +"<span class='pbar-nums'><span style='color:var(--blu2)'>"+r[1].total+"</span>/<span style='color:var(--grn2)'>"+r[1].env+"✓</span></span></div>";
-  }).join('')+"<div style='font-size:9px;color:var(--sub);margin-top:4px'>Azul=total · Verde=enviadas</div>";
+var max=Math.max.apply(null,rows.map(function(r){return r[1].total;}));
+document.getElementById(id).innerHTML=rows.map(function(r){
+var f=FLAGS[r[0]]||'';
+return "<div class='pbar'><span class='pbar-lbl'>"+f+" "+r[0]+"</span>"
++"<div class='pbar-track'><div class='pbar-total' style='width:"+Math.round(r[1].total/max*100)+"%'></div>"
++"<div class='pbar-env' style='width:"+Math.round(r[1].env/max*100)+"%'></div></div>"
++"<span class='pbar-nums'><span style='color:var(--blu2)'>"+r[1].total+"</span>/<span style='color:var(--grn2)'>"+r[1].env+"✓</span></span></div>";
+}).join('')+"<div style='font-size:9px;color:var(--sub);margin-top:4px'>Azul=total · Verde=enviadas</div>";
 }
 buildBars(D.pais_rows,'pais-bars');
 buildBars(D.asig_rows,'asig-bars');
-
 var CO={responsive:true,maintainAspectRatio:false,
-  plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{size:9},boxWidth:8,padding:8}}},
-  scales:{x:{ticks:{color:'#475569',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,.04)'}},
-          y:{beginAtZero:true,ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}};
+plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{size:9},boxWidth:8,padding:8}}},
+scales:{x:{ticks:{color:'#475569',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,.04)'}},
+y:{beginAtZero:true,ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}};
 var labs=D.day_rows_chart.map(function(r){return r.label;});
 var dE=D.day_rows_chart.map(function(r){return r.ent;}),dS=D.day_rows_chart.map(function(r){return r.sal;});
 new Chart(document.getElementById('ch-dia').getContext('2d'),{type:'bar',data:{labels:labs,
-  datasets:[{label:'Entradas',data:dE,backgroundColor:'rgba(59,130,246,.7)',borderRadius:3},
-            {label:'Salidas',data:dS,backgroundColor:'rgba(16,185,129,.7)',borderRadius:3}]},options:CO});
+datasets:[{label:'Entradas',data:dE,backgroundColor:'rgba(59,130,246,.7)',borderRadius:3},
+{label:'Salidas',data:dS,backgroundColor:'rgba(16,185,129,.7)',borderRadius:3}]},options:CO});
 var wlabs=D.week_rows_chart.map(function(r){return r.label;});
 new Chart(document.getElementById('ch-sem').getContext('2d'),{type:'bar',data:{labels:wlabs,
-  datasets:[{label:'Entradas',data:D.week_rows_chart.map(function(r){return r.ent;}),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4},
-            {label:'Salidas',data:D.week_rows_chart.map(function(r){return r.sal;}),backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}]},options:CO});
+datasets:[{label:'Entradas',data:D.week_rows_chart.map(function(r){return r.ent;}),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4},
+{label:'Salidas',data:D.week_rows_chart.map(function(r){return r.sal;}),backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}]},options:CO});
 var ce=D.pre_ent_offset||0,cs=D.pre_sal_offset||0,cumE=[],cumS=[];
 D.day_rows_chart.forEach(function(r){ce+=r.ent;cs+=r.sal;cumE.push(ce);cumS.push(cs);});
 var CO2=JSON.parse(JSON.stringify(CO));
 new Chart(document.getElementById('ch-cum').getContext('2d'),{type:'line',data:{labels:D.day_rows_chart.map(function(r){return r.label;}),
-  datasets:[{label:'Acum. entradas',data:cumE,borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3},
-            {label:'Acum. salidas',data:cumS,borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3}]},options:CO2});
-
+datasets:[{label:'Acum. entradas',data:cumE,borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3},
+{label:'Acum. salidas',data:cumS,borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',borderWidth:2,pointRadius:3,fill:true,tension:.3}]},options:CO2});
 var FILT='all',SEARCH='';
 function setF(f,b){FILT=f;document.querySelectorAll('.fpill').forEach(function(x){x.classList.remove('act');});b.classList.add('act');renderDtbl();}
-
 function badge(e){
-  var el=e.toLowerCase();
-  if(el==='enviada')return"<span class='badge b-env'>✓ Enviada</span>";
-  if(el==='parcial')return"<span class='badge b-parc'>◑ Parcial</span>";
-  if(el.includes('urgente'))return"<span class='badge b-urg'>🚨 URGENTE</span>";
-  if(el.includes('progreso')||el.includes('asignado')||el.includes('listo')||el.includes('preparac'))return"<span class='badge b-prog'>▷ "+e+"</span>";
-  if(el.includes('revisión')||el.includes('revision')||el.includes('aclarac'))return"<span class='badge b-rev'>↺ "+e+"</span>";
-  if(el.includes('revisar'))return"<span class='badge b-revisar'>⚠ Revisar</span>";
-  if(el.includes('espera')||el.includes('estudio')||el.includes('definic')||el.includes('modificar'))return"<span class='badge b-parc'>⋯ "+e+"</span>";
-  return"<span class='badge b-pend'>● "+e+"</span>";
+var el=e.toLowerCase();
+if(el==='enviada')return"<span class='badge b-env'>✓ Enviada</span>";
+if(el==='parcial')return"<span class='badge b-parc'>◑ Parcial</span>";
+if(el.includes('urgente'))return"<span class='badge b-urg'>🚨 URGENTE</span>";
+if(el.includes('progreso')||el.includes('asignado')||el.includes('listo')||el.includes('preparac'))return"<span class='badge b-prog'>▷ "+e+"</span>";
+if(el.includes('revisión')||el.includes('revision')||el.includes('aclarac'))return"<span class='badge b-rev'>↺ "+e+"</span>";
+if(el.includes('revisar'))return"<span class='badge b-revisar'>⚠ Revisar</span>";
+if(el.includes('espera')||el.includes('estudio')||el.includes('definic')||el.includes('modificar'))return"<span class='badge b-parc'>⋯ "+e+"</span>";
+return"<span class='badge b-pend'>● "+e+"</span>";
 }
 function chip(v,l){
-  if(v===null||v===undefined)return"<span class='chip chip-na'>"+l+"</span>";
-  return v?"<span class='chip chip-ok'>✓"+l+"</span>":"<span class='chip chip-no'>✗"+l+"</span>";
+if(v===null||v===undefined)return"<span class='chip chip-na'>"+l+"</span>";
+return v?"<span class='chip chip-ok'>✓"+l+"</span>":"<span class='chip chip-no'>✗"+l+"</span>";
 }
 function shortAsig(a){
-  var m={Hernan:'Hernan',Carlos:'Carlos',David:'David',Fran:'Fran',Sergio:'Sergio','Sin Asignar':'—'};
-  return m[a]||a||'—';
+var m={Hernan:'Hernan',Carlos:'Carlos',David:'David',Fran:'Fran',Sergio:'Sergio','Sin Asignar':'—'};
+return m[a]||a||'—';
 }
 function prioHtml(p){
-  if(!p||p===0)return'';
-  var c=['','p1','p2','p3','p4'][p]||'p4';
-  return"<span class='prio-dot "+c+"'></span>"+p;
+if(!p||p===0)return'';
+var c=['','p1','p2','p3','p4'][p]||'p4';
+return"<span class='prio-dot "+c+"'></span>"+p;
 }
-
 function filtered(){
-  return OFFERS.filter(function(o){
-    if(SEARCH){var q=SEARCH.toLowerCase();
-      if((o.nro+o.desc+o.cli+o.pais+o.asig+o.notas+o.status_xl).toLowerCase().indexOf(q)<0)return false;}
-    var e=o.estado.toLowerCase();
-    if(FILT==='env')return o.estado==='Enviada';
-    if(FILT==='parc')return o.estado==='Parcial';
-    if(FILT==='prog')return e.includes('progreso')||e.includes('revision')||e.includes('preparac')||e.includes('aclarac');
-    if(FILT==='pend')return e.includes('pendiente')||e.includes('espera')||e.includes('estudio')||e.includes('definic')||e.includes('modificar')||e.includes('revisar');
-    if(FILT==='urg')return e.includes('urgente')||o.f_lim.toLowerCase().includes('urgente');
-    if(FILT==='p1')return o.prio===1;
-    if(FILT==='p2')return o.prio===2;
-    if(FILT==='p3')return o.prio===3;
-    if(FILT==='cl')return o.pais==='Chile';
-    if(FILT==='pe')return o.pais==='Peru';
-    if(FILT==='mx')return o.pais==='Mexico';
-    if(FILT==='co')return o.pais==='Colombia';
-    if(FILT==='ar')return o.pais==='Argentina';
-    if(FILT==='sa')return !o.asig||o.asig==='Sin Asignar';
-    if(FILT==='new')return o.f_ent===TODAY||o.f_sal===TODAY;
-    return true;
-  });
+return OFFERS.filter(function(o){
+if(SEARCH){var q=SEARCH.toLowerCase();
+if((o.nro+o.desc+o.cli+o.pais+o.asig+o.notas+o.status_xl).toLowerCase().indexOf(q)<0)return false;}
+var e=o.estado.toLowerCase();
+if(FILT==='env')return o.estado==='Enviada';
+if(FILT==='parc')return o.estado==='Parcial';
+if(FILT==='prog')return e.includes('progreso')||e.includes('revision')||e.includes('preparac')||e.includes('aclarac');
+if(FILT==='pend')return e.includes('pendiente')||e.includes('espera')||e.includes('estudio')||e.includes('definic')||e.includes('modificar')||e.includes('revisar');
+if(FILT==='urg')return e.includes('urgente')||o.f_lim.toLowerCase().includes('urgente');
+if(FILT==='p1')return o.prio===1;
+if(FILT==='p2')return o.prio===2;
+if(FILT==='p3')return o.prio===3;
+if(FILT==='cl')return o.pais==='Chile';
+if(FILT==='pe')return o.pais==='Peru';
+if(FILT==='mx')return o.pais==='Mexico';
+if(FILT==='co')return o.pais==='Colombia';
+if(FILT==='ar')return o.pais==='Argentina';
+if(FILT==='sa')return !o.asig||o.asig==='Sin Asignar';
+if(FILT==='new')return o.f_ent===TODAY||o.f_sal===TODAY;
+return true;
+});
 }
-
 function limStyle(lim){
-  if(!lim||lim==='—')return'';
-  if(lim.toLowerCase().includes('urgente'))return' style="color:#FCA5A5;font-weight:700"';
-  var m=lim.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-  if(m){
-    var d=new Date(m[3]+'-'+m[2]+'-'+m[1]);
-    var now=new Date('2026-06-09');
-    if(d<now)return' style="color:#EF4444;font-weight:600"';
-    if((d-now)<7*86400000)return' style="color:#FCD34D;font-weight:600"';
-  }
-  return'';
+if(!lim||lim==='—')return'';
+if(lim.toLowerCase().includes('urgente'))return' style="color:#FCA5A5;font-weight:700"';
+var m=lim.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+if(m){
+var d=new Date(m[3]+'-'+m[2]+'-'+m[1]);
+var now=new Date('2026-06-12');
+if(d<now)return' style="color:#EF4444;font-weight:600"';
+if((d-now)<7*86400000)return' style="color:#FCD34D;font-weight:600"';
 }
-
+return'';
+}
 function renderDtbl(){
-  var data=filtered();
-  document.getElementById('dtbl-body').innerHTML=data.map(function(o){
-    var fl=FLAGS[o.pais]||'🌍';
-    var isToday=o.f_ent===TODAY||o.f_sal===TODAY;
-    var rc=isToday?' class="today-row"':'';
-    var lim=o.f_lim;
-    if(lim.toLowerCase().includes('urgente'))lim='🚨 URGENTE';
-    var salColor=o.estado==='Enviada'?'color:#34D399':'color:var(--sub)';
-    var acolor=(o.asig&&o.asig!=='Sin Asignar')?'color:var(--txt)':'color:var(--sub)';
-    return "<tr"+rc+">"
-      +"<td style='text-align:center;font-size:10px'>"+prioHtml(o.prio)+"</td>"
-      +"<td><span class='nro'>"+o.nro+"</span></td>"
-      +"<td class='tdname' title='"+o.desc+"'>"+o.desc.slice(0,42)+(o.desc.length>42?'…':'')+"</td>"
-      +"<td>"+fl+" <span style='color:var(--sub);font-size:10px'>"+o.pais+"</span></td>"
-      +"<td style='max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)' title='"+o.cli+"'>"+o.cli+"</td>"
-      +"<td>"+badge(o.estado)+"</td>"
-      +"<td>"+chip(o.ing,'I')+chip(o.proy,'P')+chip(o.cons,'C')+"</td>"
-      +"<td style='color:var(--sub);font-size:10px;font-family:var(--mono)'>"+(o.f_ent||'—')+"</td>"
-      +"<td style='font-size:10px;font-family:var(--mono)'"+limStyle(lim)+">"+lim+"</td>"
-      +"<td style='"+salColor+";font-size:10px;font-family:var(--mono)'>"+(o.f_sal||'—')+"</td>"
-      +"<td style='"+acolor+";font-size:10px'>"+shortAsig(o.asig)+"</td>"
-      +"<td class='notas-cell' title='"+o.notas+"'>"+o.notas+"</td>"
-      +"</tr>";
-  }).join('');
-  document.getElementById('dtbl-foot').textContent=data.length+' ofertas · Rojo=fecha vencida · Amarillo=próxima semana · HOY=entradas/salidas de hoy';
+var data=filtered();
+document.getElementById('dtbl-body').innerHTML=data.map(function(o){
+var fl=FLAGS[o.pais]||'🌍';
+var isToday=o.f_ent===TODAY||o.f_sal===TODAY;
+var rc=isToday?' class="today-row"':'';
+var lim=o.f_lim;
+if(lim.toLowerCase().includes('urgente'))lim='🚨 URGENTE';
+var salColor=o.estado==='Enviada'?'color:#34D399':'color:var(--sub)';
+var acolor=(o.asig&&o.asig!=='Sin Asignar')?'color:var(--txt)':'color:var(--sub)';
+return "<tr"+rc+">"
++"<td style='text-align:center;font-size:10px'>"+prioHtml(o.prio)+"</td>"
++"<td><span class='nro'>"+o.nro+"</span></td>"
++"<td class='tdname' title='"+o.desc+"'>"+o.desc.slice(0,42)+(o.desc.length>42?'…':'')+"</td>"
++"<td>"+fl+" <span style='color:var(--sub);font-size:10px'>"+o.pais+"</span></td>"
++"<td style='max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)' title='"+o.cli+"'>"+o.cli+"</td>"
++"<td>"+badge(o.estado)+"</td>"
++"<td>"+chip(o.ing,'I')+chip(o.proy,'P')+chip(o.cons,'C')+"</td>"
++"<td style='color:var(--sub);font-size:10px;font-family:var(--mono)'>"+(o.f_ent||'—')+"</td>"
++"<td style='font-size:10px;font-family:var(--mono)'"+limStyle(lim)+">"+lim+"</td>"
++"<td style='"+salColor+";font-size:10px;font-family:var(--mono)'>"+(o.f_sal||'—')+"</td>"
++"<td style='"+acolor+";font-size:10px'>"+shortAsig(o.asig)+"</td>"
++"<td class='notas-cell' title='"+o.notas+"'>"+o.notas+"</td>"
++"</tr>";
+}).join('');
+document.getElementById('dtbl-foot').textContent=data.length+' ofertas · Rojo=fecha vencida · Amarillo=próxima semana · HOY=entradas/salidas de hoy';
 }
-
 renderMov();
 renderDtbl();
 document.getElementById('srch').addEventListener('input',function(){SEARCH=this.value;renderDtbl();});
