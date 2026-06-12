@@ -72,15 +72,17 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
     print(f"\n[{indice}/{total}] {nombre}")
 
     try:
-        page.goto(url, wait_until="networkidle", timeout=45000)
-        time.sleep(2)
+        page.goto(url, wait_until="domcontentloaded", timeout=45000)
+        page.wait_for_timeout(4000)
 
         # 1) Abrir menu de tres puntos del proyecto (header)
         menu = page.locator(
             '[aria-label="More project actions"], '
+            '[aria-label="Más acciones del proyecto"], '
             '[data-testid="project-header-menu-button"], '
             'button.ProjectMenuTrigger'
         )
+        menu.first.wait_for(state="visible", timeout=20000)
         menu.first.click(timeout=15000)
         time.sleep(0.8)
 
@@ -104,6 +106,16 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
 
     except Exception as e:
         print(f"     ✗ ERROR: {e}")
+        # Guardar diagnostico solo para el primer fallo
+        debug_dir = CARPETA_SALIDA.parent / "debug"
+        debug_dir.mkdir(exist_ok=True)
+        if not any(debug_dir.iterdir()):
+            try:
+                page.screenshot(path=str(debug_dir / "fallo.png"), full_page=True)
+                debug_dir.joinpath("fallo.html").write_text(page.content(), encoding="utf-8")
+                print("     -> Guardado screenshot/html de diagnostico")
+            except Exception as e2:
+                print(f"     (no se pudo guardar diagnostico: {e2})")
         return False
 
 
