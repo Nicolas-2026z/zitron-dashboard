@@ -1,0 +1,46 @@
+name: Exportar Asana cada hora
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # cada hora en punto (UTC)
+  workflow_dispatch:        # permite correrlo manualmente desde GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  exportar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install playwright
+          playwright install chromium --with-deps
+
+      - name: Restaurar sesion de Asana
+        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
+
+      - name: Exportar proyectos
+        run: python scripts/asana_export.py
+
+      - name: Borrar sesion (no dejar rastro en el runner)
+        if: always()
+        run: rm -f auth.json
+
+      - name: Commit y push de los CSV actualizados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
