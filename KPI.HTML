@@ -418,7 +418,7 @@ function renderPeople(){
       <td style="text-align:right;color:var(--text2)">${p.completed}</td>
       <td style="text-align:right"><span class="pill ${pillClass(p.perf)}">${p.perf}%</span></td>
       <td>${miniBar(p.green,p.yellow,p.red,p.completed)}</td>
-      <td style="text-align:right">${durationChip(p.avg_days_done)}</td>
+      <td style="text-align:right;color:var(--text2)">${p.avg_days_done!=null?p.avg_days_done+'d':'—'}</td>
       <td style="text-align:right;color:var(--text2)">${p.avg_days_pending!=null?p.avg_days_pending+'d':'—'}</td>
     </tr>`;
     if(isOpen){
