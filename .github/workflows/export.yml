@@ -2,8 +2,8 @@ name: Exportar Asana cada hora
 
 on:
   schedule:
-    - cron: "0 * * * *"   # cada hora en punto (UTC)
-  workflow_dispatch:        # permite correrlo manualmente desde GitHub
+    - cron: "0 * * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -32,6 +32,14 @@ jobs:
 
       - name: Exportar proyectos
         run: python scripts/asana_export.py
+
+      - name: Subir diagnostico (si hubo fallos)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug
+          path: debug/
+          if-no-files-found: ignore
 
       - name: Borrar sesion (no dejar rastro en el runner)
         if: always()
