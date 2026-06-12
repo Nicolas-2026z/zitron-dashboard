@@ -75,13 +75,8 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
         page.goto(url, wait_until="domcontentloaded", timeout=45000)
         page.wait_for_timeout(4000)
 
-        # 1) Abrir menu de tres puntos del proyecto (header)
-        menu = page.locator(
-            '[aria-label="More project actions"], '
-            '[aria-label="Más acciones del proyecto"], '
-            '[data-testid="project-header-menu-button"], '
-            'button.ProjectMenuTrigger'
-        )
+        # 1) Abrir menu "Acciones" del header del proyecto (icono chevron)
+        menu = page.locator('[role="button"][aria-label="Acciones"]')
         menu.first.wait_for(state="visible", timeout=20000)
         menu.first.click(timeout=15000)
         time.sleep(0.8)
@@ -91,10 +86,20 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
         export_menu.first.click(timeout=10000)
         time.sleep(0.8)
 
-        # 3) Click en "Tareas del proyecto en formato CSV/XLSX" y capturar descarga
+        # 3) Click en "Tareas del proyecto en formato CSV/XLSX" -> abre dialogo
+        opcion_csv = page.get_by_text("Tareas del proyecto en formato CSV/XLSX", exact=False)
+        opcion_csv.first.click(timeout=15000)
+        time.sleep(0.8)
+
+        # 4) En el dialogo, asegurar XLSX seleccionado y click en "Exportar"
+        xlsx_radio = page.get_by_text("XLSX", exact=True)
+        if xlsx_radio.count() > 0:
+            xlsx_radio.first.click(timeout=5000)
+            time.sleep(0.3)
+
         with page.expect_download(timeout=30000) as download_info:
-            opcion_csv = page.get_by_text("Tareas del proyecto en formato CSV/XLSX", exact=False)
-            opcion_csv.first.click(timeout=15000)
+            boton_exportar = page.get_by_role("button", name="Exportar", exact=True)
+            boton_exportar.first.click(timeout=15000)
 
         download = download_info.value
         sufijo = Path(download.suggested_filename).suffix or ".csv"
