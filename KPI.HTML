@@ -297,9 +297,6 @@ tr.person-row:hover td { background: var(--bg2); cursor: pointer; }
           <th onclick="sortBy('avg_days_pending')" style="text-align:right">
             <span class="tip-wrap">Días en curso<span class="tipbox">Días hábiles transcurridos desde la fecha de inicio para tareas aún no completadas que ya iniciaron</span></span>
           </th>
-          <th onclick="sortBy('avg_late')" style="text-align:right">
-            <span class="tip-wrap">Atraso háb. prom.<span class="tipbox">Días hábiles promedio entre fecha límite y cierre real (solo completadas). Negativo = anticipado.</span></span>
-          </th>
         </tr></thead>
         <tbody id="peopleBody"></tbody>
       </table>
@@ -372,6 +369,11 @@ function lateChip(v){
   const cls=v<0?'chip-ok':v<=10?'chip-warn':'chip-bad';
   return `<span class="chip ${cls}">${v<0?'':'+'}${v}d</span>`;
 }
+function durationChip(v){
+  if(v===null)return '<span style="color:var(--text3)">—</span>';
+  const cls=v<=15?'chip-ok':v<=40?'chip-warn':'chip-bad';
+  return `<span class="chip ${cls}">${v}d</span>`;
+}
 function miniBar(g,y,r,tot){
   if(!tot)return '<span style="color:var(--text3);font-size:11px">sin datos</span>';
   const gw=Math.round(g/tot*100),yw=Math.round(y/tot*100),rw=Math.round(r/tot*100),xw=Math.max(0,100-gw-yw-rw);
@@ -416,9 +418,8 @@ function renderPeople(){
       <td style="text-align:right;color:var(--text2)">${p.completed}</td>
       <td style="text-align:right"><span class="pill ${pillClass(p.perf)}">${p.perf}%</span></td>
       <td>${miniBar(p.green,p.yellow,p.red,p.completed)}</td>
-      <td style="text-align:right;color:var(--text2)">${p.avg_days_done!=null?p.avg_days_done+'d':'—'}</td>
+      <td style="text-align:right">${durationChip(p.avg_days_done)}</td>
       <td style="text-align:right;color:var(--text2)">${p.avg_days_pending!=null?p.avg_days_pending+'d':'—'}</td>
-      <td style="text-align:right">${lateChip(p.avg_late)}</td>
     </tr>`;
     if(isOpen){
       const projs=(VDATA.projects_by_person[p.name]||[]);
@@ -444,7 +445,7 @@ function renderPeople(){
   document.getElementById('peopleBody').innerHTML=html;
   document.querySelectorAll('#peopleTable th').forEach((th,i)=>{
     th.classList.remove('sort-asc','sort-desc');
-    const keys=[null,'name','team','total','completed','perf',null,'avg_days_done','avg_days_pending','avg_late'];
+    const keys=[null,'name','team','total','completed','perf',null,'avg_days_done','avg_days_pending'];
     if(keys[i]===sortKey)th.classList.add(sortDir===1?'sort-asc':'sort-desc');
   });
 }
@@ -608,7 +609,7 @@ function computeData(tasks){
         const v=(t.days_str&&t.days_str.includes('antes'))?-t.days_val:t.days_val;
         p._la+=v; p._lan++;
       }
-    } else if(t.has_start && t.biz_pending!=null){
+    } else if(t.has_start && t.biz_pending!=null && t.biz_pending>=0){
       p._dp+=t.biz_pending; p._dpn++;
       tm._dp+=t.biz_pending; tm._dpn++;
     }
