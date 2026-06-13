@@ -567,6 +567,26 @@ def main():
         print(f"No se encontraron .xlsx en {dir_proyectos}")
         sys.exit(1)
 
+    # Deduplicar: si hay varios xlsx con nombre casi identico (misma clave limpia),
+    # quedarse solo con el mas reciente. La clave limpia elimina fechas tipo
+    # 01-04-2026, numeros al final y sufijos como (1)(2).
+    import re as _re
+    def _clave(path):
+        base = os.path.splitext(os.path.basename(path))[0]
+        base = _re.sub(r'\s*\(\d+\)\s*$', '', base)           # quita (1)(2)...
+        base = _re.sub(r'[\s_-]+\d{2}-\d{2}-\d{4}.*$', '', base)  # quita fechas dd-mm-yyyy
+        base = _re.sub(r'[\s_-]+\d{5,}.*$', '', base)          # quita numeros largos al final
+        return base.strip().lower()
+
+    mejor = {}
+    for f in files:
+        clave = _clave(f)
+        mtime = os.path.getmtime(f)
+        if clave not in mejor or mtime > mejor[clave][0]:
+            mejor[clave] = (mtime, f)
+    files = sorted([v[1] for v in mejor.values()])
+    print(f"Archivos unicos a procesar: {len(files)}")
+
     P = []
     errores = []
     for f in files:
