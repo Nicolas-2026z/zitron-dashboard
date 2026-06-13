@@ -27,8 +27,8 @@ from playwright.sync_api import sync_playwright
 BASE = Path(__file__).resolve().parent.parent
 AUTH_FILE = BASE / "auth.json"
 
-DATA_PROYECTOS = BASE / "data_excels"
-DATA_SERVICIOS = BASE / "data_servicios"
+DATA_PROYECTOS = BASE / "data"
+DATA_SERVICIOS = BASE / "data" / "servicios"
 DATA_PROYECTOS.mkdir(parents=True, exist_ok=True)
 DATA_SERVICIOS.mkdir(parents=True, exist_ok=True)
 
