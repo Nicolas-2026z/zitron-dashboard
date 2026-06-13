@@ -442,17 +442,18 @@ def build_stats(offers):
 
 D_RE = re.compile(r"var D=\{.*?\};\nvar OFFERS", re.S)
 TODAY_RE = re.compile(r"var TODAY='[^']*';")
-ACTUALIZADO_RE = re.compile(r"(Actualizado: )\d{2}/\d{2}/\d{4}")
-ASANA_FECHA_RE = re.compile(r"(Asana \+ Excel . )\d{2}/\d{2}/\d{4}")
+ACTUALIZADO_RE = re.compile(r"(Actualizado: )\d{2}/\d{2}/\d{4}(?: \d{2}:\d{2})?")
+ASANA_FECHA_RE = re.compile(r"(Asana \+ Excel . )\d{2}/\d{2}/\d{4}(?: \d{2}:\d{2})?")
 HBADGE_RE = re.compile(r"(<span class=\"hbadge\">)\d+( entradas . )\d+( enviadas</span>)")
 
 
-def replace_data(html, D, today_str_iso, today_str_disp):
+def replace_data(html, D, today_str_iso, today_str_disp, hora_str):
     new_d = "var D=" + json.dumps(D, ensure_ascii=False) + ";\nvar OFFERS"
     html = D_RE.sub(new_d, html, count=1)
     html = TODAY_RE.sub(f"var TODAY='{today_str_iso}';", html)
-    html = ACTUALIZADO_RE.sub(rf"\g<1>{today_str_disp}", html)
-    html = ASANA_FECHA_RE.sub(rf"\g<1>{today_str_disp}", html)
+    fecha_hora = f"{today_str_disp} {hora_str}"
+    html = ACTUALIZADO_RE.sub(rf"\g<1>{fecha_hora}", html)
+    html = ASANA_FECHA_RE.sub(rf"\g<1>{fecha_hora}", html)
     html = HBADGE_RE.sub(rf"\g<1>{D['stats']['entradas']}\g<2>{D['stats']['enviadas']}\g<3>", html)
     return html
 
@@ -502,7 +503,8 @@ def main():
 
     today_iso = today.isoformat()
     today_disp = today.strftime("%d/%m/%Y")
-    html_out = replace_data(html, D, today_iso, today_disp)
+    hora_str = now.strftime("%H:%M")
+    html_out = replace_data(html, D, today_iso, today_disp, hora_str)
 
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html_out)
