@@ -251,11 +251,6 @@ def build_offers(path):
         responsable_field = first_nonempty(rows_grp, col_responsable)
 
         f_ent_d = None
-        for r in rows_grp:
-            d = to_date(get(r, col_f_ent))
-            if d:
-                f_ent_d = d
-                break
 
         ing = proy = cons = None
         f_sal_d = None
@@ -272,14 +267,27 @@ def build_offers(path):
 
             if "ingenier" in name_n:
                 ing = bool(ing) or completed
+                if f_ent_d is None:
+                    f_ent_d = to_date(get(r, col_due))
             elif "proyecto" in name_n:
                 proy = bool(proy) or completed
+                if f_ent_d is None:
+                    f_ent_d = to_date(get(r, col_due))
             elif "consolidado" in name_n or name_n in ("ofertas", "ofert", "oferta"):
                 cons = bool(cons) or completed
                 if f_fin_d:
                     f_sal_d = f_fin_d
                 if asignee_r:
                     cons_responsable = asignee_r
+
+        # Respaldo: si ninguna subtarea de ingenieria/proyecto tenia Due Date,
+        # usar "Fecha de entrega" (campo personalizado) de cualquier fila del grupo.
+        if f_ent_d is None:
+            for r in rows_grp:
+                d = to_date(get(r, col_f_ent))
+                if d:
+                    f_ent_d = d
+                    break
 
         responsable = cons_responsable or responsable_field or any_responsable or "Sin Asignar"
 
