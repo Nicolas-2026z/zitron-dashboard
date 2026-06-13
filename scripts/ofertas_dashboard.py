@@ -164,12 +164,20 @@ def build_offers(path):
     headers_norm = {name: normalize(name) for name in idx}
 
     col_name = "Name" if "Name" in idx else None
-    col_parent = "Parent task" if "Parent task" in idx else find_column(headers_norm, "parent", "task")
+    col_parent = ("Parent task" if "Parent task" in idx
+                   else find_column(headers_norm, "parent", "task")
+                   or find_column(headers_norm, "tarea", "principal")
+                   or find_column(headers_norm, "tarea", "padre"))
     col_section = "Section/Column" if "Section/Column" in idx else find_column(headers_norm, "section")
-    col_assignee = "Assignee" if "Assignee" in idx else find_column(headers_norm, "assignee")
+    col_assignee = "Assignee" if "Assignee" in idx else (find_column(headers_norm, "assignee") or find_column(headers_norm, "asignad"))
     col_due = "Due Date" if "Due Date" in idx else find_column(headers_norm, "due", "date")
-    col_completed = "Completed" if "Completed" in idx else None
-    col_completed_at = "Completed At" if "Completed At" in idx else find_column(headers_norm, "completed", "at")
+    col_completed = "Completed" if "Completed" in idx else find_column(headers_norm, "completad")
+    col_completed_at = ("Completed At" if "Completed At" in idx
+                         else find_column(headers_norm, "completed", "at")
+                         or find_column(headers_norm, "completad", "fecha")
+                         or find_column(headers_norm, "fecha", "completad"))
+
+    print("Headers completos del archivo:", list(idx.keys()))
 
     col_f_ent = find_column(headers_norm, "fecha", "entrega") or col_due
     col_f_sal = find_column(headers_norm, "fecha", "finaliza")
