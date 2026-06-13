@@ -213,20 +213,23 @@ def build_offers(path):
     # "Fecha de entrega", "Cliente", "PAIS", etc. (heredados).
     # Agrupamos por ese numero, preservando el orden de aparicion.
     # ------------------------------------------------------------
-    grupos = {}      # nro -> lista de rows
-    orden = []        # orden de aparicion de cada nro
+    grupos = {}      # nro_norm -> lista de rows
+    orden = []        # orden de aparicion de cada nro_norm
+    nro_display = {}  # nro_norm -> primer valor visto (para mostrar)
 
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         name = str_val(get(row, col_name))
         if not name:
             continue
-        nro = str_val(get(row, col_nro))
-        if not nro:
+        nro_raw = str_val(get(row, col_nro))
+        if not nro_raw:
             continue
-        if nro not in grupos:
-            grupos[nro] = []
-            orden.append(nro)
-        grupos[nro].append(row)
+        nro_key = nro_raw.strip().upper()
+        if nro_key not in grupos:
+            grupos[nro_key] = []
+            orden.append(nro_key)
+            nro_display[nro_key] = nro_raw
+        grupos[nro_key].append(row)
 
     def first_nonempty(rows_, col):
         if not col:
@@ -268,11 +271,11 @@ def build_offers(path):
                 any_responsable = asignee_r
 
             if "ingenier" in name_n:
-                ing = completed
+                ing = bool(ing) or completed
             elif "proyecto" in name_n:
-                proy = completed
+                proy = bool(proy) or completed
             elif "consolidado" in name_n or name_n in ("ofertas", "ofert", "oferta"):
-                cons = completed
+                cons = bool(cons) or completed
                 if f_fin_d:
                     f_sal_d = f_fin_d
                 if asignee_r:
@@ -299,7 +302,7 @@ def build_offers(path):
             estado = "Pendiente"
 
         offers.append({
-            "nro": nro,
+            "nro": nro_display[nro],
             "desc": cliente,
             "pais": pais,
             "cli": cliente,
