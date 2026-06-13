@@ -2,7 +2,9 @@ name: Exportar Asana cada hora
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 10 * * 1-5"  # 07:00 Chile (UTC-3), lunes a viernes
+    - cron: "0 18 * * 1-4"  # 15:00 Chile (UTC-3), lunes a jueves
+    - cron: "0 14 * * 5"    # 11:00 Chile (UTC-3), viernes
   workflow_dispatch:
 
 permissions:
