@@ -198,55 +198,57 @@ def build_offers(path):
     if not col_name:
         sys.exit("ERROR: no se encontro columna 'Name'.")
 
-    main_rows = []
-    subtasks_by_parent = {}
-
-    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
-        name = str_val(row[idx[col_name]])
-        if not name:
-            continue
-        parent = str_val(row[idx[col_parent]]) if col_parent else ""
-        if parent:
-            subtasks_by_parent.setdefault(parent, []).append(row)
-        else:
-            main_rows.append(row)
-
     def get(row, col):
         if not col or row is None:
             return None
         return row[idx[col]]
 
-    offers = []
-    for row in main_rows:
+    if not col_nro:
+        sys.exit("ERROR: no se encontro la columna 'Numero de oferta' (necesaria para agrupar).")
+
+    # ------------------------------------------------------------
+    # Este export NO trae una fila para la tarea principal: trae
+    # solo las 3 subtareas (Analisis Departamento ingenieria/proyecto,
+    # Consolidado Ofertas), todas con el mismo "Numero de oferta",
+    # "Fecha de entrega", "Cliente", "PAIS", etc. (heredados).
+    # Agrupamos por ese numero, preservando el orden de aparicion.
+    # ------------------------------------------------------------
+    grupos = {}      # nro -> lista de rows
+    orden = []        # orden de aparicion de cada nro
+
+    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         name = str_val(get(row, col_name))
-
-        nro = str_val(get(row, col_nro)) if col_nro else ""
-        m = re.match(r"^\s*([^\s\-\u2013]+)\s*[-\u2013]?\s*(.*)$", name)
-        name_nro, name_desc = (m.group(1), m.group(2).strip()) if m else (name, name)
+        if not name:
+            continue
+        nro = str_val(get(row, col_nro))
         if not nro:
-            nro = name_nro
-        desc = name_desc or name
+            continue
+        if nro not in grupos:
+            grupos[nro] = []
+            orden.append(nro)
+        grupos[nro].append(row)
 
-        subtasks = subtasks_by_parent.get(name, [])
-        all_rows = [row] + subtasks
-
-        def first_nonempty(col):
-            if not col:
-                return ""
-            for r in all_rows:
-                v = str_val(get(r, col))
-                if v:
-                    return v
+    def first_nonempty(rows_, col):
+        if not col:
             return ""
+        for r in rows_:
+            v = str_val(get(r, col))
+            if v:
+                return v
+        return ""
 
-        pais = first_nonempty(col_pais) or "Sin pais"
-        cliente = first_nonempty(col_cliente) or "-"
-        responsable = first_nonempty(col_responsable) or first_nonempty(col_assignee) or "Sin Asignar"
-        notas = first_nonempty(col_notas)
-        estado_field = first_nonempty(col_estado)
+    offers = []
+    for nro in orden:
+        rows_grp = grupos[nro]
+
+        pais = first_nonempty(rows_grp, col_pais) or "Sin pais"
+        cliente = first_nonempty(rows_grp, col_cliente) or "-"
+        notas = first_nonempty(rows_grp, col_notas)
+        estado_field = first_nonempty(rows_grp, col_estado)
+        responsable_field = first_nonempty(rows_grp, col_responsable)
 
         f_ent_d = None
-        for r in all_rows:
+        for r in rows_grp:
             d = to_date(get(r, col_f_ent))
             if d:
                 f_ent_d = d
@@ -254,20 +256,29 @@ def build_offers(path):
 
         ing = proy = cons = None
         f_sal_d = None
+        cons_responsable = ""
+        any_responsable = ""
 
-        for st in subtasks:
-            sec = str_val(get(st, col_section)) if col_section else str_val(get(st, col_name))
-            sec_n = normalize(sec)
-            completed = is_completed(st, idx, col_completed, col_completed_at)
+        for r in rows_grp:
+            name_n = normalize(str_val(get(r, col_name)))
+            f_fin_d = to_date(get(r, col_f_sal))
+            completed = is_completed(r, idx, col_completed, col_completed_at) or (f_fin_d is not None)
+            asignee_r = str_val(get(r, col_assignee))
+            if asignee_r and not any_responsable:
+                any_responsable = asignee_r
 
-            if SECCION_INGENIERIA in sec_n or ("ingenier" in sec_n and "analisis" in sec_n):
+            if "ingenier" in name_n:
                 ing = completed
-            elif SECCION_PROYECTO in sec_n or ("proyecto" in sec_n and "analisis" in sec_n):
+            elif "proyecto" in name_n:
                 proy = completed
-            elif SECCION_CONSOLIDADO_PREFIX in sec_n or "consolidado" in sec_n:
+            elif "consolidado" in name_n or name_n in ("ofertas", "ofert", "oferta"):
                 cons = completed
-                if completed:
-                    f_sal_d = to_date(get(st, col_f_sal)) or f_sal_d
+                if f_fin_d:
+                    f_sal_d = f_fin_d
+                if asignee_r:
+                    cons_responsable = asignee_r
+
+        responsable = cons_responsable or responsable_field or any_responsable or "Sin Asignar"
 
         flags = [ing, proy, cons]
         aplicables = [f for f in flags if f is not None]
@@ -289,7 +300,7 @@ def build_offers(path):
 
         offers.append({
             "nro": nro,
-            "desc": desc,
+            "desc": cliente,
             "pais": pais,
             "cli": cliente,
             "estado": estado,
