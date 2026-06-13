@@ -45,6 +45,7 @@ corre el workflow.
 """
 
 import sys
+from pathlib import Path
 from zoneinfo import ZoneInfo
 import os
 import glob
@@ -183,7 +184,11 @@ def area_for(assignee, section):
 def process_file(path, today):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.active
-    project_name = ws.title.strip()
+    # El nombre de la hoja de Excel se trunca a 31 caracteres, lo que provoca
+    # colisiones entre proyectos con prefijos largos compartidos
+    # (ej. "...ARIS OT4326" / "...ARIS OT4327" / "...ARIS OT4324-4325").
+    # Por eso usamos el nombre del ARCHIVO (único) como nombre del proyecto.
+    project_name = Path(path).stem.strip()
 
     header_row, headers = find_header_row(ws)
     if header_row is None:
