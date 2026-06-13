@@ -412,9 +412,8 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
 </script>
 <header class="header">
   <div class="hleft"><div class="hlogo">Z</div><div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2/3</div></div></div>
-  <div class="hright"><div>Actualizado: __FECHA__</div><div style="color:#86EFAC" id="hdrTotal">__TOTAL__ proyectos</div></div>
+  <div class="hright"><div>Actualizado: __FECHA__ __HORA__</div><div style="color:#86EFAC" id="hdrTotal">__TOTAL__ proyectos</div></div>
 </header>
-<main class="main">
   <div class="kpis" id="kpis"></div>
   <div class="ctrl">
     <input type="text" id="srch" placeholder="Buscar proyecto o pais..." oninput="render()">
@@ -466,8 +465,8 @@ function getF(){
     if(q&&x.n.toLowerCase().indexOf(q)<0&&x.p.toLowerCase().indexOf(q)<0)return false;
     if(PM[filt])return x.p===PM[filt];
     if(filt==="ot")return Object.values(PM).indexOf(x.p)<0;
-    if(filt==="des"){var l=x.ph.find(function(ph){return ph[0]==="Logistica"||ph[0]==="Logística";});return l&&l[1]>0&&l[1]===l[2];}
-    if(filt==="pend"){var l=x.ph.find(function(ph){return ph[0]==="Logistica"||ph[0]==="Logística";});return!(l&&l[1]>0&&l[1]===l[2]);}
+    if(filt==="des"){return x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}
+    if(filt==="pend"){return!x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}
     return true;
   });
   if(s==="pd")d.sort(function(a,b){return b.pct-a.pct;});
@@ -488,7 +487,7 @@ function rKPIs(){
     {l:"Avanzados 60%+",v:P.filter(function(x){return x.pct>=60;}).length,c:"#1D9E75"},
     {l:"En progreso",v:P.filter(function(x){return x.pct>=10&&x.pct<60;}).length,c:"#378ADD"},
     {l:"Sin iniciar",v:P.filter(function(x){return x.pct===0;}).length,c:"#E24B4A"},
-    {l:"Despachados",v:P.filter(function(x){var l=x.ph.find(function(p){return p[0]==="Logistica"||p[0]==="Logística";});return l&&l[1]>0&&l[1]===l[2];}).length,c:"#1D9E75"}
+    {l:"Despachados",v:P.filter(function(x){return x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}).length,c:"#1D9E75"}
   ];
   document.getElementById("kpis").innerHTML=ks.map(function(k){return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';}).join("");
 }
@@ -509,10 +508,10 @@ function render(){
       var fp=ft>0?Math.round(fd/ft*100):0;
       return '<div class="phrow"><span class="phname">'+fn+'</span><div class="phbg"><div class="phfill" style="width:'+fp+'%;background:'+col(fp)+';"></div></div><span class="phpct" style="color:'+col(fp)+'">'+fp+'%</span><span class="phct">'+fd+'/'+ft+'</span></div>';
     }).join("");
-    var lp=x.ph.find(function(ph){return ph[0]==="Logistica"||ph[0]==="Logística";});
+    var lp=x.ph.find(function(ph){var n=ph[0].toLowerCase();return n.indexOf("logist")>=0||n.indexOf("despacho")>=0;});
     var desp=lp&&lp[1]>0&&lp[1]===lp[2];
     var db=desp
-      ?'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;white-space:nowrap">Despachado</span>'
+      ?'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#D1FAE5;color:#065F46;border:1.5px solid #1D9E75;white-space:nowrap">✓ Despachado</span>'
       :'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">Pend. despacho</span>';
     return '<div class="pcard" id="c'+i+'" onclick="toggle('+i+')">'
       +'<div class="ptop"><span class="pname" title="'+x.n+'">'+x.n+'</span>'
@@ -601,12 +600,14 @@ def main():
 
     now_chile = datetime.datetime.now(ZoneInfo("America/Santiago"))
     fecha_str = now_chile.strftime("%d/%m/%Y")
+    hora_str = now_chile.strftime("%H:%M hrs")
     fecha_iso = now_chile.strftime("%Y-%m-%d")
 
     html_out = TEMPLATE
     html_out = html_out.replace("__PASSWORD__", PASSWORD)
     html_out = html_out.replace("__FECHA_ISO__", fecha_iso)
     html_out = html_out.replace("__FECHA__", fecha_str)
+    html_out = html_out.replace("__HORA__", hora_str)
     html_out = html_out.replace("__TOTAL__", str(len(P)))
     html_out = html_out.replace("__P_JSON__", json.dumps(P, ensure_ascii=False))
     html_out = html_out.replace("__SVC_JSON__", json.dumps(svc["tasks"], ensure_ascii=False))
