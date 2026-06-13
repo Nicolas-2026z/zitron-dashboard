@@ -1,0 +1,43 @@
+name: Actualizar Portafolio
+
+on:
+  schedule:
+    - cron: "0 12 * * 1-5"   # lunes a viernes 12:00 UTC (~9am Chile)
+  workflow_dispatch:        # permite ejecutarlo manualmente desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install playwright openpyxl
+          playwright install chromium
+
+      - name: Restaurar sesion de Asana (auth.json)
+        run: echo "${{ secrets.ASANA_AUTH }}" > auth.json
+
+      - name: Exportar proyectos y servicios desde Asana
+        run: python3 scripts/asana_export_portafolio.py
+
+      - name: Generar index.html
+        run: python3 scripts/generar_portafolio.py data data/servicios index.html
+
+      - name: Commit y push de los cambios
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add index.html data
+          git diff --staged --quiet || git commit -m "Actualiza portafolio $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
