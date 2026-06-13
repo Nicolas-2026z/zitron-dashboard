@@ -45,6 +45,7 @@ corre el workflow.
 """
 
 import sys
+from zoneinfo import ZoneInfo
 import os
 import glob
 import json
@@ -285,10 +286,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   }
   .selector select { border: none; background: transparent; font-size: 14px; font-weight: 600; }
 
-  .cards-globales { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .cards-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 18px; }
   .card-g {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 14px 22px; min-width: 180px; flex: 1;
+    padding: 14px 22px;
   }
   .card-g .lbl { font-size: 12px; color: #80868b; text-transform: uppercase; letter-spacing: .04em; }
   .card-g .val { font-size: 30px; font-weight: 700; margin: 4px 0; }
@@ -302,10 +303,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   .tabcontent { display: none; }
   .tabcontent.active { display: block; }
 
-  .area-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
   .area-card {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 16px; width: 175px;
+    padding: 16px; width: auto;
   }
   .area-card .titulo { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
   .area-card .pct { font-size: 28px; font-weight: 700; margin: 4px 0; }
@@ -411,7 +412,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 
 <h1>Dashboard Desempeño de Equipos</h1>
 <div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
-<div class="subt2">Días calculados en días hábiles Chile · Actualizado __FECHA__</div>
+<div class="subt2">Días calculados en días hábiles Chile · Última actualización: __FECHA__</div>
 
 <div class="selector-multi" id="selectorMulti">
   <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
@@ -543,20 +544,21 @@ function pct(verde, total) { return total ? (100 * verde / total) : 0; }
 function render() {
   const tasks = tareasSeleccionadas();
   const total = tasks.length;
-  const completadas = tasks.filter(t => t.estado_general === "Completada").length;
-  const verdes = tasks.filter(t => t.estado === "verde").length;
-  const rojos = tasks.filter(t => t.estado === "rojo").length;
-  const enPlazoPct = pct(verdes, total).toFixed(0);
-  const atrasoPct = pct(rojos, total).toFixed(0);
+
+  const complAtiempo = tasks.filter(t => t.estado_general === "Completada" && t.estado === "verde").length;
+  const complAtraso  = tasks.filter(t => t.estado_general === "Completada" && t.estado === "rojo").length;
+  const cursoAtiempo = tasks.filter(t => t.estado_general === "En curso").length;
+  const cursoAtraso  = tasks.filter(t => t.estado_general === "Vencida").length;
 
   const subLabel = seleccionados.size === 1 ? Array.from(seleccionados)[0] : `${seleccionados.size} proyectos`;
 
   document.getElementById('globales').innerHTML = `
     <div class="cards-globales">
       <div class="card-g"><div class="lbl">Tareas nivel 2</div><div class="val">${total}</div><div class="sub">${subLabel}</div></div>
-      <div class="card-g"><div class="lbl">Completadas</div><div class="val">${completadas}</div><div class="sub">${pct(completadas,total).toFixed(0)}% del total</div></div>
-      <div class="card-g"><div class="lbl">En plazo</div><div class="val verde">${enPlazoPct}%</div><div class="sub">${verdes} cerradas en fecha o antes</div></div>
-      <div class="card-g"><div class="lbl">Con atraso</div><div class="val rojo">${atrasoPct}%</div><div class="sub">${rojos} cerradas/vencidas 1+ día tarde</div></div>
+      <div class="card-g"><div class="lbl">Cerradas a tiempo</div><div class="val verde">${complAtiempo}</div><div class="sub">${pct(complAtiempo,total).toFixed(0)}% &middot; completadas en fecha o antes</div></div>
+      <div class="card-g"><div class="lbl">Cerradas con atraso</div><div class="val rojo">${complAtraso}</div><div class="sub">${pct(complAtraso,total).toFixed(0)}% &middot; completadas 1+ día tarde</div></div>
+      <div class="card-g"><div class="lbl">En curso a tiempo</div><div class="val verde">${cursoAtiempo}</div><div class="sub">${pct(cursoAtiempo,total).toFixed(0)}% &middot; aún dentro de plazo</div></div>
+      <div class="card-g"><div class="lbl">En curso atrasadas</div><div class="val rojo">${cursoAtraso}</div><div class="sub">${pct(cursoAtraso,total).toFixed(0)}% &middot; vencidas sin completar</div></div>
     </div>`;
 
   renderAreas(tasks);
@@ -710,6 +712,9 @@ def main():
         sys.exit(1)
 
     today = datetime.date.today()
+    now_chile = datetime.datetime.now(ZoneInfo("America/Santiago"))
+    DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+    fecha_str = f"{DIAS[now_chile.weekday()]} {now_chile.strftime('%d/%m/%Y')} {now_chile.strftime('%H:%M')} hrs (Chile)"
     data = {}
     errores = []
     for f in files:
@@ -729,7 +734,7 @@ def main():
         sys.exit(1)
 
     html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
-    html_out = html_out.replace("__FECHA__", today.strftime("%b %Y"))
+    html_out = html_out.replace("__FECHA__", fecha_str)
 
     out_dir = os.path.dirname(output_file)
     if out_dir:
