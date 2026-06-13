@@ -75,18 +75,26 @@ FERIADOS_CHILE = {
 
 ASSIGNEE_AREA = {
     "Francisca Ramos": "Equipo Proyecto",
+    "Francisca Alejandra Ramos Aravales": "Equipo Proyecto",
     "Benjamín Bustos": "Producción",
     "Víctor Muñoz": "Bodega",
+    "Victor Muñoz": "Bodega",
     "Nicolás López": "Producción",
     "Hugo Isla": "Producción",
     "Eliana": "Compras",
     "Nicolás Mol": "Producción",
     "Ignacio García": "Servicios",
+    "Ignacio Garcia Martinez": "Servicios",
     "Yerlia": "Compras",
+    "Yerlia Ayleen Castillo Diaz": "Compras",
     "Hernán Gutierrez": "Ingeniería",
+    "Hernan Roberto Gutierrez Barrientos": "Ingeniería",
     "Sergio Saavedra": "Servicios",
+    "Sergio de la Fuente": "Servicios",
     "Rose": "Compras",
+    "Rosemary Singh": "Compras",
     "Francisca González": "Ingeniería",
+    "Francisca González Cornejo": "Ingeniería",
     "Karin Pinto": "Logística",
 }
 
@@ -144,15 +152,30 @@ def find_header_row(ws, max_scan=10):
     return None, None
 
 
+def _norm(s):
+    s = str(s or "").lower().strip()
+    repl = {"á":"a","é":"e","í":"i","ó":"o","ú":"u","ñ":"n"}
+    for a, b in repl.items():
+        s = s.replace(a, b)
+    return s
+
+
 def area_for(assignee, section):
-    if assignee:
-        for k, v in ASSIGNEE_AREA.items():
-            if k.lower() == str(assignee).strip().lower():
-                return v
     sec = (section or "").lower()
     for kw, area in SECTION_AREA_KEYWORDS:
         if kw in sec:
             return area
+    if assignee:
+        a_norm = _norm(assignee)
+        a_words = set(a_norm.split())
+        for k, v in ASSIGNEE_AREA.items():
+            k_norm = _norm(k)
+            # coincidencia exacta o por nombre+apellido contenidos en el nombre completo
+            if k_norm == a_norm or k_norm in a_norm:
+                return v
+            k_words = set(k_norm.split())
+            if k_words and k_words.issubset(a_words):
+                return v
     return "Equipo Proyecto"
 
 
@@ -320,16 +343,85 @@ TEMPLATE = r"""<!DOCTYPE html>
     font-size: 13px; cursor: pointer;
   }
   .area-pill.active { background: var(--texto); color: #fff; border-color: var(--texto); }
+
+  #gate {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #gate.hidden { display: none; }
+  #gate .box {
+    background: var(--card); border: 1px solid var(--borde); border-radius: 14px;
+    padding: 40px 44px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    width: 320px;
+  }
+  #gate .box .icono { font-size: 32px; margin-bottom: 8px; }
+  #gate .box h2 { margin: 0 0 4px 0; font-size: 18px; font-weight: 700; }
+  #gate .box .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 18px; }
+  #gate .box input {
+    padding: 11px 14px; border: 1px solid var(--borde); border-radius: 8px;
+    font-size: 14px; width: 100%; margin-bottom: 12px; box-sizing: border-box;
+  }
+  #gate .box button {
+    padding: 11px 18px; border: none; border-radius: 8px; background: var(--texto);
+    color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+  }
+  #gate .box .error { color: var(--rojo); font-size: 13px; margin-top: 8px; height: 16px; }
+  #app { display: none; }
+  #app.show { display: block; }
+
+  .selector-multi { position: relative; display: inline-block; margin-bottom: 18px; }
+  .selector-multi .selector-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
+    padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .selector-multi .panel {
+    display: none; position: absolute; top: 110%; left: 0; z-index: 100;
+    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 8px 0;
+    max-height: 320px; overflow-y: auto; min-width: 320px;
+  }
+  .selector-multi.open .panel { display: block; }
+  .selector-multi .panel label {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+    font-size: 13px; font-weight: 400; cursor: pointer; white-space: nowrap;
+  }
+  .selector-multi .panel label:hover { background: #fafafa; }
+  .selector-multi .panel .acciones {
+    display: flex; gap: 10px; padding: 6px 14px 10px 14px; border-bottom: 1px solid var(--borde);
+    margin-bottom: 4px; font-size: 12px;
+  }
+  .selector-multi .panel .acciones a { color: var(--azul); cursor: pointer; text-decoration: none; }
 </style>
 </head>
 <body>
+
+<div id="gate">
+  <div class="box">
+    <div class="icono">📊</div>
+    <h2>Dashboard Desempeño</h2>
+    <div class="sub">Ingresa la clave para continuar</div>
+    <input type="password" id="gatePass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()">Ingresar</button>
+    <div class="error" id="gateError"></div>
+  </div>
+</div>
+
+<div id="app">
 
 <h1>Dashboard Desempeño de Equipos</h1>
 <div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
 <div class="subt2">Días calculados en días hábiles Chile · Actualizado __FECHA__</div>
 
-<div class="selector">📁 Proyecto:
-  <select id="selProyecto" onchange="cambiarProyecto()"></select>
+<div class="selector-multi" id="selectorMulti">
+  <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
+  <div class="panel" id="selectorPanel">
+    <div class="acciones">
+      <a onclick="seleccionarTodos(true)">Marcar todos</a>
+      <a onclick="seleccionarTodos(false)">Desmarcar todos</a>
+    </div>
+    <div id="selectorOpciones"></div>
+  </div>
 </div>
 
 <div id="globales"></div>
@@ -377,9 +469,28 @@ TEMPLATE = r"""<!DOCTYPE html>
   <span style="margin-left:auto;">Solo tareas nivel 2 (con tarea padre) · días hábiles Chile</span>
 </div>
 
+</div>
+
 <script>
+const CLAVE = "zitron2026!";
+function checkPass() {
+  const val = document.getElementById('gatePass').value;
+  if (val === CLAVE) {
+    sessionStorage.setItem('zitron_ok', '1');
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('show');
+  } else {
+    document.getElementById('gateError').textContent = 'Contraseña incorrecta';
+  }
+}
+if (sessionStorage.getItem('zitron_ok') === '1') {
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('app').classList.add('show');
+}
+
 const DATA = __DATA__;
-let proyectoActual = Object.keys(DATA)[0];
+const PROYECTOS = Object.keys(DATA);
+let seleccionados = new Set(PROYECTOS);
 let areaFiltroPersona = "Todos";
 
 function cambiarTab(tab) {
@@ -390,16 +501,47 @@ function cambiarTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
 }
 
-function cambiarProyecto() {
-  proyectoActual = document.getElementById('selProyecto').value;
+function toggleSelector() {
+  document.getElementById('selectorMulti').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const sel = document.getElementById('selectorMulti');
+  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
+});
+
+function seleccionarTodos(valor) {
+  if (valor) PROYECTOS.forEach(p => seleccionados.add(p));
+  else seleccionados.clear();
+  refrescarSelector();
   areaFiltroPersona = "Todos";
   render();
+}
+
+function toggleProyecto(p, checked) {
+  if (checked) seleccionados.add(p); else seleccionados.delete(p);
+  refrescarSelector();
+  areaFiltroPersona = "Todos";
+  render();
+}
+
+function refrescarSelector() {
+  document.getElementById('selectorLabel').textContent = `${seleccionados.size} de ${PROYECTOS.length}`;
+  const cont = document.getElementById('selectorOpciones');
+  cont.innerHTML = PROYECTOS.map(p =>
+    `<label><input type="checkbox" ${seleccionados.has(p) ? 'checked' : ''} onchange="toggleProyecto('${p.replace(/'/g, "\\'")}', this.checked)"> ${p}</label>`
+  ).join('');
+}
+
+function tareasSeleccionadas() {
+  let out = [];
+  PROYECTOS.forEach(p => { if (seleccionados.has(p)) out = out.concat(DATA[p]); });
+  return out;
 }
 
 function pct(verde, total) { return total ? (100 * verde / total) : 0; }
 
 function render() {
-  const tasks = DATA[proyectoActual];
+  const tasks = tareasSeleccionadas();
   const total = tasks.length;
   const completadas = tasks.filter(t => t.estado_general === "Completada").length;
   const verdes = tasks.filter(t => t.estado === "verde").length;
@@ -407,9 +549,11 @@ function render() {
   const enPlazoPct = pct(verdes, total).toFixed(0);
   const atrasoPct = pct(rojos, total).toFixed(0);
 
+  const subLabel = seleccionados.size === 1 ? Array.from(seleccionados)[0] : `${seleccionados.size} proyectos`;
+
   document.getElementById('globales').innerHTML = `
     <div class="cards-globales">
-      <div class="card-g"><div class="lbl">Tareas nivel 2</div><div class="val">${total}</div><div class="sub">${proyectoActual}</div></div>
+      <div class="card-g"><div class="lbl">Tareas nivel 2</div><div class="val">${total}</div><div class="sub">${subLabel}</div></div>
       <div class="card-g"><div class="lbl">Completadas</div><div class="val">${completadas}</div><div class="sub">${pct(completadas,total).toFixed(0)}% del total</div></div>
       <div class="card-g"><div class="lbl">En plazo</div><div class="val verde">${enPlazoPct}%</div><div class="sub">${verdes} cerradas en fecha o antes</div></div>
       <div class="card-g"><div class="lbl">Con atraso</div><div class="val rojo">${atrasoPct}%</div><div class="sub">${rojos} cerradas/vencidas 1+ día tarde</div></div>
@@ -422,6 +566,7 @@ function render() {
 }
 
 function renderAreas(tasks) {
+  const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
   tasks.forEach(t => {
     areas[t.area] = areas[t.area] || {total:0, verde:0, rojo:0};
@@ -429,8 +574,12 @@ function renderAreas(tasks) {
     if (t.estado === 'verde') areas[t.area].verde++;
     if (t.estado === 'rojo') areas[t.area].rojo++;
   });
+  const keys = Object.keys(areas).sort((a,b) => {
+    const ia = ORDEN.indexOf(a), ib = ORDEN.indexOf(b);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  });
   let html = '';
-  Object.keys(areas).forEach(area => {
+  keys.forEach(area => {
     const a = areas[area];
     const p = pct(a.verde, a.total);
     const cls = a.total === 0 ? '' : (p >= 50 ? 'verde' : 'rojo');
@@ -482,7 +631,7 @@ function renderPersonas(tasks) {
   document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="8"><i>Sin datos</i></td></tr>';
 }
 
-function setAreaPersona(a) { areaFiltroPersona = a; renderPersonas(DATA[proyectoActual]); }
+function setAreaPersona(a) { areaFiltroPersona = a; renderPersonas(tareasSeleccionadas()); }
 
 function fillFiltrosTareas(tasks) {
   const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
@@ -502,7 +651,7 @@ function fillFiltrosTareas(tasks) {
 }
 
 function renderTareas() {
-  const tasks = DATA[proyectoActual];
+  const tasks = tareasSeleccionadas();
   const fu = document.getElementById('fUsuario').value;
   const fa = document.getElementById('fArea').value;
   const fs = document.getElementById('fSeccion').value;
@@ -542,13 +691,7 @@ function renderTareas() {
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="8"><i>Sin tareas</i></td></tr>';
 }
 
-const selProyecto = document.getElementById('selProyecto');
-Object.keys(DATA).forEach(p => {
-  const opt = document.createElement('option');
-  opt.value = p; opt.textContent = p;
-  selProyecto.appendChild(opt);
-});
-
+refrescarSelector();
 render();
 </script>
 </body>
