@@ -1,0 +1,66 @@
+name: Actualizar dashboard Oferta Zitron 2026
+
+on:
+  schedule:
+    # Lunes a Jueves 06:00 y 16:00 hora Chile / Viernes 06:00 y 13:00 hora Chile
+    # (se incluyen horarios CLST y CLT porque GitHub Actions usa UTC)
+    - cron: "0 9 * * 1-4"   # Lun-Jue 06:00 CLST (UTC-3)
+    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 CLT (UTC-4)
+    - cron: "0 19 * * 1-4"  # Lun-Jue 16:00 CLST
+    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 CLT
+    - cron: "0 9 * * 5"     # Vie 06:00 CLST
+    - cron: "0 10 * * 5"    # Vie 06:00 CLT
+    - cron: "0 16 * * 5"    # Vie 13:00 CLST
+    - cron: "0 17 * * 5"    # Vie 13:00 CLT
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install playwright openpyxl
+          playwright install chromium --with-deps
+
+      - name: Restaurar sesion de Asana
+        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
+
+      - name: Exportar proyecto Oferta Zitron 2026
+        run: python scripts/asana_export_ofertas.py
+
+      - name: Subir diagnostico (si hubo fallos)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-ofertas
+          path: debug_ofertas/
+          if-no-files-found: ignore
+
+      - name: Borrar sesion (no dejar rastro en el runner)
+        if: always()
+        run: rm -f auth.json
+
+      - name: Generar ofertas2026.html
+        run: python scripts/ofertas_dashboard.py data_ofertas ofertas2026.html
+
+      - name: Commit y push si hay cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data_ofertas/ ofertas2026.html
+          git diff --staged --quiet || git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
