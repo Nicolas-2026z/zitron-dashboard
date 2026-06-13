@@ -3,7 +3,7 @@ name: Actualizar Portafolio
 on:
   schedule:
     - cron: "0 12 * * 1-5"   # lunes a viernes 12:00 UTC (~9am Chile)
-  workflow_dispatch:        # permite ejecutarlo manualmente desde la pestaña Actions
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,7 +26,11 @@ jobs:
           playwright install chromium
 
       - name: Restaurar sesion de Asana (auth.json)
-        run: echo "${{ secrets.ASANA_AUTH }}" > auth.json
+        env:
+          ASANA_AUTH_PORTAFOLIO: ${{ secrets.ASANA_AUTH_PORTAFOLIO }}
+        run: |
+          echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
+          echo "Tamano auth.json: $(wc -c < auth.json) bytes"
 
       - name: Exportar proyectos y servicios desde Asana
         run: python3 scripts/asana_export_portafolio.py
