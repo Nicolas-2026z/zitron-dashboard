@@ -274,6 +274,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     background: var(--bg); color: var(--texto); margin: 0; padding: 28px;
+    max-width: 1280px; margin-left: auto; margin-right: auto;
   }
   h1 { font-size: 26px; margin: 0 0 4px 0; }
   .subt { color: #5f6368; font-size: 14px; margin: 2px 0; }
@@ -286,14 +287,14 @@ TEMPLATE = r"""<!DOCTYPE html>
   }
   .selector select { border: none; background: transparent; font-size: 14px; font-weight: 600; }
 
-  .cards-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 18px; }
+  .cards-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px; }
   .card-g {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 14px 22px;
+    padding: 12px 16px;
   }
   .card-g .lbl { font-size: 12px; color: #80868b; text-transform: uppercase; letter-spacing: .04em; }
-  .card-g .val { font-size: 30px; font-weight: 700; margin: 4px 0; }
-  .card-g .sub { font-size: 12px; color: #9aa0a6; }
+  .card-g .val { font-size: 26px; font-weight: 700; margin: 4px 0; }
+  .card-g .sub { font-size: 11.5px; color: #9aa0a6; line-height: 1.4; }
   .card-g .val.verde { color: var(--verde); }
   .card-g .val.rojo { color: var(--rojo); }
 
@@ -303,10 +304,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   .tabcontent { display: none; }
   .tabcontent.active { display: block; }
 
-  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
   .area-card {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 16px; width: auto;
+    padding: 14px; width: auto;
   }
   .area-card .titulo { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
   .area-card .pct { font-size: 28px; font-weight: 700; margin: 4px 0; }
