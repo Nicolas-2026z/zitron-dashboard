@@ -32,6 +32,12 @@ jobs:
           echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
           echo "Tamano auth.json: $(wc -c < auth.json) bytes"
 
+      - name: Limpiar carpeta data anterior
+        run: |
+          rm -f data/*.xlsx data/*.csv
+          rm -f data/servicios/*.xlsx data/servicios/*.csv
+          echo "Carpetas limpiadas"
+
       - name: Exportar proyectos y servicios desde Asana
         run: python3 scripts/asana_export_portafolio.py
 
