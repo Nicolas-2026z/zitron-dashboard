@@ -1,52 +1,72 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ASANA EXPORTER - Portafolio Zitron (automatico) + Board Servicios
-------------------------------------------------------------------
-FLUJO:
-  1) Descarga el CSV del portafolio "Consolidado proyectos" via Playwright
-  2) Lee el CSV para extraer nombre y GID de cada proyecto
-  3) Exporta cada proyecto como XLSX -> data/
-  4) Exporta el board "Servicios y Mantencion" -> data/servicios/
-
-Si agrega un proyecto nuevo al portafolio en Asana, se detecta
-automaticamente sin tocar este script.
-
-PROYECTOS_EXTRA: proyectos que NO aparecen en el CSV del portafolio
-pero igual deben exportarse (ej: proyectos de subcarpetas).
+ASANA EXPORTER - Portafolio Zitron (lista fija 42 proyectos) + Board Servicios
+Para agregar un proyecto nuevo: agregar una linea a PROYECTOS con (nombre, url).
 """
 
-import csv
-import io
 import re
 import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE        = Path(__file__).resolve().parent.parent
-AUTH_FILE   = BASE / "auth.json"
+BASE           = Path(__file__).resolve().parent.parent
+AUTH_FILE      = BASE / "auth.json"
 DATA_PROYECTOS = BASE / "data"
 DATA_SERVICIOS = BASE / "data" / "servicios"
 DATA_PROYECTOS.mkdir(parents=True, exist_ok=True)
 DATA_SERVICIOS.mkdir(parents=True, exist_ok=True)
 
-# GID del portafolio "Consolidado proyectos"
-PORTAFOLIO_GID = "1213511928397658"
-PORTAFOLIO_URL = f"https://app.asana.com/0/portfolio/{PORTAFOLIO_GID}/list"
-
-# Board de servicios
 SERVICIOS_URL    = "https://app.asana.com/1/402967058777498/project/1213595645392940/board/1213596118449101"
 SERVICIOS_NOMBRE = "Servicios y Mantencion"
 
-WORKSPACE_GID = "402967058777498"
-
-# Proyectos extra que NO salen en el CSV del portafolio (agregar si es necesario)
-PROYECTOS_EXTRA = [
-    # ("NOMBRE", "https://app.asana.com/1/.../project/GID"),
+# ── Lista de los 42 proyectos del portafolio consolidado ──────────────────────
+PROYECTOS = [
+    ("50001559 - FERROVIAL",                               "https://app.asana.com/1/402967058777498/project/1215504785832997"),
+    ("50001558 - GESVIAL OT4342-4344",                    "https://app.asana.com/1/402967058777498/project/1215137857526702"),
+    ("50001557 - ATACAMA KOZAN OT4340",                   "https://app.asana.com/1/402967058777498/project/1215137857526520"),
+    ("50001557 - ATACAMA KOZAN OT4335-4337-4339",         "https://app.asana.com/1/402967058777498/project/1215139673478155"),
+    ("50001554 - MAPIMI",                                  "https://app.asana.com/1/402967058777498/project/1215118022011721"),
+    ("50001553 - ZITRON COLOMBIA ARIS OT4326",            "https://app.asana.com/1/402967058777498/project/1214969047721199"),
+    ("50001553 - ZITRON COLOMBIA ARIS OT4327",            "https://app.asana.com/1/402967058777498/project/1214969047720950"),
+    ("50001553 - ZITRON COLOMBIA ARIS OT4324-4325",       "https://app.asana.com/1/402967058777498/project/1214969284200793"),
+    ("50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA",    "https://app.asana.com/1/402967058777498/project/1214922603742599"),
+    ("50001544 - DMC MINING SERVICES",                    "https://app.asana.com/1/402967058777498/project/1214892476594825"),
+    ("50001547 - XEMORTIZ AMERICAS GOLD",                 "https://app.asana.com/1/402967058777498/project/1214787972061369"),
+    ("50001546 - XEMORTIZ",                               "https://app.asana.com/1/402967058777498/project/1214739697907723"),
+    ("50001545 - XEMORTIZ MINERA FRISCO",                 "https://app.asana.com/1/402967058777498/project/1214563704105168"),
+    ("50001543 - ZITRON COLOMBIA EGM",                    "https://app.asana.com/1/402967058777498/project/1214508463084754"),
+    ("50001525 - ZITRON PERU METRO LIMA E07",             "https://app.asana.com/1/402967058777498/project/1213832650589314"),
+    ("50001534 - ZITRON PERU METRO LIMA E04-05-06-R4",    "https://app.asana.com/1/402967058777498/project/1213881596172396"),
+    ("50001541 - XEMORTIZ MINERA FRISCO B",               "https://app.asana.com/1/402967058777498/project/1214137717389412"),
+    ("50001532 - XEMORTIZ AMERICAS GOLD B",               "https://app.asana.com/1/402967058777498/project/1213963037596622"),
+    ("50001466 - ZITRON PERU PODEROSA",                   "https://app.asana.com/1/402967058777498/project/1213997266064436"),
+    ("50001485 - CALABRESSE METRO STO DOMINGO",           "https://app.asana.com/1/402967058777498/project/1213377149548665"),
+    ("50001498 - CALABRESSE METRO STO DOMINGO POZOS",     "https://app.asana.com/1/402967058777498/project/1213377149548798"),
+    ("50001477 - TRITON MINERA",                          "https://app.asana.com/1/402967058777498/project/1213377149548590"),
+    ("50001490 - ZITRON PERU METRO LIMA PV04-PV05",       "https://app.asana.com/1/402967058777498/project/1213377149548731"),
+    ("50001504 - ZITRON PERU CODESTABLE A",               "https://app.asana.com/1/402967058777498/project/1213400421980747"),
+    ("50001504 - ZITRON PERU CODESTABLE B",               "https://app.asana.com/1/402967058777498/project/1213377149548924"),
+    ("50001415 - ZITRON PERU METRO LIMA E05",             "https://app.asana.com/1/402967058777498/project/1213391072478428"),
+    ("50001506 - ZCO EPM FRIO AIRE",                      "https://app.asana.com/1/402967058777498/project/1213244147627519"),
+    ("50001309 - ZITRON COLOMBIA BUGA BUENAVENTURA",      "https://app.asana.com/1/402967058777498/project/1213377149548388"),
+    ("50001451 - ZITRON COLOMBIA",                        "https://app.asana.com/1/402967058777498/project/1213391072478496"),
+    ("50001500 - EQ MIN LA HACIENDA A",                   "https://app.asana.com/1/402967058777498/project/1213234368822465"),
+    ("50001497 - XEMORTIZ IMMSA STA BBR",                 "https://app.asana.com/1/402967058777498/project/1213193352022841"),
+    ("50001499 - EQ CHAPARRAL A",                         "https://app.asana.com/1/402967058777498/project/1213244147627934"),
+    ("50001508 - XEMORTIZ STOCK",                         "https://app.asana.com/1/402967058777498/project/1213362937195444"),
+    ("50001473 - MAPIMI B",                               "https://app.asana.com/1/402967058777498/project/1213377149548525"),
+    ("50001501 - EQ MIN LA HACIENDA B",                   "https://app.asana.com/1/402967058777498/project/1213377149548860"),
+    ("50001446 - MINERA FRESNILLO",                       "https://app.asana.com/1/402967058777498/project/1213377149548988"),
+    ("50001520 - XEMORTIZ DDG",                           "https://app.asana.com/1/402967058777498/project/1213396195711984"),
+    ("50001518 - EQ CHAPARRAL B",                         "https://app.asana.com/1/402967058777498/project/1213458785834993"),
+    ("50001533 - GESVIAL",                                "https://app.asana.com/1/402967058777498/project/1213955236952392"),
+    ("50001524 - ATACAMA KOZAN",                          "https://app.asana.com/1/402967058777498/project/1213458788103499"),
+    ("50001514 - CLIENTE POR DEFINIR A",                  "https://app.asana.com/1/402967058777498/project/1213185599076077"),
+    ("50001515 - CLIENTE POR DEFINIR B",                  "https://app.asana.com/1/402967058777498/project/1213234368821945"),
 ]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 def limpiar_nombre(nombre: str) -> str:
     nombre = re.sub(r"\s+", " ", nombre)
     for c in r'\/:*?"<>|':
@@ -54,108 +74,6 @@ def limpiar_nombre(nombre: str) -> str:
     return nombre.strip()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-def descargar_csv_portafolio(page) -> list[tuple[str, str]]:
-    """
-    Entra al portafolio, descarga el CSV y devuelve lista de (nombre, url).
-    El CSV del portafolio contiene columna 'Name' y 'Linked projects' o
-    directamente filas con el nombre y GID del proyecto.
-    """
-    print(f"\nDescargando CSV del portafolio...")
-    page.goto(PORTAFOLIO_URL, wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(5000)
-
-    # Abrir menu del portafolio (los tres puntos o chevron del header)
-    try:
-        menu = page.locator('[aria-label="Acciones del portafolio"], [aria-label="Portfolio actions"]')
-        if menu.count() == 0:
-            menu = page.locator('[data-testid="portfolio-actions-button"]')
-        if menu.count() == 0:
-            # Fallback: boton de tres puntos en el header
-            menu = page.locator('button').filter(has_text="").nth(0)
-        menu.first.click(timeout=15000)
-    except Exception:
-        # Intentar con el menu contextual del portafolio via kebab
-        page.keyboard.press("Escape")
-        page.wait_for_timeout(500)
-        # Click en el chevron del nombre del portafolio
-        chevron = page.locator('[aria-label="Opciones del portafolio"], [aria-label="Portfolio options"]')
-        chevron.first.click(timeout=10000)
-
-    time.sleep(0.8)
-
-    # Buscar "Exportar o sincronizar"
-    export_btn = page.get_by_text("Exportar o sincronizar", exact=False)
-    export_btn.first.hover(timeout=10000)
-    time.sleep(0.8)
-
-    # Click en CSV
-    with page.expect_download(timeout=30000) as dl_info:
-        page.get_by_text("CSV", exact=True).first.click(timeout=10000)
-
-    download = dl_info.value
-    csv_text = download.path()  # archivo temporal
-    content = Path(csv_text).read_text(encoding="utf-8-sig", errors="replace")
-
-    proyectos = _parsear_csv_portafolio(content)
-    print(f"  Proyectos detectados en CSV: {len(proyectos)}")
-    return proyectos
-
-
-def _parsear_csv_portafolio(content: str) -> list[tuple[str, str]]:
-    """
-    Parsea el CSV del portafolio y devuelve (nombre, url_proyecto).
-    Asana exporta el portafolio con columnas como:
-      Name, Owner, Status, Start Date, Due Date, ...
-    El GID del proyecto no viene directo, pero si viene la columna
-    'Linked projects' o podemos inferirlo de otra columna.
-    En algunos exports viene 'Project URL' o similar.
-    Si no hay URL, construimos la URL desde el nombre buscando el GID
-    en el contenido del CSV (a veces viene como ID).
-    """
-    reader = csv.DictReader(io.StringIO(content))
-    rows = list(reader)
-    if not rows:
-        return []
-
-    headers = [h.strip().lower() for h in rows[0].keys()]
-    print(f"  Columnas CSV: {list(rows[0].keys())[:10]}")
-
-    proyectos = []
-    for row in rows:
-        # Normalizar keys
-        row_norm = {k.strip().lower(): v for k, v in row.items()}
-
-        nombre = (row_norm.get("name") or row_norm.get("nombre") or "").strip()
-        if not nombre:
-            continue
-
-        # Buscar URL o GID del proyecto
-        url = ""
-        # Intentar columna URL directa
-        for col in ["url", "project url", "enlace", "link"]:
-            if col in row_norm and row_norm[col].strip():
-                url = row_norm[col].strip()
-                break
-
-        # Si no hay URL, buscar GID numerico en cualquier columna
-        if not url:
-            for col, val in row_norm.items():
-                m = re.search(r'\b(\d{16,})\b', str(val))
-                if m:
-                    gid = m.group(1)
-                    url = f"https://app.asana.com/1/{WORKSPACE_GID}/project/{gid}/list"
-                    break
-
-        if url:
-            proyectos.append((nombre, url))
-        else:
-            print(f"  [AVISO] Sin URL para: {nombre}")
-
-    return proyectos
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 def exportar_proyecto(page, nombre: str, url: str, carpeta: Path,
                       indice: int = 0, total: int = 0) -> bool:
     prefix = f"[{indice}/{total}] " if total else ""
@@ -194,36 +112,35 @@ def exportar_proyecto(page, nombre: str, url: str, carpeta: Path,
         nombre_archivo = limpiar_nombre(nombre) + sufijo
         ruta_destino = carpeta / nombre_archivo
         download.save_as(ruta_destino)
-        print(f"  ✓ Guardado: {ruta_destino.name}")
+        print(f"  OK -> {ruta_destino.name}")
         return True
 
     except Exception as e:
-        print(f"  ✗ ERROR: {e}")
+        print(f"  ERROR: {e}")
         debug_dir = BASE / "debug_portafolio"
         debug_dir.mkdir(exist_ok=True)
         try:
-            nombre_debug = limpiar_nombre(nombre)[:40]
-            page.screenshot(path=str(debug_dir / f"fallo_{nombre_debug}.png"), full_page=True)
-            debug_dir.joinpath(f"fallo_{nombre_debug}.html").write_text(
-                page.content(), encoding="utf-8")
+            nd = limpiar_nombre(nombre)[:40]
+            page.screenshot(path=str(debug_dir / f"fallo_{nd}.png"), full_page=True)
+            debug_dir.joinpath(f"fallo_{nd}.html").write_text(page.content(), encoding="utf-8")
         except Exception:
             pass
         return False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 def main():
     if not AUTH_FILE.exists():
         raise SystemExit(f"No se encontro {AUTH_FILE}.")
 
     print("=" * 60)
-    print("  ASANA EXPORTER - Portafolio Zitron (automatico)")
-    print(f"  Proyectos -> {DATA_PROYECTOS}")
+    print("  ASANA EXPORTER - Portafolio Zitron")
+    print(f"  Proyectos ({len(PROYECTOS)}) -> {DATA_PROYECTOS}")
     print(f"  Servicios -> {DATA_SERVICIOS}")
     print("=" * 60)
 
-    ok_count  = 0
+    ok_count = 0
     err_count = 0
+    total = len(PROYECTOS)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -231,30 +148,7 @@ def main():
                                       storage_state=str(AUTH_FILE))
         page = context.new_page()
 
-        # 1) Obtener lista de proyectos desde el CSV del portafolio
-        try:
-            proyectos = descargar_csv_portafolio(page)
-        except Exception as e:
-            print(f"\n[AVISO] No se pudo descargar el CSV del portafolio: {e}")
-            print("  Usando lista de proyectos extra solamente.")
-            proyectos = []
-
-        # Agregar proyectos extra que no estan en el portafolio
-        proyectos += PROYECTOS_EXTRA
-
-        # Deduplicar por URL
-        vistos = set()
-        proyectos_unicos = []
-        for nombre, url in proyectos:
-            if url not in vistos:
-                vistos.add(url)
-                proyectos_unicos.append((nombre, url))
-
-        total = len(proyectos_unicos)
-        print(f"\nTotal proyectos a exportar: {total}")
-
-        # 2) Exportar cada proyecto
-        for i, (nombre, url) in enumerate(proyectos_unicos, 1):
+        for i, (nombre, url) in enumerate(PROYECTOS, 1):
             ok = exportar_proyecto(page, nombre, url, DATA_PROYECTOS, i, total)
             if ok:
                 ok_count += 1
@@ -262,7 +156,6 @@ def main():
                 err_count += 1
             time.sleep(1.5)
 
-        # 3) Board de servicios
         ok = exportar_proyecto(page, SERVICIOS_NOMBRE, SERVICIOS_URL, DATA_SERVICIOS)
         if ok:
             ok_count += 1
