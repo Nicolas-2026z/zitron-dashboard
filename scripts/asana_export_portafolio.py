@@ -1,45 +1,52 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ASANA EXPORTER - Portafolio Zitron (todos los proyectos) + Board Servicios
-----------------------------------------------------------------------------
-Usa una sesion guardada (auth.json), igual que asana_export_ofertas.py,
-pero en vez de un solo proyecto:
+ASANA EXPORTER - Portafolio Zitron (automatico) + Board Servicios
+------------------------------------------------------------------
+FLUJO:
+  1) Descarga el CSV del portafolio "Consolidado proyectos" via Playwright
+  2) Lee el CSV para extraer nombre y GID de cada proyecto
+  3) Exporta cada proyecto como XLSX -> data/
+  4) Exporta el board "Servicios y Mantencion" -> data/servicios/
 
-  1) Entra al PORTAFOLIO, detecta todos los proyectos que contiene y
-     exporta cada uno como XLSX -> data_excels/
-  2) Exporta el proyecto/board "Servicios y Mantencion" -> data_servicios/
+Si agrega un proyecto nuevo al portafolio en Asana, se detecta
+automaticamente sin tocar este script.
 
-Estos dos directorios son el input de generar_portafolio.py.
-
-USO
----
-  python3 asana_export_portafolio.py
-
-Requiere auth.json (generado con guardar_sesion.py) en la carpeta padre.
+PROYECTOS_EXTRA: proyectos que NO aparecen en el CSV del portafolio
+pero igual deben exportarse (ej: proyectos de subcarpetas).
 """
 
+import csv
+import io
 import re
 import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE = Path(__file__).resolve().parent.parent
-AUTH_FILE = BASE / "auth.json"
-
+BASE        = Path(__file__).resolve().parent.parent
+AUTH_FILE   = BASE / "auth.json"
 DATA_PROYECTOS = BASE / "data"
 DATA_SERVICIOS = BASE / "data" / "servicios"
 DATA_PROYECTOS.mkdir(parents=True, exist_ok=True)
 DATA_SERVICIOS.mkdir(parents=True, exist_ok=True)
 
-# URL del portafolio "Proyectos" (el que tiene los ~42 proyectos)
-PORTAFOLIO_URL = "https://app.asana.com/0/portfolio/1213511928397658/1213532266045644"
+# GID del portafolio "Consolidado proyectos"
+PORTAFOLIO_GID = "1213511928397658"
+PORTAFOLIO_URL = f"https://app.asana.com/0/portfolio/{PORTAFOLIO_GID}/list"
 
-# URL del proyecto/board "Servicios y Mantencion"
-SERVICIOS_URL = "https://app.asana.com/1/402967058777498/project/1213595645392940/board/1213596118449101"
+# Board de servicios
+SERVICIOS_URL    = "https://app.asana.com/1/402967058777498/project/1213595645392940/board/1213596118449101"
 SERVICIOS_NOMBRE = "Servicios y Mantencion"
 
+WORKSPACE_GID = "402967058777498"
 
+# Proyectos extra que NO salen en el CSV del portafolio (agregar si es necesario)
+PROYECTOS_EXTRA = [
+    # ("NOMBRE", "https://app.asana.com/1/.../project/GID"),
+]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 def limpiar_nombre(nombre: str) -> str:
     nombre = re.sub(r"\s+", " ", nombre)
     for c in r'\/:*?"<>|':
@@ -47,11 +54,112 @@ def limpiar_nombre(nombre: str) -> str:
     return nombre.strip()
 
 
-# ---------------------------------------------------------------------
-# Exportar un proyecto individual a XLSX (mismo flujo que asana_export_ofertas.py)
-# ---------------------------------------------------------------------
-def exportar_proyecto(page, nombre: str, url: str, carpeta_salida: Path) -> bool:
-    print(f"\nExportando: {nombre}")
+# ─────────────────────────────────────────────────────────────────────────────
+def descargar_csv_portafolio(page) -> list[tuple[str, str]]:
+    """
+    Entra al portafolio, descarga el CSV y devuelve lista de (nombre, url).
+    El CSV del portafolio contiene columna 'Name' y 'Linked projects' o
+    directamente filas con el nombre y GID del proyecto.
+    """
+    print(f"\nDescargando CSV del portafolio...")
+    page.goto(PORTAFOLIO_URL, wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(5000)
+
+    # Abrir menu del portafolio (los tres puntos o chevron del header)
+    try:
+        menu = page.locator('[aria-label="Acciones del portafolio"], [aria-label="Portfolio actions"]')
+        if menu.count() == 0:
+            menu = page.locator('[data-testid="portfolio-actions-button"]')
+        if menu.count() == 0:
+            # Fallback: boton de tres puntos en el header
+            menu = page.locator('button').filter(has_text="").nth(0)
+        menu.first.click(timeout=15000)
+    except Exception:
+        # Intentar con el menu contextual del portafolio via kebab
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(500)
+        # Click en el chevron del nombre del portafolio
+        chevron = page.locator('[aria-label="Opciones del portafolio"], [aria-label="Portfolio options"]')
+        chevron.first.click(timeout=10000)
+
+    time.sleep(0.8)
+
+    # Buscar "Exportar o sincronizar"
+    export_btn = page.get_by_text("Exportar o sincronizar", exact=False)
+    export_btn.first.hover(timeout=10000)
+    time.sleep(0.8)
+
+    # Click en CSV
+    with page.expect_download(timeout=30000) as dl_info:
+        page.get_by_text("CSV", exact=True).first.click(timeout=10000)
+
+    download = dl_info.value
+    csv_text = download.path()  # archivo temporal
+    content = Path(csv_text).read_text(encoding="utf-8-sig", errors="replace")
+
+    proyectos = _parsear_csv_portafolio(content)
+    print(f"  Proyectos detectados en CSV: {len(proyectos)}")
+    return proyectos
+
+
+def _parsear_csv_portafolio(content: str) -> list[tuple[str, str]]:
+    """
+    Parsea el CSV del portafolio y devuelve (nombre, url_proyecto).
+    Asana exporta el portafolio con columnas como:
+      Name, Owner, Status, Start Date, Due Date, ...
+    El GID del proyecto no viene directo, pero si viene la columna
+    'Linked projects' o podemos inferirlo de otra columna.
+    En algunos exports viene 'Project URL' o similar.
+    Si no hay URL, construimos la URL desde el nombre buscando el GID
+    en el contenido del CSV (a veces viene como ID).
+    """
+    reader = csv.DictReader(io.StringIO(content))
+    rows = list(reader)
+    if not rows:
+        return []
+
+    headers = [h.strip().lower() for h in rows[0].keys()]
+    print(f"  Columnas CSV: {list(rows[0].keys())[:10]}")
+
+    proyectos = []
+    for row in rows:
+        # Normalizar keys
+        row_norm = {k.strip().lower(): v for k, v in row.items()}
+
+        nombre = (row_norm.get("name") or row_norm.get("nombre") or "").strip()
+        if not nombre:
+            continue
+
+        # Buscar URL o GID del proyecto
+        url = ""
+        # Intentar columna URL directa
+        for col in ["url", "project url", "enlace", "link"]:
+            if col in row_norm and row_norm[col].strip():
+                url = row_norm[col].strip()
+                break
+
+        # Si no hay URL, buscar GID numerico en cualquier columna
+        if not url:
+            for col, val in row_norm.items():
+                m = re.search(r'\b(\d{16,})\b', str(val))
+                if m:
+                    gid = m.group(1)
+                    url = f"https://app.asana.com/1/{WORKSPACE_GID}/project/{gid}/list"
+                    break
+
+        if url:
+            proyectos.append((nombre, url))
+        else:
+            print(f"  [AVISO] Sin URL para: {nombre}")
+
+    return proyectos
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def exportar_proyecto(page, nombre: str, url: str, carpeta: Path,
+                      indice: int = 0, total: int = 0) -> bool:
+    prefix = f"[{indice}/{total}] " if total else ""
+    print(f"\n{prefix}{nombre}")
     try:
         page.goto(url, wait_until="domcontentloaded", timeout=45000)
         page.wait_for_timeout(4000)
@@ -84,113 +192,77 @@ def exportar_proyecto(page, nombre: str, url: str, carpeta_salida: Path) -> bool
         download = download_info.value
         sufijo = Path(download.suggested_filename).suffix or ".xlsx"
         nombre_archivo = limpiar_nombre(nombre) + sufijo
-        ruta_destino = carpeta_salida / nombre_archivo
+        ruta_destino = carpeta / nombre_archivo
         download.save_as(ruta_destino)
-        print(f"  OK -> Guardado: {ruta_destino.name}")
+        print(f"  ✓ Guardado: {ruta_destino.name}")
         return True
 
     except Exception as e:
-        print(f"  ERROR: {e}")
-        debug_dir = carpeta_salida.parent / "debug_portafolio"
+        print(f"  ✗ ERROR: {e}")
+        debug_dir = BASE / "debug_portafolio"
         debug_dir.mkdir(exist_ok=True)
-        nombre_debug = limpiar_nombre(nombre)
         try:
+            nombre_debug = limpiar_nombre(nombre)[:40]
             page.screenshot(path=str(debug_dir / f"fallo_{nombre_debug}.png"), full_page=True)
-            debug_dir.joinpath(f"fallo_{nombre_debug}.html").write_text(page.content(), encoding="utf-8")
-            print("  -> Guardado screenshot/html de diagnostico en debug_portafolio/")
-        except Exception as e2:
-            print(f"  (no se pudo guardar diagnostico: {e2})")
+            debug_dir.joinpath(f"fallo_{nombre_debug}.html").write_text(
+                page.content(), encoding="utf-8")
+        except Exception:
+            pass
         return False
 
 
-# ---------------------------------------------------------------------
-# Listar los proyectos contenidos en el portafolio
-# ---------------------------------------------------------------------
-def listar_proyectos_portafolio(page):
-    """
-    Entra al portafolio y devuelve una lista de (nombre, url) por cada
-    proyecto que contiene.
-
-    NOTA: el selector de las tarjetas/filas de proyecto dentro de un
-    portafolio de Asana puede variar segun la version de la UI. El
-    selector usado aqui (`a[href*="/project/"]` dentro del contenedor
-    del portafolio) es el mas estable, pero si Asana cambia su DOM
-    puede ser necesario ajustarlo. Si la lista sale vacia, revisar
-    debug_portafolio/portafolio.png / .html.
-    """
-    page.goto(PORTAFOLIO_URL, wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(5000)
-
-    # Hacer scroll para forzar la carga de todas las filas (listas virtualizadas)
-    for _ in range(40):
-        page.mouse.wheel(0, 1200)
-        page.wait_for_timeout(250)
-
-    enlaces = page.locator('a[href*="/project/"]')
-    n = enlaces.count()
-
-    vistos = {}
-    for i in range(n):
-        try:
-            href = enlaces.nth(i).get_attribute("href")
-            texto = enlaces.nth(i).inner_text(timeout=2000).strip()
-        except Exception:
-            continue
-        if not href or not texto:
-            continue
-        m = re.search(r"/project/(\d+)", href)
-        if not m:
-            continue
-        gid = m.group(1)
-        url = f"https://app.asana.com/0/{gid}/list"
-        if gid not in vistos:
-            vistos[gid] = (texto, url)
-
-    proyectos = [(nombre, url) for gid, (nombre, url) in vistos.items()]
-
-    if not proyectos:
-        debug_dir = page.context.tracing  # placeholder, just to avoid unused import issues
-        debug_dir2 = Path(__file__).resolve().parent.parent / "debug_portafolio"
-        debug_dir2.mkdir(exist_ok=True)
-        page.screenshot(path=str(debug_dir2 / "portafolio.png"), full_page=True)
-        debug_dir2.joinpath("portafolio.html").write_text(page.content(), encoding="utf-8")
-        print("  -> No se detectaron proyectos. Diagnostico guardado en debug_portafolio/")
-
-    return proyectos
-
-
+# ─────────────────────────────────────────────────────────────────────────────
 def main():
     if not AUTH_FILE.exists():
-        raise SystemExit(
-            f"No se encontro {AUTH_FILE}. "
-            "Genera la sesion con guardar_sesion.py y configura el secret ASANA_AUTH."
-        )
+        raise SystemExit(f"No se encontro {AUTH_FILE}.")
 
     print("=" * 60)
-    print("  ASANA EXPORTER - Portafolio Zitron (todos los proyectos)")
+    print("  ASANA EXPORTER - Portafolio Zitron (automatico)")
     print(f"  Proyectos -> {DATA_PROYECTOS}")
     print(f"  Servicios -> {DATA_SERVICIOS}")
     print("=" * 60)
 
-    ok_count = 0
+    ok_count  = 0
     err_count = 0
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(accept_downloads=True, storage_state=str(AUTH_FILE))
+        context = browser.new_context(accept_downloads=True,
+                                      storage_state=str(AUTH_FILE))
         page = context.new_page()
 
-        # 1) Proyectos del portafolio
-        proyectos = listar_proyectos_portafolio(page)
-        print(f"\nProyectos detectados en el portafolio: {len(proyectos)}")
+        # 1) Obtener lista de proyectos desde el CSV del portafolio
+        try:
+            proyectos = descargar_csv_portafolio(page)
+        except Exception as e:
+            print(f"\n[AVISO] No se pudo descargar el CSV del portafolio: {e}")
+            print("  Usando lista de proyectos extra solamente.")
+            proyectos = []
+
+        # Agregar proyectos extra que no estan en el portafolio
+        proyectos += PROYECTOS_EXTRA
+
+        # Deduplicar por URL
+        vistos = set()
+        proyectos_unicos = []
         for nombre, url in proyectos:
-            ok = exportar_proyecto(page, nombre, url, DATA_PROYECTOS)
+            if url not in vistos:
+                vistos.add(url)
+                proyectos_unicos.append((nombre, url))
+
+        total = len(proyectos_unicos)
+        print(f"\nTotal proyectos a exportar: {total}")
+
+        # 2) Exportar cada proyecto
+        for i, (nombre, url) in enumerate(proyectos_unicos, 1):
+            ok = exportar_proyecto(page, nombre, url, DATA_PROYECTOS, i, total)
             if ok:
                 ok_count += 1
             else:
                 err_count += 1
+            time.sleep(1.5)
 
-        # 2) Board de servicios
+        # 3) Board de servicios
         ok = exportar_proyecto(page, SERVICIOS_NOMBRE, SERVICIOS_URL, DATA_SERVICIOS)
         if ok:
             ok_count += 1
@@ -203,8 +275,8 @@ def main():
     print(f"  OK: {ok_count}   ERRORES: {err_count}")
     print("=" * 60)
 
-    if err_count and ok_count == 0:
-        raise SystemExit("No se pudo exportar nada. La sesion (auth.json) probablemente expiro.")
+    if ok_count == 0:
+        raise SystemExit("No se exporto nada. Sesion probablemente expirada.")
 
 
 if __name__ == "__main__":
