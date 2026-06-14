@@ -182,10 +182,10 @@ def process_project(path):
     ph = []
     total_t = 0
     total_d = 0
+    nombre_conteo = {}  # para detectar duplicados
     for f in nivel1:
         hijos2 = n2_por_fase.get(f["name"], [])
         if not hijos2:
-            # Sin tareas nivel 2 -> se asume cabecera/nota, se descarta
             continue
 
         fase_t = 0
@@ -201,7 +201,14 @@ def process_project(path):
                 fase_t += 1
                 fase_d += 1 if h2["completed"] else 0
 
-        ph.append([f["name"], fase_t, fase_d])
+        # Si el nombre de fase ya existe, agregar sufijo para distinguir
+        nombre_fase = f["name"]
+        nombre_conteo[nombre_fase] = nombre_conteo.get(nombre_fase, 0) + 1
+        if nombre_conteo[nombre_fase] > 1:
+            sufijos = ["", " B", " C", " D", " E"]
+            nombre_fase = nombre_fase + sufijos[min(nombre_conteo[nombre_fase]-1, 4)]
+
+        ph.append([nombre_fase, fase_t, fase_d])
         total_t += fase_t
         total_d += fase_d
 
