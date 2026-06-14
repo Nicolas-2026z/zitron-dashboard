@@ -182,7 +182,11 @@ def process_project(path):
     ph = []
     total_t = 0
     total_d = 0
-    nombre_conteo = {}  # para detectar duplicados
+    nombre_conteo = {}
+    bodega_t = 0
+    bodega_d = 0
+    bodega_incluida = False
+
     for f in nivel1:
         hijos2 = n2_por_fase.get(f["name"], [])
         if not hijos2:
@@ -201,7 +205,18 @@ def process_project(path):
                 fase_t += 1
                 fase_d += 1 if h2["completed"] else 0
 
-        # Si el nombre de fase ya existe, agregar sufijo para distinguir
+        # Fusionar todas las fases que contengan "bodega"
+        if "bodega" in f["name"].lower():
+            bodega_t += fase_t
+            bodega_d += fase_d
+            total_t += fase_t
+            total_d += fase_d
+            if not bodega_incluida:
+                ph.append(["__BODEGA__", 0, 0])  # placeholder
+                bodega_incluida = True
+            continue
+
+        # Fases normales: sufijo si hay nombre duplicado
         nombre_fase = f["name"]
         nombre_conteo[nombre_fase] = nombre_conteo.get(nombre_fase, 0) + 1
         if nombre_conteo[nombre_fase] > 1:
@@ -211,6 +226,13 @@ def process_project(path):
         ph.append([nombre_fase, fase_t, fase_d])
         total_t += fase_t
         total_d += fase_d
+
+    # Reemplazar el placeholder de bodega con los totales fusionados
+    for entry in ph:
+        if entry[0] == "__BODEGA__":
+            entry[0] = "Bodega"
+            entry[1] = bodega_t
+            entry[2] = bodega_d
 
     if total_t == 0:
         pct = 0
