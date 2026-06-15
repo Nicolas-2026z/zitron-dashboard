@@ -2,7 +2,7 @@ name: Actualizar Portafolio
 
 on:
   schedule:
-    - cron: "0 12 * * 1-5"   # lunes a viernes 12:00 UTC (~9am Chile)
+    - cron: "0 13 * * 1-5"   # lunes a viernes 13:00 UTC (~9am Chile UTC-4)
   workflow_dispatch:
 
 permissions:
