@@ -2,16 +2,11 @@ name: Actualizar dashboard Oferta Zitron 2026
 
 on:
   schedule:
-    # Lunes a Jueves 06:00 y 16:00 hora Chile / Viernes 06:00 y 13:00 hora Chile
-    # (se incluyen horarios CLST y CLT porque GitHub Actions usa UTC)
-    - cron: "0 9 * * 1-4"   # Lun-Jue 06:00 CLST (UTC-3)
-    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 CLT (UTC-4)
-    - cron: "0 19 * * 1-4"  # Lun-Jue 16:00 CLST
-    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 CLT
-    - cron: "0 9 * * 5"     # Vie 06:00 CLST
-    - cron: "0 10 * * 5"    # Vie 06:00 CLT
-    - cron: "0 16 * * 5"    # Vie 13:00 CLST
-    - cron: "0 17 * * 5"    # Vie 13:00 CLT
+    # Zona horaria Santiago GMT-4 (CLT invierno)
+    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 Chile (UTC-4)
+    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 Chile (UTC-4)
+    - cron: "0 10 * * 5"    # Vie 06:00 Chile (UTC-4)
+    - cron: "0 17 * * 5"    # Vie 13:00 Chile (UTC-4)
   workflow_dispatch: {}
 
 permissions:
