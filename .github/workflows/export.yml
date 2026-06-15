@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,12 +32,15 @@ jobs:
       - name: Restaurar sesion de Asana
         run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
 
+      - name: Limpiar carpeta data (evitar archivos huerfanos)
+        run: rm -f data/*.xlsx data/*.csv
+
       - name: Exportar proyectos
         run: python scripts/asana_export.py
 
       - name: Subir diagnostico (si hubo fallos)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: debug
           path: debug/
