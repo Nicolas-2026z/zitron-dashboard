@@ -2,11 +2,16 @@ name: Actualizar dashboard Oferta Zitron 2026
 
 on:
   schedule:
-    # Zona horaria Santiago GMT-4 (CLT invierno)
-    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 Chile (UTC-4)
-    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 Chile (UTC-4)
-    - cron: "0 10 * * 5"    # Vie 06:00 Chile (UTC-4)
-    - cron: "0 17 * * 5"    # Vie 13:00 Chile (UTC-4)
+    # Lunes a Jueves 06:00 y 16:00 hora Chile / Viernes 06:00 y 13:00 hora Chile
+    # (se incluyen horarios CLST y CLT porque GitHub Actions usa UTC)
+    - cron: "0 9 * * 1-4"   # Lun-Jue 06:00 CLST (UTC-3)
+    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 CLT (UTC-4)
+    - cron: "0 19 * * 1-4"  # Lun-Jue 16:00 CLST
+    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 CLT
+    - cron: "0 9 * * 5"     # Vie 06:00 CLST
+    - cron: "0 10 * * 5"    # Vie 06:00 CLT
+    - cron: "0 16 * * 5"    # Vie 13:00 CLST
+    - cron: "0 17 * * 5"    # Vie 13:00 CLT
   workflow_dispatch: {}
 
 permissions:
@@ -57,5 +62,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data_ofertas/ ofertas2026.html
-          git diff --staged --quiet || git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Siempre hacemos un commit para mantener el cron activo en GitHub
+          git diff --staged --quiet && echo "Sin cambios en dashboard" >> .github/keepalive.txt && git add .github/keepalive.txt
+          git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')" || true
           git push
