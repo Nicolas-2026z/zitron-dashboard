@@ -556,6 +556,7 @@ function seleccionarTodos(valor) {
   refrescarSelector();
   areaFiltroPersona = "Todos";
   render();
+  if (document.getElementById('tab-cascada').classList.contains('active')) renderCascada();
 }
 
 function toggleProyecto(p, checked) {
@@ -563,6 +564,8 @@ function toggleProyecto(p, checked) {
   refrescarSelector();
   areaFiltroPersona = "Todos";
   render();
+  // si la pestaña cascada está activa, refrescarla también
+  if (document.getElementById('tab-cascada').classList.contains('active')) renderCascada();
 }
 
 function refrescarSelector() {
@@ -585,7 +588,6 @@ function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
 
-  // índice por nombre — normalizado (sin : al final, sin espacios extra)
   const byName = {};
   tasks.forEach(t => {
     byName[t.name.trim()] = t;
@@ -595,12 +597,10 @@ function renderCascada() {
   function findTask(nombre) {
     const n = nombre.trim().replace(/:$/, '').trim();
     if (byName[n]) return byName[n];
-    // búsqueda flexible: el nombre buscado está contenido en alguna tarea
     const nl = n.toLowerCase();
     return tasks.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
   }
 
-  // helper: días hábiles entre dos fechas ISO string
   function diasHabilesJS(d1str, d2str) {
     if (!d1str || !d2str) return null;
     const feriados = new Set([
@@ -610,17 +610,17 @@ function renderCascada() {
       '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
       '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
     ]);
-    let d1 = new Date(d1str), d2 = new Date(d2str);
-    if (d1 > d2) { let tmp=d1; d1=d2; d2=tmp; return -diasHabilesJS(d2str, d1str); }
+    let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
+    const sign = d2 >= d1 ? 1 : -1;
+    if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
     let count = 0, cur = new Date(d1);
     cur.setDate(cur.getDate()+1);
     while (cur <= d2) {
       const iso = cur.toISOString().slice(0,10);
-      const dow = cur.getDay();
-      if (dow !== 0 && dow !== 6 && !feriados.has(iso)) count++;
+      if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
       cur.setDate(cur.getDate()+1);
     }
-    return count;
+    return count * sign;
   }
 
   const tieneBlockedBy = new Set();
@@ -643,10 +643,12 @@ function renderCascada() {
   }
 
   tasks.forEach(t => {
+    if (!t.name || !t.name.trim()) return;
     if (!tieneBlockedBy.has(t.name) && t.blocking && t.blocking.length > 0) {
       const chain = [];
       buildChain(t, chain);
-      if (chain.length > 1) cadenas.push(chain);
+      const chainValida = chain.filter(c => c.name && c.name.trim());
+      if (chainValida.length > 1) cadenas.push(chainValida);
     }
   });
 
@@ -656,94 +658,99 @@ function renderCascada() {
 
   if (!filtradas.length) {
     document.getElementById('cascadaContainer').innerHTML =
-      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>';
+      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias. Selecciona un proyecto individual.</p>';
     return;
   }
 
+  // colores por estado
+  const COLORS = {
+    rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
+    verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
+    encurso: { bg: '#1a73e8', border: '#1e3a8a', text: '#fff' },
+  };
+
   let html = '';
   filtradas.forEach((chain, ci) => {
-    html += `<div class="cascada-chain"><div class="chain-header">🔗 Cadena ${ci+1} — ${chain.length} tareas encadenadas</div>`;
+    const proyecto = chain[0].project || '';
+    html += `<div style="margin-bottom:32px;">
+      <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
+        🔗 Cadena ${ci+1} — ${chain.length} tareas &nbsp;<span style="font-weight:400;">${proyecto}</span>
+      </div>
+      <div style="position:relative;">`;
 
     chain.forEach((t, i) => {
-      // calcular días reales tomados (si completada)
       const diasReales = (t.completed && t.start_iso)
-        ? diasHabilesJS(t.start_iso, t.completed)
-        : null;
+        ? diasHabilesJS(t.start_iso, t.completed) : null;
 
-      // calcular atraso heredado desde tarea anterior
       let atrasoHeredado = null;
       if (i > 0) {
         const prev = chain[i-1];
         if (prev.completed && t.start_iso) {
           atrasoHeredado = diasHabilesJS(t.start_iso, prev.completed);
-          // positivo = prev terminó después del inicio planeado de esta tarea
         }
       }
 
-      // estado del bloque
       const enAtraso = t.atraso_dias > 0;
-      const blockColor = enAtraso ? 'var(--rojo-bg)' : (t.estado_general === 'En curso' ? '#e8f0fe' : 'var(--verde-bg)');
-      const borderColor = enAtraso ? 'var(--rojo)' : (t.estado_general === 'En curso' ? 'var(--azul)' : 'var(--verde)');
-      const estadoBadge = enAtraso
-        ? `<span class="badge-atraso">⚠ ${t.atraso_dias}d de atraso</span>`
-        : t.estado_general === 'En curso'
-          ? `<span class="badge-encurso">● En curso</span>`
-          : `<span class="badge-ok">✓ A tiempo</span>`;
+      const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
+      const indent = i * 32; // escalonado
+      const estadoTxt = enAtraso
+        ? `⚠ ${t.atraso_dias}d de atraso`
+        : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
 
-      // conector entre bloques
+      // flecha con atraso heredado entre bloques
       if (i > 0) {
-        const heredadoTxt = atrasoHeredado !== null && atrasoHeredado > 0
-          ? `<div style="text-align:center;padding:4px 0;font-size:12px;color:var(--rojo);font-weight:700;">
-               ↓ &nbsp; Esta tarea inicia con <b>${atrasoHeredado}d hábiles de atraso heredado</b>
-             </div>`
-          : `<div style="text-align:center;padding:4px 0;font-size:12px;color:var(--gris);">↓</div>`;
-        html += heredadoTxt;
+        const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
+          ? `<span style="color:#b3261e;font-weight:700;margin-left:8px;">-${atrasoHeredado}d heredados</span>`
+          : '';
+        html += `<div style="margin-left:${indent-16}px;padding:4px 0;font-size:12px;color:#9aa0a6;display:flex;align-items:center;gap:4px;">
+          <span style="font-size:18px;color:${col.bg};">↳</span>${heredadoHtml}
+        </div>`;
       }
 
       html += `
-      <div style="border:2px solid ${borderColor};background:${blockColor};border-radius:10px;padding:14px 18px;margin:0 16px 0 16px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
-          <div>
-            <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${t.name}</div>
-            <div style="font-size:13px;color:#5f6368;display:flex;gap:16px;flex-wrap:wrap;">
-              <span>👤 <b>${t.assignee}</b></span>
-              <span>🏢 ${t.area}</span>
-            </div>
-          </div>
-          <div>${estadoBadge}</div>
+      <div style="margin-left:${indent}px;margin-bottom:4px;background:${col.bg};border-left:5px solid ${col.border};
+                  border-radius:10px;padding:12px 16px;color:${col.text};max-width:600px;position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
+          <div style="font-weight:700;font-size:14px;">${t.name}</div>
+          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;">${estadoTxt}</div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:12px;">
-          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
-            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Previsto</div>
-            <div style="font-size:13px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
-            <div style="font-size:12px;color:#5f6368;">${t.duracion_prevista}d hábiles previstos</div>
+        <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
+          <span>👤 ${t.assignee}</span>
+          <span>🏢 ${t.area}</span>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;min-width:120px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
+            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
+            <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
           </div>
-          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
-            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Real</div>
-            <div style="font-size:13px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? 'Terminó: ' + t.completed_fmt : 'Sin completar'}</div>
-            <div style="font-size:12px;color:#5f6368;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;min-width:120px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
+            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
+            <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
           </div>
           ${t.atraso_dias > 0 ? `
-          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
-            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Atraso propio</div>
-            <div style="font-size:13px;font-weight:700;color:var(--rojo);margin-top:2px;">+${t.atraso_dias}d hábiles</div>
-            <div style="font-size:12px;color:#5f6368;">${t.estado_general === 'Vencida' ? 'Vencida sin completar' : 'Completada tarde'}</div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;min-width:100px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
+            <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
+            <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
           </div>` : ''}
           ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
-          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
-            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Atraso recibido</div>
-            <div style="font-size:13px;font-weight:700;color:var(--rojo);margin-top:2px;">-${atrasoHeredado}d hábiles</div>
-            <div style="font-size:12px;color:#5f6368;">Recibida con atraso de tarea anterior</div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;min-width:100px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
+            <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
+            <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
           </div>` : ''}
         </div>
       </div>`;
     });
 
-    html += `</div><br>`;
+    html += `</div></div>`;
   });
 
   document.getElementById('cascadaContainer').innerHTML = html;
 }
+
 
 
 
