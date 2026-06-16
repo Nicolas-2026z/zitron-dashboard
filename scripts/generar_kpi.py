@@ -446,7 +446,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <div class="tabcontent" id="tab-persona">
   <div class="area-pills" id="areaPills"></div>
   <table>
-    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>En tiempo</th><th>Fuera de tiempo</th></tr></thead>
+    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>Cerradas en tiempo</th><th>Cerradas fuera de tiempo</th><th>Abiertas en tiempo</th><th>Abiertas fuera de tiempo</th></tr></thead>
     <tbody id="personaBody"></tbody>
   </table>
 </div>
@@ -614,11 +614,17 @@ function renderPersonas(tasks) {
   const personas = {};
   filtradas.forEach(t => {
     const key = t.assignee;
-    personas[key] = personas[key] || {area: t.area, total:0, compl:0, verde:0, rojo:0};
+    personas[key] = personas[key] || {area: t.area, total:0, compl:0, verde:0, rojo:0, abierta_tiempo:0, abierta_atraso:0, cerrada_tiempo:0, cerrada_atraso:0};
     personas[key].total++;
     if (t.estado_general === 'Completada') personas[key].compl++;
     if (t.estado === 'verde') personas[key].verde++;
     if (t.estado === 'rojo') personas[key].rojo++;
+    // abiertas
+    if (t.estado_general === 'En curso') personas[key].abierta_tiempo++;
+    if (t.estado_general === 'Vencida') personas[key].abierta_atraso++;
+    // cerradas
+    if (t.estado_general === 'Completada' && t.estado === 'verde') personas[key].cerrada_tiempo++;
+    if (t.estado_general === 'Completada' && t.estado === 'rojo') personas[key].cerrada_atraso++;
   });
 
   const ordenadas = Object.entries(personas).sort((a,b) => b[1].total - a[1].total);
@@ -632,8 +638,10 @@ function renderPersonas(tasks) {
       <td>${d.total}</td>
       <td>${d.compl}</td>
       <td><span class="pill ${p>=50?'verde':'rojo'}">${p.toFixed(0)}%</span></td>
-      <td><span class="dot verde"></span>${d.verde}</td>
-      <td><span class="dot rojo"></span>${d.rojo}</td>
+      <td><span class="dot verde"></span>${d.cerrada_tiempo}</td>
+      <td><span class="dot rojo"></span>${d.cerrada_atraso}</td>
+      <td><span class="dot verde"></span>${d.abierta_tiempo}</td>
+      <td><span class="dot rojo"></span>${d.abierta_atraso}</td>
     </tr>`;
   });
   document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="8"><i>Sin datos</i></td></tr>';
