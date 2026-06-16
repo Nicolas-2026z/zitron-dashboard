@@ -2,9 +2,7 @@ name: Exportar Asana cada hora
 
 on:
   schedule:
-    - cron: "0 11 * * 1-5"  # 07:00 Chile (UTC-4), lunes a viernes
-    - cron: "0 19 * * 1-4"  # 15:00 Chile (UTC-4), lunes a jueves
-    - cron: "0 15 * * 5"    # 11:00 Chile (UTC-4), viernes
+    - cron: "*/30 11-20 * * 1-5"  # cada 30 min entre 07:00-16:00 Chile (UTC-4), lunes a viernes
   workflow_dispatch:
 
 permissions:
@@ -59,5 +57,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ KPI.HTML
-          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          git diff --staged --quiet || (git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')" && git pull --rebase && git push)
