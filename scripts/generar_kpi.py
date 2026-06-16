@@ -211,6 +211,7 @@ def process_file(path, today):
         name = str(row[col["Name"]]).strip()
         section = row[col.get("Section/Column")] if "Section/Column" in col else ""
         assignee = row[col.get("Assignee")] if "Assignee" in col else ""
+        start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
 
@@ -251,8 +252,10 @@ def process_file(path, today):
             "assignee": assignee or "(sin asignar)",
             "area": area,
             "project": project_name,
+            "start_fmt": start.strftime("%d/%m/%y") if start else (due.strftime("%d/%m/%y") if due else "--"),
             "due_fmt": due.strftime("%d/%m/%y") if due else "--",
             "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
+            "duracion_prevista": dias_habiles_entre(start, due) if start and due else (1 if due else None),
             "estado": estado,
             "estado_plazo": estado_plazo,
             "estado_general": estado_general,
@@ -465,7 +468,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   </div>
   <div class="resumen-linea" id="resumenTareas"></div>
   <table>
-    <thead><tr><th>Tarea</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Vence</th><th>Completó</th><th>Estado plazo</th><th>Estado</th></tr></thead>
+    <thead><tr><th>Tarea</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th>Estado plazo</th><th>Estado</th></tr></thead>
     <tbody id="tareasBody"></tbody>
   </table>
 </div>
@@ -698,8 +701,10 @@ function renderTareas() {
       <td>${t.section}</td>
       <td><b>${t.assignee}</b></td>
       <td>${t.area}</td>
+      <td>${t.start_fmt || '--'}</td>
       <td>${t.due_fmt}</td>
       <td>${t.completed_fmt}</td>
+      <td>${t.duracion_prevista !== null && t.duracion_prevista !== undefined ? t.duracion_prevista + 'd hábiles' : '--'}</td>
       <td class="estado-txt ${cls}">${t.estado_plazo}</td>
       <td><span class="estado-txt ${cls}">${estadoLabel}</span></td>
     </tr>`;
