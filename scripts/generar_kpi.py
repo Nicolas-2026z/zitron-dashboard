@@ -246,6 +246,9 @@ def process_file(path, today):
                 estado_plazo = "sin fecha"
                 estado_general = "En curso"
 
+        blocked_by = row[col["Blocked By (Dependencies)"]] if "Blocked By (Dependencies)" in col else ""
+        blocking = row[col["Blocking (Dependencies)"]] if "Blocking (Dependencies)" in col else ""
+
         tasks.append({
             "name": name,
             "section": section or "",
@@ -256,6 +259,9 @@ def process_file(path, today):
             "due_fmt": due.strftime("%d/%m/%y") if due else "--",
             "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
             "duracion_prevista": dias_habiles_entre(start, due) if start and due else (1 if due else None),
+            "blocked_by": [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else [],
+            "blocking": [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else [],
+            "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
             "estado": estado,
             "estado_plazo": estado_plazo,
             "estado_general": estado_general,
@@ -354,6 +360,19 @@ TEMPLATE = r"""<!DOCTYPE html>
   }
   .area-pill.active { background: var(--texto); color: #fff; border-color: var(--texto); }
 
+  .cascada-chain { background: var(--card); border: 1px solid var(--borde); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .cascada-chain .chain-header { padding: 10px 16px; background: #fafafa; border-bottom: 1px solid var(--borde); font-size: 13px; font-weight: 600; color: #5f6368; }
+  .cascada-node { display: flex; align-items: flex-start; padding: 10px 16px; border-bottom: 1px solid var(--borde); gap: 12px; }
+  .cascada-node:last-child { border-bottom: none; }
+  .cascada-arrow { color: #9aa0a6; font-size: 18px; padding-top: 2px; min-width: 20px; }
+  .cascada-task { flex: 1; }
+  .cascada-task .task-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .cascada-task .task-meta { font-size: 12px; color: #5f6368; display: flex; gap: 16px; flex-wrap: wrap; }
+  .cascada-task .task-meta span { display: flex; align-items: center; gap: 4px; }
+  .badge-atraso { background: var(--rojo-bg); color: var(--rojo); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-ok { background: var(--verde-bg); color: var(--verde); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-encurso { background: #e8f0fe; color: var(--azul); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
   #gate {
     position: fixed; inset: 0; background: var(--bg); z-index: 9999;
     display: flex; align-items: center; justify-content: center;
@@ -440,6 +459,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   <div class="tab active" onclick="cambiarTab('area')">Resumen por área</div>
   <div class="tab" onclick="cambiarTab('persona')">Detalle por persona</div>
   <div class="tab" onclick="cambiarTab('tareas')">📄 Detalle tareas</div>
+  <div class="tab" onclick="cambiarTab('cascada')">🔗 Cascada de atrasos</div>
 </div>
 
 <div class="tabcontent active" id="tab-area">
@@ -473,12 +493,20 @@ TEMPLATE = r"""<!DOCTYPE html>
   </table>
 </div>
 
+<div class="tabcontent" id="tab-cascada">
+  <div class="filtros">
+    <select id="fCascadaEstado" onchange="renderCascada()">
+      <option value="">Todas las cadenas</option>
+      <option value="con_atraso">Solo con atraso</option>
+    </select>
+  </div>
+  <div id="cascadaContainer"></div>
+</div>
+
 <div class="leyenda">
   <span><span class="dot verde"></span> Verde: cerrada en fecha o antes</span>
   <span><span class="dot rojo"></span> Rojo: 1+ día hábil de atraso</span>
   <span style="margin-left:auto;">Solo tareas nivel 2 (con tarea padre) · días hábiles Chile</span>
-</div>
-
 </div>
 
 <script>
@@ -506,9 +534,10 @@ let areaFiltroPersona = "Todos";
 function cambiarTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-  const idx = tab === 'area' ? 1 : (tab === 'persona' ? 2 : 3);
+  const idx = tab === 'area' ? 1 : (tab === 'persona' ? 2 : (tab === 'tareas' ? 3 : 4));
   document.querySelector(`.tab:nth-child(${idx})`).classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'cascada') renderCascada();
 }
 
 function toggleSelector() {
@@ -549,6 +578,79 @@ function tareasSeleccionadas() {
 }
 
 function pct(verde, total) { return total ? (100 * verde / total) : 0; }
+
+function renderCascada() {
+  const tasks = tareasSeleccionadas();
+  const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
+
+  // índice por nombre de tarea
+  const byName = {};
+  tasks.forEach(t => { byName[t.name] = t; });
+
+  // encontrar tareas raíz de cadenas (tienen blocking pero no blocked_by, o son inicio de cadena)
+  const tieneBlockedBy = new Set();
+  tasks.forEach(t => { if (t.blocked_by && t.blocked_by.length) t.blocked_by.forEach(b => tieneBlockedBy.add(b)); });
+
+  // construir cadenas empezando desde tareas que bloquean a otras y no están bloqueadas
+  const visitadas = new Set();
+  const cadenas = [];
+
+  function buildChain(task, chain) {
+    if (visitadas.has(task.name)) return;
+    visitadas.add(task.name);
+    chain.push(task);
+    if (task.blocking && task.blocking.length) {
+      task.blocking.forEach(nextName => {
+        const next = byName[nextName];
+        if (next) buildChain(next, chain);
+      });
+    }
+  }
+
+  // iniciar desde tareas que nadie bloquea (raíces)
+  tasks.forEach(t => {
+    if (!tieneBlockedBy.has(t.name) && t.blocking && t.blocking.length > 0) {
+      const chain = [];
+      buildChain(t, chain);
+      if (chain.length > 1) cadenas.push(chain);
+    }
+  });
+
+  const filtradas = soloAtraso ? cadenas.filter(c => c.some(t => t.atraso_dias > 0)) : cadenas;
+
+  if (!filtradas.length) {
+    document.getElementById('cascadaContainer').innerHTML = '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias en los proyectos seleccionados.</p>';
+    return;
+  }
+
+  let html = '';
+  filtradas.forEach((chain, ci) => {
+    html += `<div class="cascada-chain">
+      <div class="chain-header">🔗 Cadena ${ci+1} — ${chain.length} tareas</div>`;
+    chain.forEach((t, i) => {
+      const badgeCls = t.atraso_dias > 0 ? 'badge-atraso' : (t.estado_general === 'En curso' ? 'badge-encurso' : 'badge-ok');
+      const badgeTxt = t.atraso_dias > 0 ? `⚠ ${t.atraso_dias}d atraso` : (t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo');
+      const heredado = i > 0 && chain[i-1].atraso_dias > 0 ? `<span style="color:var(--rojo);font-size:11px;">↳ recibe ${chain[i-1].atraso_dias}d de atraso heredado</span>` : '';
+      html += `<div class="cascada-node">
+        <div class="cascada-arrow">${i === 0 ? '▶' : '↓'}</div>
+        <div class="cascada-task">
+          <div class="task-name">${t.name}</div>
+          <div class="task-meta">
+            <span>👤 ${t.assignee}</span>
+            <span>📅 ${t.start_fmt} → ${t.due_fmt}</span>
+            <span>⏱ ${t.duracion_prevista}d previstos</span>
+            <span><span class="${badgeCls}">${badgeTxt}</span></span>
+            ${heredado ? `<span>${heredado}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('cascadaContainer').innerHTML = html;
+}
+
 
 function render() {
   const tasks = tareasSeleccionadas();
