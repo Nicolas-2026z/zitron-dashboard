@@ -652,6 +652,33 @@ function renderCascada() {
     }
   });
 
+  // Si no se encontraron cadenas por ese método, intentar desde tareas con blocked_by
+  // (cuando la raíz bloquea solo secciones, no tareas)
+  if (cadenas.length === 0) {
+    const visitadas2 = new Set();
+    tasks.forEach(t => {
+      if (!t.name || !t.name.trim()) return;
+      if ((t.blocked_by||[]).length > 0) {
+        // buscar la raíz real
+        let raiz = t;
+        let seen = new Set([t.name]);
+        let prev = (t.blocked_by||[]).map(b => findTask(b)).filter(Boolean)[0];
+        while (prev && !seen.has(prev.name)) {
+          seen.add(prev.name);
+          raiz = prev;
+          prev = (prev.blocked_by||[]).map(b => findTask(b)).filter(Boolean)[0];
+        }
+        if (!visitadas2.has(raiz.name)) {
+          visitadas2.add(raiz.name);
+          const chain = [];
+          buildChain(raiz, chain);
+          const chainValida = chain.filter(c => c.name && c.name.trim());
+          if (chainValida.length > 1) cadenas.push(chainValida);
+        }
+      }
+    });
+  }
+
   const filtradas = soloAtraso
     ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
     : cadenas;
@@ -666,7 +693,7 @@ function renderCascada() {
   const COLORS = {
     rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
     verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-    encurso: { bg: '#1a73e8', border: '#1e3a8a', text: '#fff' },
+    encurso: { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
   };
 
   let html = '';
@@ -692,7 +719,7 @@ function renderCascada() {
 
       const enAtraso = t.atraso_dias > 0;
       const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
-      const indent = i * 32; // escalonado
+      const indent = 0; // sin escalonado, todos alineados
       const estadoTxt = enAtraso
         ? `⚠ ${t.atraso_dias}d de atraso`
         : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
@@ -700,43 +727,44 @@ function renderCascada() {
       // flecha con atraso heredado entre bloques
       if (i > 0) {
         const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
-          ? `<span style="color:#b3261e;font-weight:700;margin-left:8px;">-${atrasoHeredado}d heredados</span>`
-          : '';
-        html += `<div style="margin-left:${indent-16}px;padding:4px 0;font-size:12px;color:#9aa0a6;display:flex;align-items:center;gap:4px;">
-          <span style="font-size:18px;color:${col.bg};">↳</span>${heredadoHtml}
-        </div>`;
+          ? `<div style="padding:6px 0;font-size:12px;color:#b3261e;font-weight:700;display:flex;align-items:center;gap:6px;">
+               <span style="font-size:20px;">↓</span>
+               <span>Recibe con <b>-${atrasoHeredado}d hábiles</b> menos para completar</span>
+             </div>`
+          : `<div style="padding:4px 0;font-size:20px;color:#9aa0a6;">↓</div>`;
+        html += heredadoHtml;
       }
 
       html += `
-      <div style="margin-left:${indent}px;margin-bottom:4px;background:${col.bg};border-left:5px solid ${col.border};
-                  border-radius:10px;padding:12px 16px;color:${col.text};max-width:600px;position:relative;">
+      <div style="border-left:5px solid ${col.border};background:${col.bg};
+                  border-radius:10px;padding:14px 18px;color:${col.text};width:100%;box-sizing:border-box;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
-          <div style="font-weight:700;font-size:14px;">${t.name}</div>
-          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;">${estadoTxt}</div>
+          <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
+          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${estadoTxt}</div>
         </div>
         <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;min-width:120px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
             <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
             <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
           </div>
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;min-width:120px;">
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
             <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
             <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
           </div>
           ${t.atraso_dias > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;min-width:100px;">
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
             <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
             <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
           </div>` : ''}
           ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;min-width:100px;">
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
             <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
             <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
