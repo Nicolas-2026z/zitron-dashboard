@@ -255,6 +255,8 @@ def process_file(path, today):
             "assignee": assignee or "(sin asignar)",
             "area": area,
             "project": project_name,
+            "start_iso": start.isoformat() if start else (due.isoformat() if due else None),
+            "completed": completed.isoformat() if completed else None,
             "start_fmt": start.strftime("%d/%m/%y") if start else (due.strftime("%d/%m/%y") if due else "--"),
             "due_fmt": due.strftime("%d/%m/%y") if due else "--",
             "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
@@ -583,15 +585,50 @@ function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
 
-  // índice por nombre de tarea
+  // índice por nombre — normalizado (sin : al final, sin espacios extra)
   const byName = {};
-  tasks.forEach(t => { byName[t.name] = t; });
+  tasks.forEach(t => {
+    byName[t.name.trim()] = t;
+    byName[t.name.trim().replace(/:$/, '').trim()] = t;
+  });
 
-  // encontrar tareas raíz de cadenas (tienen blocking pero no blocked_by, o son inicio de cadena)
+  function findTask(nombre) {
+    const n = nombre.trim().replace(/:$/, '').trim();
+    if (byName[n]) return byName[n];
+    // búsqueda flexible: el nombre buscado está contenido en alguna tarea
+    const nl = n.toLowerCase();
+    return tasks.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
+  }
+
+  // helper: días hábiles entre dos fechas ISO string
+  function diasHabilesJS(d1str, d2str) {
+    if (!d1str || !d2str) return null;
+    const feriados = new Set([
+      '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
+      '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
+      '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
+      '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
+      '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
+    ]);
+    let d1 = new Date(d1str), d2 = new Date(d2str);
+    if (d1 > d2) { let tmp=d1; d1=d2; d2=tmp; return -diasHabilesJS(d2str, d1str); }
+    let count = 0, cur = new Date(d1);
+    cur.setDate(cur.getDate()+1);
+    while (cur <= d2) {
+      const iso = cur.toISOString().slice(0,10);
+      const dow = cur.getDay();
+      if (dow !== 0 && dow !== 6 && !feriados.has(iso)) count++;
+      cur.setDate(cur.getDate()+1);
+    }
+    return count;
+  }
+
   const tieneBlockedBy = new Set();
-  tasks.forEach(t => { if (t.blocked_by && t.blocked_by.length) t.blocked_by.forEach(b => tieneBlockedBy.add(b)); });
+  tasks.forEach(t => { (t.blocked_by||[]).forEach(b => {
+    const found = findTask(b);
+    if (found) tieneBlockedBy.add(found.name);
+  }); });
 
-  // construir cadenas empezando desde tareas que bloquean a otras y no están bloqueadas
   const visitadas = new Set();
   const cadenas = [];
 
@@ -599,15 +636,12 @@ function renderCascada() {
     if (visitadas.has(task.name)) return;
     visitadas.add(task.name);
     chain.push(task);
-    if (task.blocking && task.blocking.length) {
-      task.blocking.forEach(nextName => {
-        const next = byName[nextName];
-        if (next) buildChain(next, chain);
-      });
-    }
+    (task.blocking||[]).forEach(nextName => {
+      const next = findTask(nextName);
+      if (next) buildChain(next, chain);
+    });
   }
 
-  // iniciar desde tareas que nadie bloquea (raíces)
   tasks.forEach(t => {
     if (!tieneBlockedBy.has(t.name) && t.blocking && t.blocking.length > 0) {
       const chain = [];
@@ -616,40 +650,101 @@ function renderCascada() {
     }
   });
 
-  const filtradas = soloAtraso ? cadenas.filter(c => c.some(t => t.atraso_dias > 0)) : cadenas;
+  const filtradas = soloAtraso
+    ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
+    : cadenas;
 
   if (!filtradas.length) {
-    document.getElementById('cascadaContainer').innerHTML = '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias en los proyectos seleccionados.</p>';
+    document.getElementById('cascadaContainer').innerHTML =
+      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>';
     return;
   }
 
   let html = '';
   filtradas.forEach((chain, ci) => {
-    html += `<div class="cascada-chain">
-      <div class="chain-header">🔗 Cadena ${ci+1} — ${chain.length} tareas</div>`;
+    html += `<div class="cascada-chain"><div class="chain-header">🔗 Cadena ${ci+1} — ${chain.length} tareas encadenadas</div>`;
+
     chain.forEach((t, i) => {
-      const badgeCls = t.atraso_dias > 0 ? 'badge-atraso' : (t.estado_general === 'En curso' ? 'badge-encurso' : 'badge-ok');
-      const badgeTxt = t.atraso_dias > 0 ? `⚠ ${t.atraso_dias}d atraso` : (t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo');
-      const heredado = i > 0 && chain[i-1].atraso_dias > 0 ? `<span style="color:var(--rojo);font-size:11px;">↳ recibe ${chain[i-1].atraso_dias}d de atraso heredado</span>` : '';
-      html += `<div class="cascada-node">
-        <div class="cascada-arrow">${i === 0 ? '▶' : '↓'}</div>
-        <div class="cascada-task">
-          <div class="task-name">${t.name}</div>
-          <div class="task-meta">
-            <span>👤 ${t.assignee}</span>
-            <span>📅 ${t.start_fmt} → ${t.due_fmt}</span>
-            <span>⏱ ${t.duracion_prevista}d previstos</span>
-            <span><span class="${badgeCls}">${badgeTxt}</span></span>
-            ${heredado ? `<span>${heredado}</span>` : ''}
+      // calcular días reales tomados (si completada)
+      const diasReales = (t.completed && t.start_iso)
+        ? diasHabilesJS(t.start_iso, t.completed)
+        : null;
+
+      // calcular atraso heredado desde tarea anterior
+      let atrasoHeredado = null;
+      if (i > 0) {
+        const prev = chain[i-1];
+        if (prev.completed && t.start_iso) {
+          atrasoHeredado = diasHabilesJS(t.start_iso, prev.completed);
+          // positivo = prev terminó después del inicio planeado de esta tarea
+        }
+      }
+
+      // estado del bloque
+      const enAtraso = t.atraso_dias > 0;
+      const blockColor = enAtraso ? 'var(--rojo-bg)' : (t.estado_general === 'En curso' ? '#e8f0fe' : 'var(--verde-bg)');
+      const borderColor = enAtraso ? 'var(--rojo)' : (t.estado_general === 'En curso' ? 'var(--azul)' : 'var(--verde)');
+      const estadoBadge = enAtraso
+        ? `<span class="badge-atraso">⚠ ${t.atraso_dias}d de atraso</span>`
+        : t.estado_general === 'En curso'
+          ? `<span class="badge-encurso">● En curso</span>`
+          : `<span class="badge-ok">✓ A tiempo</span>`;
+
+      // conector entre bloques
+      if (i > 0) {
+        const heredadoTxt = atrasoHeredado !== null && atrasoHeredado > 0
+          ? `<div style="text-align:center;padding:4px 0;font-size:12px;color:var(--rojo);font-weight:700;">
+               ↓ &nbsp; Esta tarea inicia con <b>${atrasoHeredado}d hábiles de atraso heredado</b>
+             </div>`
+          : `<div style="text-align:center;padding:4px 0;font-size:12px;color:var(--gris);">↓</div>`;
+        html += heredadoTxt;
+      }
+
+      html += `
+      <div style="border:2px solid ${borderColor};background:${blockColor};border-radius:10px;padding:14px 18px;margin:0 16px 0 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${t.name}</div>
+            <div style="font-size:13px;color:#5f6368;display:flex;gap:16px;flex-wrap:wrap;">
+              <span>👤 <b>${t.assignee}</b></span>
+              <span>🏢 ${t.area}</span>
+            </div>
           </div>
+          <div>${estadoBadge}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:12px;">
+          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
+            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Previsto</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
+            <div style="font-size:12px;color:#5f6368;">${t.duracion_prevista}d hábiles previstos</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
+            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Real</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? 'Terminó: ' + t.completed_fmt : 'Sin completar'}</div>
+            <div style="font-size:12px;color:#5f6368;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
+          </div>
+          ${t.atraso_dias > 0 ? `
+          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
+            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Atraso propio</div>
+            <div style="font-size:13px;font-weight:700;color:var(--rojo);margin-top:2px;">+${t.atraso_dias}d hábiles</div>
+            <div style="font-size:12px;color:#5f6368;">${t.estado_general === 'Vencida' ? 'Vencida sin completar' : 'Completada tarde'}</div>
+          </div>` : ''}
+          ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
+          <div style="background:rgba(255,255,255,0.6);border-radius:6px;padding:8px 12px;">
+            <div style="font-size:11px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.04em;">Atraso recibido</div>
+            <div style="font-size:13px;font-weight:700;color:var(--rojo);margin-top:2px;">-${atrasoHeredado}d hábiles</div>
+            <div style="font-size:12px;color:#5f6368;">Recibida con atraso de tarea anterior</div>
+          </div>` : ''}
         </div>
       </div>`;
     });
-    html += `</div>`;
+
+    html += `</div><br>`;
   });
 
   document.getElementById('cascadaContainer').innerHTML = html;
 }
+
 
 
 function render() {
