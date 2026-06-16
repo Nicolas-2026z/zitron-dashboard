@@ -256,6 +256,7 @@ def process_file(path, today):
             "area": area,
             "project": project_name,
             "start_iso": start.isoformat() if start else (due.isoformat() if due else None),
+            "due_iso": due.isoformat() if due else None,
             "completed": completed.isoformat() if completed else None,
             "start_fmt": start.strftime("%d/%m/%y") if start else (due.strftime("%d/%m/%y") if due else "--"),
             "due_fmt": due.strftime("%d/%m/%y") if due else "--",
@@ -629,6 +630,8 @@ function renderCascada() {
     if (found) tieneBlockedBy.add(found.name);
   }); });
 
+  // Construir cadenas: partir desde cualquier tarea que tenga blocked_by resolvible
+  // y construir hacia adelante desde su raíz
   const visitadas = new Set();
   const cadenas = [];
 
@@ -638,43 +641,42 @@ function renderCascada() {
     chain.push(task);
     (task.blocking||[]).forEach(nextName => {
       const next = findTask(nextName);
-      if (next) buildChain(next, chain);
+      if (next && !visitadas.has(next.name)) buildChain(next, chain);
     });
   }
 
+  function findRaiz(task, seen) {
+    seen = seen || new Set();
+    if (seen.has(task.name)) return task;
+    seen.add(task.name);
+    const prevs = (task.blocked_by||[]).map(b => findTask(b)).filter(Boolean);
+    if (prevs.length === 0) return task;
+    return findRaiz(prevs[0], seen);
+  }
+
+  // Intentar desde todas las tareas que tienen blocked_by resolvible
   tasks.forEach(t => {
     if (!t.name || !t.name.trim()) return;
-    if (!tieneBlockedBy.has(t.name) && t.blocking && t.blocking.length > 0) {
+    const raiz = findRaiz(t);
+    if (!visitadas.has(raiz.name)) {
       const chain = [];
-      buildChain(t, chain);
-      const chainValida = chain.filter(c => c.name && c.name.trim());
+      buildChain(raiz, chain);
+      const chainValida = chain.filter(c => c.name && c.name.trim())
+        .sort((a,b) => (a.start_iso||a.due_iso||'9999').localeCompare(b.start_iso||b.due_iso||'9999'));
       if (chainValida.length > 1) cadenas.push(chainValida);
     }
   });
 
-  // Si no se encontraron cadenas por ese método, intentar desde tareas con blocked_by
-  // (cuando la raíz bloquea solo secciones, no tareas)
+  // Si aún no hay cadenas, intentar desde tareas con blocking aunque sean raíces
   if (cadenas.length === 0) {
-    const visitadas2 = new Set();
     tasks.forEach(t => {
       if (!t.name || !t.name.trim()) return;
-      if ((t.blocked_by||[]).length > 0) {
-        // buscar la raíz real
-        let raiz = t;
-        let seen = new Set([t.name]);
-        let prev = (t.blocked_by||[]).map(b => findTask(b)).filter(Boolean)[0];
-        while (prev && !seen.has(prev.name)) {
-          seen.add(prev.name);
-          raiz = prev;
-          prev = (prev.blocked_by||[]).map(b => findTask(b)).filter(Boolean)[0];
-        }
-        if (!visitadas2.has(raiz.name)) {
-          visitadas2.add(raiz.name);
-          const chain = [];
-          buildChain(raiz, chain);
-          const chainValida = chain.filter(c => c.name && c.name.trim());
-          if (chainValida.length > 1) cadenas.push(chainValida);
-        }
+      if (!visitadas.has(t.name) && t.blocking && t.blocking.length > 0) {
+        const chain = [];
+        buildChain(t, chain);
+        const chainValida = chain.filter(c => c.name && c.name.trim())
+          .sort((a,b) => (a.start_iso||a.due_iso||'9999').localeCompare(b.start_iso||b.due_iso||'9999'));
+        if (chainValida.length > 1) cadenas.push(chainValida);
       }
     });
   }
@@ -746,6 +748,9 @@ function renderCascada() {
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
         </div>
+        ${i > 0 ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
+          📌 Antecesora: <b>${chain[i-1].name}</b> · terminó en ${diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed) !== null ? diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed)+'d reales' : 'sin completar'} (previsto ${chain[i-1].duracion_prevista}d)
+        </div>` : ''}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
