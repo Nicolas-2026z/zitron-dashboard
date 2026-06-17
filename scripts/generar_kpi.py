@@ -76,27 +76,56 @@ FERIADOS_CHILE = {
 }
 
 ASSIGNEE_AREA = {
+    # Servicios
+    "Ignacio García": "Servicios",
+    "Ignacio Garcia": "Servicios",
+    "IGNACIO GARCIA MARTINEZ": "Servicios",
+    "Ignacio Garcia Martinez": "Servicios",
+    "Sergio Saavedra": "Servicios",
+    "sergio saavedra fernandez": "Servicios",
+    "Sergio Saavedra Fernandez": "Servicios",
+    # Equipo Proyecto
+    "Carlos Pérez": "Equipo Proyecto",
+    "Carlos Perez": "Equipo Proyecto",
     "Francisca Ramos": "Equipo Proyecto",
     "Francisca Alejandra Ramos Aravales": "Equipo Proyecto",
+    "Sergio de la Fuente": "Equipo Proyecto",
+    "Sergio de la Fuente Fernandez": "Equipo Proyecto",
+    "David Blazquez": "Equipo Proyecto",
+    "DAVID BLAZQUEZ": "Equipo Proyecto",
+    # Producción
     "Benjamín Bustos": "Producción",
-    "Víctor Muñoz": "Bodega",
-    "Victor Muñoz": "Bodega",
-    "Nicolás López": "Producción",
+    "benjamin.bustos@zitron.com": "Producción",
+    "Benjamin Bustos": "Producción",
+    "Benjamin Umaña": "Producción",
     "Hugo Isla": "Producción",
-    "Eliana": "Compras",
+    "hugo isla martinez": "Producción",
     "Nicolás Mol": "Producción",
-    "Ignacio García": "Servicios",
-    "Ignacio Garcia Martinez": "Servicios",
+    "Nicolas Mol": "Producción",
+    "Nicolás López": "Producción",
+    "Nicolas Lopez": "Producción",
+    # Compras
+    "Eliana": "Compras",
     "Yerlia": "Compras",
     "Yerlia Ayleen Castillo Diaz": "Compras",
-    "Hernán Gutierrez": "Ingeniería",
-    "Hernan Roberto Gutierrez Barrientos": "Ingeniería",
-    "Sergio Saavedra": "Servicios",
-    "Sergio de la Fuente": "Servicios",
     "Rose": "Compras",
     "Rosemary Singh": "Compras",
+    # Ingeniería
+    "Hernán Gutierrez": "Ingeniería",
+    "Hernan Roberto Gutierrez Barrientos": "Ingeniería",
+    "Hernan Gutierrez": "Ingeniería",
     "Francisca González": "Ingeniería",
     "Francisca González Cornejo": "Ingeniería",
+    "Francisca Gonzalez": "Ingeniería",
+    "Gonzalo Davila": "Ingeniería",
+    "Gonzalo Dávila": "Ingeniería",
+    "Gabriel Venegas": "Ingeniería",
+    "Gabriel Venega": "Ingeniería",
+    # Bodega
+    "Víctor Muñoz": "Bodega",
+    "Victor Muñoz": "Bodega",
+    "Victor Munoz": "Bodega",
+    # Logística
     "Karin Pinto": "Logística",
 }
 
@@ -105,7 +134,6 @@ SECTION_AREA_KEYWORDS = [
     ("ingenier", "Ingeniería"),
     ("compra", "Compras"),
     ("bodega", "Bodega"),
-    ("servicio", "Servicios"),
     ("logist", "Logística"), ("logíst", "Logística"),
 ]
 
@@ -834,8 +862,9 @@ function renderAreas(tasks) {
   const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
   tasks.forEach(t => {
-    areas[t.area] = areas[t.area] || {total:0, verde:0, rojo:0};
+    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, rojo:0};
     areas[t.area].total++;
+    if (t.estado_general === 'Completada') areas[t.area].cerradas++;
     if (t.estado === 'verde') areas[t.area].verde++;
     if (t.estado === 'rojo') areas[t.area].rojo++;
   });
@@ -846,14 +875,14 @@ function renderAreas(tasks) {
   let html = '';
   keys.forEach(area => {
     const a = areas[area];
-    const p = pct(a.verde, a.total);
+    const p = pct(a.cerradas, a.total);
     const cls = a.total === 0 ? '' : (p >= 50 ? 'verde' : 'rojo');
     html += `<div class="area-card">
       <div class="titulo">${area}</div>
       <div class="pct ${cls}">${p.toFixed(0)}%</div>
-      <div class="meta">${a.total} tareas<br>
-        <span class="dot verde"></span>${a.verde} en tiempo
-        &nbsp;<span class="dot rojo"></span>${a.rojo} fuera de tiempo
+      <div class="meta">${a.total} tareas · ${a.cerradas} cerradas<br>
+        <span class="dot verde"></span>${a.verde} a tiempo
+        &nbsp;<span class="dot rojo"></span>${a.rojo} con atraso/vencidas
       </div>
     </div>`;
   });
