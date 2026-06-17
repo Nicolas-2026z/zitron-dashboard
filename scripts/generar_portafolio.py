@@ -55,8 +55,6 @@ warnings.filterwarnings("ignore")
 # CONFIGURACION EDITABLE
 # ---------------------------------------------------------------------
 
-# Mapeo de pais por palabra clave contenida en el NOMBRE del proyecto
-# (insensible a mayusculas/acentos). Si nada calza -> "Sin pais".
 COUNTRY_KEYWORDS = [
     ("colombia", "Colombia"),
     ("peru", "Peru"),
@@ -67,12 +65,9 @@ COUNTRY_KEYWORDS = [
     ("nicaragua", "Nicaragua"), ("triton", "Nicaragua"),
 ]
 
-# GID del workspace y del proyecto "Servicios y Mantencion" en Asana,
-# usados para reconstruir el link directo a cada tarea.
 WORKSPACE_GID = "402967058777498"
 SERVICIOS_PROJECT_GID = "1213595645392940"
 
-# Orden y color sugerido para las secciones del tablero de Servicios
 SECTION_COLORS = {
     "finalizado": "#6B7280",
     "finalizada": "#6B7280",
@@ -130,9 +125,6 @@ def country_for(project_name):
 def process_project(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.active
-    # Igual que en generar_kpi.py: el nombre de hoja se trunca a 31
-    # caracteres y puede chocar entre proyectos -> usamos el nombre
-    # del ARCHIVO (que viene del nombre de la tarea/proyecto en Asana).
     project_name = Path(path).stem.strip()
 
     header_row, headers = find_header_row(ws)
@@ -160,21 +152,16 @@ def process_project(path):
     for r in rows:
         by_name.setdefault(r["name"], r)
 
-    # Nivel 1: sin parent
     nivel1 = [r for r in rows if r["parent"] is None]
-    # Nivel 2: parent es el nombre de una tarea nivel1
     nivel1_names = {r["name"] for r in nivel1}
     nivel2 = [r for r in rows if r["parent"] in nivel1_names]
     nivel2_names = {r["name"] for r in nivel2}
-    # Nivel 3: parent es el nombre de una tarea nivel2
     nivel3 = [r for r in rows if r["parent"] in nivel2_names]
 
-    # Agrupar nivel2 por su fase (nivel1)
     n2_por_fase = {}
     for r in nivel2:
         n2_por_fase.setdefault(r["parent"], []).append(r)
 
-    # Agrupar nivel3 por su tarea padre (nivel2)
     n3_por_n2 = {}
     for r in nivel3:
         n3_por_n2.setdefault(r["parent"], []).append(r)
@@ -205,18 +192,16 @@ def process_project(path):
                 fase_t += 1
                 fase_d += 1 if h2["completed"] else 0
 
-        # Fusionar todas las fases que contengan "bodega"
         if "bodega" in f["name"].lower():
             bodega_t += fase_t
             bodega_d += fase_d
             total_t += fase_t
             total_d += fase_d
             if not bodega_incluida:
-                ph.append(["__BODEGA__", 0, 0])  # placeholder
+                ph.append(["__BODEGA__", 0, 0])
                 bodega_incluida = True
             continue
 
-        # Fases normales: sufijo si hay nombre duplicado
         nombre_fase = f["name"]
         nombre_conteo[nombre_fase] = nombre_conteo.get(nombre_fase, 0) + 1
         if nombre_conteo[nombre_fase] > 1:
@@ -227,7 +212,6 @@ def process_project(path):
         total_t += fase_t
         total_d += fase_d
 
-    # Reemplazar el placeholder de bodega con los totales fusionados
     for entry in ph:
         if entry[0] == "__BODEGA__":
             entry[0] = "Bodega"
@@ -332,7 +316,11 @@ def process_servicios(path):
 
 
 # ---------------------------------------------------------------------
-# TEMPLATE HTML (estructura igual al portafolio original)
+# TEMPLATE HTML
+# CAMBIOS vs version anterior:
+#   1. col()  -> rojo 0-49%, amarillo 50-75%, verde 76-100%
+#   2. bi()   -> solo 2 estados: "En progreso" / "Completado"
+#   3. rKPIs  -> KPIs simplificados: Completados (76%+) y En progreso
 # ---------------------------------------------------------------------
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -485,8 +473,12 @@ var filt="all";
 
 var P = __P_JSON__;
 
-function col(p){return p>=60?"#1D9E75":p>=30?"#378ADD":p>=10?"#BA7517":"#E24B4A";}
-function bi(p){if(p>=60)return{t:"Avanzado",c:"#1D9E75"};if(p>=30)return{t:"En progreso",c:"#378ADD"};if(p>=10)return{t:"Iniciado",c:"#BA7517"};return{t:"Sin iniciar",c:"#E24B4A"};}
+// CAMBIO 1: rojo 0-49%, amarillo 50-75%, verde 76-100%
+function col(p){return p>=76?"#1D9E75":p>=50?"#BA7517":"#E24B4A";}
+
+// CAMBIO 2: solo 2 estados — En progreso / Completado
+function bi(p){if(p>=76)return{t:"Completado",c:"#1D9E75"};return{t:"En progreso",c:"#BA7517"};}
+
 function getF(){
   var q=(document.getElementById("srch").value||"").toLowerCase();
   var s=document.getElementById("srt").value;
@@ -504,22 +496,24 @@ function getF(){
   else d.sort(function(a,b){return a.n.localeCompare(b.n);});
   return d;
 }
+
 function rKPIs(){
   var avg=P.length?Math.round(P.reduce(function(s,x){return s+x.pct;},0)/P.length):0;
   var ts=P.reduce(function(s,x){return s+x.t;},0);
   var ds=P.reduce(function(s,x){return s+x.d;},0);
   document.getElementById("hdrTotal").textContent=P.length+" proyectos";
+  // CAMBIO 3: KPIs simplificados — solo Completados y En progreso
   var ks=[
     {l:"Total proyectos",v:P.length,c:"#378ADD"},
     {l:"Avance promedio",v:avg+"%",c:col(avg)},
     {l:"Subtareas completadas",v:ds+"/"+ts,c:"#1D9E75"},
-    {l:"Avanzados 60%+",v:P.filter(function(x){return x.pct>=60;}).length,c:"#1D9E75"},
-    {l:"En progreso",v:P.filter(function(x){return x.pct>=10&&x.pct<60;}).length,c:"#378ADD"},
-    {l:"Sin iniciar",v:P.filter(function(x){return x.pct===0;}).length,c:"#E24B4A"},
+    {l:"Completados (76%+)",v:P.filter(function(x){return x.pct>=76;}).length,c:"#1D9E75"},
+    {l:"En progreso",v:P.filter(function(x){return x.pct<76;}).length,c:"#BA7517"},
     {l:"Despachados",v:P.filter(function(x){return x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}).length,c:"#1D9E75"}
   ];
   document.getElementById("kpis").innerHTML=ks.map(function(k){return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';}).join("");
 }
+
 function toggle(i){
   var card=document.getElementById("c"+i),det=document.getElementById("d"+i);
   if(!det)return;
@@ -527,6 +521,7 @@ function toggle(i){
   det.style.display=open?"none":"block";
   if(card)card.classList.toggle("open",!open);
 }
+
 function render(){
   rKPIs();
   var data=getF();
@@ -596,15 +591,12 @@ def main():
         print(f"No se encontraron .xlsx en {dir_proyectos}")
         sys.exit(1)
 
-    # Deduplicar: si hay varios xlsx con nombre casi identico (misma clave limpia),
-    # quedarse solo con el mas reciente. La clave limpia elimina fechas tipo
-    # 01-04-2026, numeros al final y sufijos como (1)(2).
     import re as _re
     def _clave(path):
         base = os.path.splitext(os.path.basename(path))[0]
-        base = _re.sub(r'\s*\(\d+\)\s*$', '', base)           # quita (1)(2)...
-        base = _re.sub(r'[\s_-]+\d{2}-\d{2}-\d{4}.*$', '', base)  # quita fechas dd-mm-yyyy
-        base = _re.sub(r'[\s_-]+\d{5,}.*$', '', base)          # quita numeros largos al final
+        base = _re.sub(r'\s*\(\d+\)\s*$', '', base)
+        base = _re.sub(r'[\s_-]+\d{2}-\d{2}-\d{4}.*$', '', base)
+        base = _re.sub(r'[\s_-]+\d{5,}.*$', '', base)
         return base.strip().lower()
 
     mejor = {}
@@ -634,7 +626,6 @@ def main():
             print(f"  - {f}: {e}")
         sys.exit(1)
 
-    # Servicios (opcional)
     svc = {"total": 0, "en_curso": 0, "finalizadas": 0, "avance": 0, "secciones": {}, "tasks": []}
     svc_files = sorted(glob.glob(os.path.join(dir_servicios, "*.xlsx"))) if os.path.isdir(dir_servicios) else []
     svc_files = [f for f in svc_files if not os.path.basename(f).startswith("~$")]
