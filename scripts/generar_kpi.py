@@ -756,11 +756,15 @@ function renderCascada() {
       const diasReales = (t.completed && t.start_iso)
         ? diasHabilesJS(t.start_iso, t.completed) : null;
 
+      // antecesora real según blocked_by
+      const antecReal = (t.blocked_by && t.blocked_by.length > 0)
+        ? t.blocked_by.map(b => findTask(b)).filter(Boolean)[0]
+        : (i > 0 ? chain[i-1] : null);
+
       let atrasoHeredado = null;
-      if (i > 0) {
-        const prev = chain[i-1];
-        if (prev.completed && t.start_iso) {
-          atrasoHeredado = diasHabilesJS(t.start_iso, prev.completed);
+      if (antecReal) {
+        if (antecReal.completed && t.start_iso) {
+          atrasoHeredado = diasHabilesJS(t.start_iso, antecReal.completed);
         }
       }
 
@@ -793,8 +797,13 @@ function renderCascada() {
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
         </div>
-        ${i > 0 ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
-          📌 Antecesora: <b>${chain[i-1].name}</b> · 👤 ${chain[i-1].assignee} · terminó en ${diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed) !== null ? diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed)+'d reales' : 'sin completar'} (previsto ${chain[i-1].duracion_prevista}d)
+        // antecesora real según blocked_by de Asana
+        const antecRealNombre = (t.blocked_by && t.blocked_by.length > 0)
+          ? t.blocked_by.map(b => findTask(b)).filter(Boolean)[0] : null;
+        const antec = antecRealNombre || (i > 0 ? chain[i-1] : null);
+
+        ${i > 0 || (t.blocked_by && t.blocked_by.length > 0) ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
+          📌 Antecesora: <b>${antec ? antec.name : '—'}</b> · 👤 ${antec ? antec.assignee : '—'} · terminó en ${antec && diasHabilesJS(antec.start_iso, antec.completed) !== null ? diasHabilesJS(antec.start_iso, antec.completed)+'d reales' : 'sin completar'} (previsto ${antec ? antec.duracion_prevista : '—'}d)
         </div>` : ''}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
