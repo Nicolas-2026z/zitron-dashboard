@@ -730,9 +730,14 @@ function renderCascada() {
   if (filtUsuario) filtradas = filtradas.filter(c => c.some(t => t.assignee === filtUsuario));
   if (filtArea) filtradas = filtradas.filter(c => c.some(t => t.area === filtArea));
 
-  if (!filtradas.length) {
-    document.getElementById('cascadaContainer').innerHTML =
-      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias. Selecciona un proyecto individual.</p>';
+  if (filtradas.length === 0 && cadenas.length === 0) {
+    if (seleccionados.size > 1) {
+      document.getElementById('cascadaContainer').innerHTML =
+        '<div style="padding:24px;background:#fff3cd;border-radius:10px;font-size:14px;color:#856404;">⚠️ <b>Selecciona un solo proyecto</b> para ver la cascada de atrasos. Con múltiples proyectos las dependencias se mezclan y no se pueden resolver correctamente.<br><br>Haz click en el selector de proyectos → Desmarcar todos → Marca solo el proyecto que quieres analizar.</div>';
+    } else {
+      document.getElementById('cascadaContainer').innerHTML =
+        '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias en este proyecto.</p>';
+    }
     return;
   }
 
