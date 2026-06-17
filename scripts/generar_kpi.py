@@ -633,15 +633,28 @@ function renderCascada() {
 
   const byName = {};
   tasks.forEach(t => {
+    // indexar por proyecto+nombre para evitar colisiones entre proyectos
+    const key = (t.project||'') + '||' + t.name.trim();
+    const keyClean = (t.project||'') + '||' + t.name.trim().replace(/:$/, '').trim();
+    byName[key] = t;
+    byName[keyClean] = t;
+    // también por nombre solo (fallback)
     byName[t.name.trim()] = t;
     byName[t.name.trim().replace(/:$/, '').trim()] = t;
   });
 
-  function findTask(nombre) {
+  function findTask(nombre, proyecto) {
     const n = nombre.trim().replace(/:$/, '').trim();
+    // buscar primero dentro del mismo proyecto
+    if (proyecto) {
+      const keyP = proyecto + '||' + n;
+      if (byName[keyP]) return byName[keyP];
+    }
     if (byName[n]) return byName[n];
     const nl = n.toLowerCase();
-    return tasks.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
+    // buscar dentro del mismo proyecto primero
+    const enProyecto = proyecto ? tasks.filter(t => t.project === proyecto) : tasks;
+    return enProyecto.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
   }
 
   function diasHabilesJS(d1str, d2str) {
@@ -668,39 +681,39 @@ function renderCascada() {
 
   const tieneBlockedBy = new Set();
   tasks.forEach(t => { (t.blocked_by||[]).forEach(b => {
-    const found = findTask(b);
-    if (found) tieneBlockedBy.add(found.name);
+    const found = findTask(b, t.project);
+    if (found) tieneBlockedBy.add(found.project + '||' + found.name);
   }); });
 
-  // Construir cadenas: partir desde cualquier tarea que tenga blocked_by resolvible
-  // y construir hacia adelante desde su raíz
   const visitadas = new Set();
   const cadenas = [];
 
   function buildChain(task, chain) {
-    if (visitadas.has(task.name)) return;
-    visitadas.add(task.name);
+    const key = (task.project||'') + '||' + task.name;
+    if (visitadas.has(key)) return;
+    visitadas.add(key);
     chain.push(task);
     (task.blocking||[]).forEach(nextName => {
-      const next = findTask(nextName);
-      if (next && !visitadas.has(next.name)) buildChain(next, chain);
+      const next = findTask(nextName, task.project);
+      if (next && !visitadas.has((next.project||'') + '||' + next.name)) buildChain(next, chain);
     });
   }
 
   function findRaiz(task, seen) {
     seen = seen || new Set();
-    if (seen.has(task.name)) return task;
-    seen.add(task.name);
-    const prevs = (task.blocked_by||[]).map(b => findTask(b)).filter(Boolean);
+    const key = (task.project||'') + '||' + task.name;
+    if (seen.has(key)) return task;
+    seen.add(key);
+    const prevs = (task.blocked_by||[]).map(b => findTask(b, task.project)).filter(Boolean);
     if (prevs.length === 0) return task;
     return findRaiz(prevs[0], seen);
   }
 
-  // Intentar desde todas las tareas que tienen blocked_by resolvible
   tasks.forEach(t => {
     if (!t.name || !t.name.trim()) return;
     const raiz = findRaiz(t);
-    if (!visitadas.has(raiz.name)) {
+    const raizKey = (raiz.project||'') + '||' + raiz.name;
+    if (!visitadas.has(raizKey)) {
       const chain = [];
       buildChain(raiz, chain);
       const chainValida = chain.filter(c => c.name && c.name.trim())
@@ -709,11 +722,11 @@ function renderCascada() {
     }
   });
 
-  // Si aún no hay cadenas, intentar desde tareas con blocking aunque sean raíces
   if (cadenas.length === 0) {
     tasks.forEach(t => {
       if (!t.name || !t.name.trim()) return;
-      if (!visitadas.has(t.name) && t.blocking && t.blocking.length > 0) {
+      const key = (t.project||'') + '||' + t.name;
+      if (!visitadas.has(key) && t.blocking && t.blocking.length > 0) {
         const chain = [];
         buildChain(t, chain);
         const chainValida = chain.filter(c => c.name && c.name.trim())
@@ -763,7 +776,7 @@ function renderCascada() {
 
       // antecesora real según blocked_by
       const antecReal = (t.blocked_by && t.blocked_by.length > 0)
-        ? t.blocked_by.map(b => findTask(b)).filter(Boolean)[0]
+        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0]
         : (i > 0 ? chain[i-1] : null);
 
       let atrasoHeredado = null;
@@ -804,7 +817,7 @@ function renderCascada() {
         </div>
         // antecesora real según blocked_by de Asana
         const antecRealNombre = (t.blocked_by && t.blocked_by.length > 0)
-          ? t.blocked_by.map(b => findTask(b)).filter(Boolean)[0] : null;
+          ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0] : null;
         const antec = antecRealNombre || (i > 0 ? chain[i-1] : null);
 
         ${i > 0 || (t.blocked_by && t.blocked_by.length > 0) ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
