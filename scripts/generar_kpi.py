@@ -743,13 +743,13 @@ function renderCascada() {
   if (filtUsuario) filtradas = filtradas.filter(c => c.some(t => t.assignee === filtUsuario));
   if (filtArea) filtradas = filtradas.filter(c => c.some(t => t.area === filtArea));
 
-  if (filtradas.length === 0 && cadenas.length === 0) {
-    if (seleccionados.size > 1) {
+  if (filtradas.length === 0) {
+    if (cadenas.length === 0) {
       document.getElementById('cascadaContainer').innerHTML =
-        '<div style="padding:24px;background:#fff3cd;border-radius:10px;font-size:14px;color:#856404;">⚠️ <b>Selecciona un solo proyecto</b> para ver la cascada de atrasos. Con múltiples proyectos las dependencias se mezclan y no se pueden resolver correctamente.<br><br>Haz click en el selector de proyectos → Desmarcar todos → Marca solo el proyecto que quieres analizar.</div>';
+        '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias. Selecciona un proyecto individual para mejores resultados.</p>';
     } else {
       document.getElementById('cascadaContainer').innerHTML =
-        '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias en este proyecto.</p>';
+        '<p style="color:#9aa0a6;padding:16px;">No hay cadenas que coincidan con los filtros aplicados.</p>';
     }
     return;
   }
@@ -815,14 +815,16 @@ function renderCascada() {
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
         </div>
-        // antecesora real según blocked_by de Asana
-        const antecRealNombre = (t.blocked_by && t.blocked_by.length > 0)
-          ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0] : null;
-        const antec = antecRealNombre || (i > 0 ? chain[i-1] : null);
-
-        ${i > 0 || (t.blocked_by && t.blocked_by.length > 0) ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
-          📌 Antecesora: <b>${antec ? antec.name : '—'}</b> · 👤 ${antec ? antec.assignee : '—'} · terminó en ${antec && diasHabilesJS(antec.start_iso, antec.completed) !== null ? diasHabilesJS(antec.start_iso, antec.completed)+'d reales' : 'sin completar'} (previsto ${antec ? antec.duracion_prevista : '—'}d)
-        </div>` : ''}
+        ${(() => {
+          const antecRealObj = (t.blocked_by && t.blocked_by.length > 0)
+            ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0] : null;
+          const antec = antecRealObj || (i > 0 ? chain[i-1] : null);
+          if (!antec || (i === 0 && !(t.blocked_by && t.blocked_by.length > 0))) return '';
+          const diasR = diasHabilesJS(antec.start_iso, antec.completed);
+          return `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
+            📌 Antecesora: <b>${antec.name}</b> · 👤 ${antec.assignee} · terminó en ${diasR !== null ? diasR+'d reales' : 'sin completar'} (previsto ${antec.duracion_prevista}d)
+          </div>`;
+        })()} 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
