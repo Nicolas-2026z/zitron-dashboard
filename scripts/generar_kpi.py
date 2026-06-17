@@ -502,6 +502,8 @@ TEMPLATE = r"""<!DOCTYPE html>
       <option value="">Todas las cadenas</option>
       <option value="con_atraso">Solo con atraso</option>
     </select>
+    <select id="fCascadaUsuario" onchange="renderCascada()"><option value="">Usuario: Todos</option></select>
+    <select id="fCascadaArea" onchange="renderCascada()"><option value="">Área: Todas</option></select>
   </div>
   <div id="cascadaContainer"></div>
 </div>
@@ -588,6 +590,18 @@ function pct(verde, total) { return total ? (100 * verde / total) : 0; }
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
+  const filtUsuario = document.getElementById('fCascadaUsuario').value;
+  const filtArea = document.getElementById('fCascadaArea').value;
+
+  // poblar selectores
+  const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
+  const areas = [...new Set(tasks.map(t => t.area))].sort();
+  const selU = document.getElementById('fCascadaUsuario');
+  const selA = document.getElementById('fCascadaArea');
+  const curU = selU.value, curA = selA.value;
+  selU.innerHTML = '<option value="">Usuario: Todos</option>' + usuarios.map(u => `<option value="${u}">${u}</option>`).join('');
+  selA.innerHTML = '<option value="">Área: Todas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join('');
+  selU.value = curU; selA.value = curA;
 
   const byName = {};
   tasks.forEach(t => {
@@ -681,9 +695,12 @@ function renderCascada() {
     });
   }
 
-  const filtradas = soloAtraso
+  let filtradas = soloAtraso
     ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
     : cadenas;
+
+  if (filtUsuario) filtradas = filtradas.filter(c => c.some(t => t.assignee === filtUsuario));
+  if (filtArea) filtradas = filtradas.filter(c => c.some(t => t.area === filtArea));
 
   if (!filtradas.length) {
     document.getElementById('cascadaContainer').innerHTML =
@@ -749,7 +766,7 @@ function renderCascada() {
           <span>🏢 ${t.area}</span>
         </div>
         ${i > 0 ? `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
-          📌 Antecesora: <b>${chain[i-1].name}</b> · terminó en ${diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed) !== null ? diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed)+'d reales' : 'sin completar'} (previsto ${chain[i-1].duracion_prevista}d)
+          📌 Antecesora: <b>${chain[i-1].name}</b> · 👤 ${chain[i-1].assignee} · terminó en ${diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed) !== null ? diasHabilesJS(chain[i-1].start_iso, chain[i-1].completed)+'d reales' : 'sin completar'} (previsto ${chain[i-1].duracion_prevista}d)
         </div>` : ''}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
