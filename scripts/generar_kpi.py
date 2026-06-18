@@ -311,7 +311,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   :root {
     --verde: #1e8e3e; --verde-bg: #e6f4ea;
     --rojo: #b3261e; --rojo-bg: #fce8e6;
-    --amarillo: #b45309; --amarillo-bg: #fef3c7;
+    --amarillo: #eab308; --amarillo-bg: #fef9c3;
     --azul: #1a73e8;
     --gris: #80868b; --gris-bg: #f1f3f4;
     --bg: #f1efe9; --card: #ffffff; --texto: #202124; --borde: #e6e3dc;
@@ -919,7 +919,6 @@ function renderAreas(tasks) {
       <div class="meta">${a.total} tareas · ${a.cerradas} cerradas<br>
         <span class="dot verde"></span>${a.verde} a tiempo
         &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde
-        &nbsp;<span class="dot rojo"></span>${a.abierta_vencida} vencidas
       </div>
     </div>`;
   });
