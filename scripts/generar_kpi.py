@@ -311,6 +311,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   :root {
     --verde: #1e8e3e; --verde-bg: #e6f4ea;
     --rojo: #b3261e; --rojo-bg: #fce8e6;
+    --amarillo: #b45309; --amarillo-bg: #fef3c7;
     --azul: #1a73e8;
     --gris: #80868b; --gris-bg: #f1f3f4;
     --bg: #f1efe9; --card: #ffffff; --texto: #202124; --borde: #e6e3dc;
@@ -358,6 +359,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .area-card .pct { font-size: 28px; font-weight: 700; margin: 4px 0; }
   .area-card .pct.verde { color: var(--verde); }
   .area-card .pct.rojo { color: var(--rojo); }
+  .area-card .pct.amarillo { color: var(--amarillo); }
   .area-card .meta { font-size: 12px; color: #5f6368; margin-top: 6px; line-height: 1.5; }
   .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 3px; }
   .dot.verde { background: var(--verde); } .dot.rojo { background: var(--rojo); } .dot.gris { background: var(--gris); }
@@ -520,7 +522,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   </div>
   <div class="resumen-linea" id="resumenTareas"></div>
   <table>
-    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th>Estado plazo</th><th>Estado</th></tr></thead>
+    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th></tr></thead>
     <tbody id="tareasBody"></tbody>
   </table>
 </div>
@@ -895,11 +897,12 @@ function renderAreas(tasks) {
   const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
   tasks.forEach(t => {
-    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, rojo:0};
+    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0};
     areas[t.area].total++;
     if (t.estado_general === 'Completada') areas[t.area].cerradas++;
     if (t.estado === 'verde') areas[t.area].verde++;
-    if (t.estado === 'rojo') areas[t.area].rojo++;
+    if (t.estado_general === 'Completada' && t.estado === 'rojo') areas[t.area].cerrada_atraso++;
+    if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
   });
   const keys = Object.keys(areas).sort((a,b) => {
     const ia = ORDEN.indexOf(a), ib = ORDEN.indexOf(b);
@@ -909,13 +912,14 @@ function renderAreas(tasks) {
   keys.forEach(area => {
     const a = areas[area];
     const p = pct(a.cerradas, a.total);
-    const cls = a.total === 0 ? '' : (p >= 50 ? 'verde' : 'rojo');
+    const cls = a.total === 0 ? '' : (p >= 80 ? 'verde' : (p >= 50 ? 'amarillo' : 'rojo'));
     html += `<div class="area-card">
       <div class="titulo">${area}</div>
       <div class="pct ${cls}">${p.toFixed(0)}%</div>
       <div class="meta">${a.total} tareas · ${a.cerradas} cerradas<br>
         <span class="dot verde"></span>${a.verde} a tiempo
-        &nbsp;<span class="dot rojo"></span>${a.rojo} con atraso/vencidas
+        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde
+        &nbsp;<span class="dot rojo"></span>${a.abierta_vencida} vencidas
       </div>
     </div>`;
   });
@@ -987,6 +991,20 @@ function fillFiltrosTareas(tasks) {
   fill('fProyecto', proyectos, 'Proyecto');
 }
 
+let sortPlazoDir = null; // null = sin orden, 'desc' = mayor a menor, 'asc' = menor a mayor
+
+function toggleSortPlazo() {
+  sortPlazoDir = sortPlazoDir === 'desc' ? 'asc' : 'desc';
+  document.getElementById('sortPlazoIcon').textContent = sortPlazoDir === 'desc' ? ' ▼' : ' ▲';
+  renderTareas();
+}
+
+function diasAtraso(estadoPlazo) {
+  // extrae número de días de strings como "52d vencida", "8d tarde", "a tiempo", etc.
+  const m = estadoPlazo.match(/^(\d+)d/);
+  return m ? parseInt(m[1]) : 0;
+}
+
 function renderTareas() {
   const tasks = tareasSeleccionadas();
   const fu = document.getElementById('fUsuario').value;
@@ -1003,6 +1021,14 @@ function renderTareas() {
     (!fe || t.estado_general === fe)
   );
 
+  let sorted = [...filtradas];
+  if (sortPlazoDir) {
+    sorted.sort((a, b) => {
+      const da = diasAtraso(a.estado_plazo), db = diasAtraso(b.estado_plazo);
+      return sortPlazoDir === 'desc' ? db - da : da - db;
+    });
+  }
+
   const completadas = filtradas.filter(t => t.estado_general === 'Completada').length;
   const enCurso = filtradas.filter(t => t.estado_general === 'En curso').length;
   const vencidas = filtradas.filter(t => t.estado_general === 'Vencida').length;
@@ -1012,7 +1038,7 @@ function renderTareas() {
     `<b class="azul">${enCurso} en curso</b> &nbsp; <b class="rojo">${vencidas} vencidas</b>`;
 
   let html = '';
-  filtradas.forEach(t => {
+  sorted.forEach(t => {
     const cls = t.estado === 'verde' ? 'verde' : (t.estado === 'rojo' ? 'rojo' : 'encurso');
     const estadoLabel = t.estado_general === 'Vencida' ? '⚠ Vencida' :
                          t.estado_general === 'En curso' ? '● En curso' : '✓ Completada';
