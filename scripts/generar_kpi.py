@@ -510,6 +510,7 @@ TEMPLATE = r"""<!DOCTYPE html>
     <select id="fUsuario" onchange="renderTareas()"><option value="">Usuario: Todos</option></select>
     <select id="fArea" onchange="renderTareas()"><option value="">Área: Todas</option></select>
     <select id="fSeccion" onchange="renderTareas()"><option value="">Sección: Todas</option></select>
+    <select id="fProyecto" onchange="renderTareas()"><option value="">Proyecto: Todos</option></select>
     <select id="fEstado" onchange="renderTareas()">
       <option value="">Estado: Todos</option>
       <option value="Completada">Completada</option>
@@ -519,7 +520,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   </div>
   <div class="resumen-linea" id="resumenTareas"></div>
   <table>
-    <thead><tr><th>Tarea</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th>Estado plazo</th><th>Estado</th></tr></thead>
+    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th>Estado plazo</th><th>Estado</th></tr></thead>
     <tbody id="tareasBody"></tbody>
   </table>
 </div>
@@ -621,15 +622,9 @@ function renderCascada() {
   const filtUsuario = document.getElementById('fCascadaUsuario').value;
   const filtArea = document.getElementById('fCascadaArea').value;
 
-  // poblar selectores
-  const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
-  const areas = [...new Set(tasks.map(t => t.area))].sort();
-  const selU = document.getElementById('fCascadaUsuario');
-  const selA = document.getElementById('fCascadaArea');
-  const curU = selU.value, curA = selA.value;
-  selU.innerHTML = '<option value="">Usuario: Todos</option>' + usuarios.map(u => `<option value="${u}">${u}</option>`).join('');
-  selA.innerHTML = '<option value="">Área: Todas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join('');
-  selU.value = curU; selA.value = curA;
+  // poblar selectores con usuarios/areas de las cadenas encontradas
+  const curU = document.getElementById('fCascadaUsuario').value;
+  const curA = document.getElementById('fCascadaArea').value;
 
   const byName = {};
   tasks.forEach(t => {
@@ -735,6 +730,15 @@ function renderCascada() {
       }
     });
   }
+
+  // poblar selectores con usuarios/areas que aparecen en cadenas
+  const todosEnCadenas = cadenas.flat();
+  const usuariosCadenas = [...new Set(todosEnCadenas.map(t => t.assignee))].sort();
+  const areasCadenas = [...new Set(todosEnCadenas.map(t => t.area))].sort();
+  const selU = document.getElementById('fCascadaUsuario');
+  const selA = document.getElementById('fCascadaArea');
+  selU.innerHTML = '<option value="">Usuario: Todos</option>' + usuariosCadenas.map(u => `<option value="${u}" ${u===curU?'selected':''}>${u}</option>`).join('');
+  selA.innerHTML = '<option value="">Área: Todas</option>' + areasCadenas.map(a => `<option value="${a}" ${a===curA?'selected':''}>${a}</option>`).join('');
 
   let filtradas = soloAtraso
     ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
@@ -968,6 +972,7 @@ function fillFiltrosTareas(tasks) {
   const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
   const areas = [...new Set(tasks.map(t => t.area))].sort();
   const secciones = [...new Set(tasks.map(t => t.section).filter(s => s))].sort();
+  const proyectos = [...new Set(tasks.map(t => t.project).filter(p => p))].sort();
 
   const fill = (id, items, label) => {
     const sel = document.getElementById(id);
@@ -979,6 +984,7 @@ function fillFiltrosTareas(tasks) {
   fill('fUsuario', usuarios, 'Usuario');
   fill('fArea', areas, 'Área');
   fill('fSeccion', secciones, 'Sección');
+  fill('fProyecto', proyectos, 'Proyecto');
 }
 
 function renderTareas() {
@@ -986,12 +992,14 @@ function renderTareas() {
   const fu = document.getElementById('fUsuario').value;
   const fa = document.getElementById('fArea').value;
   const fs = document.getElementById('fSeccion').value;
+  const fp = document.getElementById('fProyecto').value;
   const fe = document.getElementById('fEstado').value;
 
   const filtradas = tasks.filter(t =>
     (!fu || t.assignee === fu) &&
     (!fa || t.area === fa) &&
     (!fs || t.section === fs) &&
+    (!fp || t.project === fp) &&
     (!fe || t.estado_general === fe)
   );
 
@@ -1010,6 +1018,7 @@ function renderTareas() {
                          t.estado_general === 'En curso' ? '● En curso' : '✓ Completada';
     html += `<tr>
       <td>${t.name}</td>
+      <td style="font-size:12px;color:#5f6368;">${t.project}</td>
       <td>${t.section}</td>
       <td><b>${t.assignee}</b></td>
       <td>${t.area}</td>
