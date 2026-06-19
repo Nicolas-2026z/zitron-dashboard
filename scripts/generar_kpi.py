@@ -239,6 +239,11 @@ def process_file(path, today):
         name = str(row[col["Name"]]).strip()
         section = row[col.get("Section/Column")] if "Section/Column" in col else ""
         assignee = row[col.get("Assignee")] if "Assignee" in col else ""
+
+        # excluir tareas asignadas a "Nicolás" genérico (sin apellido, placeholder erróneo)
+        if assignee and str(assignee).strip().lower() in ("nicolás", "nicolas"):
+            continue
+
         start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
