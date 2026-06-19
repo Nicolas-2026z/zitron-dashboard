@@ -878,30 +878,47 @@ function renderCascada() {
 }
 
 function calcularBloqueo(tasks) {
-  // indexar por proyecto+nombre para resolver blocked_by correctamente
-  const byKey = {};
+  // agrupar tareas por proyecto+nombre (puede haber duplicados)
+  const gruposPorNombre = {};
   tasks.forEach(t => {
     const n = t.name.trim().replace(/:$/, '').trim();
-    byKey[(t.project||'') + '||' + n] = t;
+    const key = (t.project||'') + '||' + n;
+    gruposPorNombre[key] = gruposPorNombre[key] || [];
+    gruposPorNombre[key].push(t);
   });
-  function buscar(nombre, proyecto) {
+
+  function buscarGrupo(nombre, proyecto) {
     const n = nombre.trim().replace(/:$/, '').trim();
     const key = (proyecto||'') + '||' + n;
-    if (byKey[key]) return byKey[key];
+    if (gruposPorNombre[key]) return gruposPorNombre[key];
     const nl = n.toLowerCase();
-    return tasks.find(t => t.project === proyecto && (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase()))) || null;
+    const candidatos = tasks.filter(t => t.project === proyecto &&
+      (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())));
+    return candidatos.length ? candidatos : null;
   }
+
   tasks.forEach(t => {
     if (!t.blocked_by || t.blocked_by.length === 0) {
       t.bloqueada_real = false;
       t.bloqueada_por = null;
       return;
     }
-    // bloqueada solo si AL MENOS UNA antecesora sigue sin completar
-    const antecesoras = t.blocked_by.map(b => buscar(b, t.project)).filter(Boolean);
-    const pendiente = antecesoras.find(a => a.estado_general !== 'Completada');
-    t.bloqueada_real = !!pendiente;
-    t.bloqueada_por = pendiente || null;
+    // Para cada nombre bloqueante, tomamos su grupo de tareas con ese nombre.
+    // Conservador: se considera bloqueante solo si TODAS las tareas de ese
+    // nombre siguen sin completar (evita falsos positivos con nombres duplicados).
+    let pendienteEncontrada = null;
+    for (const nombre of t.blocked_by) {
+      const grupo = buscarGrupo(nombre, t.project);
+      if (!grupo) continue;
+      const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
+      if (todasPendientes) {
+        // tomamos la más reciente vencida/en curso como referencia para mostrar
+        pendienteEncontrada = grupo.find(g => g.estado_general !== 'Completada') || grupo[0];
+        break;
+      }
+    }
+    t.bloqueada_real = !!pendienteEncontrada;
+    t.bloqueada_por = pendienteEncontrada || null;
   });
 }
 
