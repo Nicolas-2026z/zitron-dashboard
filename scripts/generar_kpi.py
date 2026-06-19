@@ -292,6 +292,7 @@ def process_file(path, today):
             "duracion_prevista": dias_habiles_entre(start, due) if start and due else (1 if due else None),
             "blocked_by": [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else [],
             "blocking": [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else [],
+            "bloqueada": bool(blocked_by and str(blocked_by).strip()),
             "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
             "estado": estado,
             "estado_plazo": estado_plazo,
@@ -519,10 +520,15 @@ TEMPLATE = r"""<!DOCTYPE html>
       <option value="Vencida">Vencida</option>
       <option value="En curso">En curso</option>
     </select>
+    <select id="fBloqueada" onchange="renderTareas()">
+      <option value="">Bloqueo: Todas</option>
+      <option value="si">Solo bloqueadas</option>
+      <option value="no">Solo liberadas</option>
+    </select>
   </div>
   <div class="resumen-linea" id="resumenTareas"></div>
   <table>
-    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th></tr></thead>
+    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th><th>Bloqueo</th><th>Bloqueada por</th></tr></thead>
     <tbody id="tareasBody"></tbody>
   </table>
 </div>
@@ -864,11 +870,37 @@ function renderCascada() {
   document.getElementById('cascadaContainer').innerHTML = html;
 }
 
-
-
+function calcularBloqueo(tasks) {
+  // indexar por proyecto+nombre para resolver blocked_by correctamente
+  const byKey = {};
+  tasks.forEach(t => {
+    const n = t.name.trim().replace(/:$/, '').trim();
+    byKey[(t.project||'') + '||' + n] = t;
+  });
+  function buscar(nombre, proyecto) {
+    const n = nombre.trim().replace(/:$/, '').trim();
+    const key = (proyecto||'') + '||' + n;
+    if (byKey[key]) return byKey[key];
+    const nl = n.toLowerCase();
+    return tasks.find(t => t.project === proyecto && (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase()))) || null;
+  }
+  tasks.forEach(t => {
+    if (!t.blocked_by || t.blocked_by.length === 0) {
+      t.bloqueada_real = false;
+      t.bloqueada_por = null;
+      return;
+    }
+    // bloqueada solo si AL MENOS UNA antecesora sigue sin completar
+    const antecesoras = t.blocked_by.map(b => buscar(b, t.project)).filter(Boolean);
+    const pendiente = antecesoras.find(a => a.estado_general !== 'Completada');
+    t.bloqueada_real = !!pendiente;
+    t.bloqueada_por = pendiente || null;
+  });
+}
 
 function render() {
   const tasks = tareasSeleccionadas();
+  calcularBloqueo(tasks);
   const total = tasks.length;
 
   const complAtiempo = tasks.filter(t => t.estado_general === "Completada" && t.estado === "verde").length;
@@ -1011,13 +1043,15 @@ function renderTareas() {
   const fs = document.getElementById('fSeccion').value;
   const fp = document.getElementById('fProyecto').value;
   const fe = document.getElementById('fEstado').value;
+  const fb = document.getElementById('fBloqueada').value;
 
   const filtradas = tasks.filter(t =>
     (!fu || t.assignee === fu) &&
     (!fa || t.area === fa) &&
     (!fs || t.section === fs) &&
     (!fp || t.project === fp) &&
-    (!fe || t.estado_general === fe)
+    (!fe || t.estado_general === fe) &&
+    (!fb || (fb === 'si' ? t.bloqueada_real === true : t.bloqueada_real === false))
   );
 
   let sorted = [...filtradas];
@@ -1053,6 +1087,10 @@ function renderTareas() {
       <td>${t.duracion_prevista !== null && t.duracion_prevista !== undefined ? t.duracion_prevista + 'd hábiles' : '--'}</td>
       <td class="estado-txt ${cls}">${t.estado_plazo}</td>
       <td><span class="estado-txt ${cls}">${estadoLabel}</span></td>
+      <td>${t.bloqueada_real
+        ? `<span style="color:var(--rojo);font-weight:700;" title="Bloqueada por: ${(t.blocked_by||[]).join(', ')}">🔴 Bloqueada</span>`
+        : `<span style="color:var(--verde);font-weight:700;">🟢 Liberada</span>`}</td>
+      <td style="font-size:12px;">${t.bloqueada_por ? `<b>${t.bloqueada_por.name}</b><br>👤 ${t.bloqueada_por.assignee}` : '—'}</td>
     </tr>`;
   });
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="8"><i>Sin tareas</i></td></tr>';
