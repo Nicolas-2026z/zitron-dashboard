@@ -276,6 +276,7 @@ def process_file(path, today):
 
         blocked_by = row[col["Blocked By (Dependencies)"]] if "Blocked By (Dependencies)" in col else ""
         blocking = row[col["Blocking (Dependencies)"]] if "Blocking (Dependencies)" in col else ""
+        task_id = row[col["Task ID"]] if "Task ID" in col else None
 
         tasks.append({
             "name": name,
@@ -293,6 +294,7 @@ def process_file(path, today):
             "blocked_by": [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else [],
             "blocking": [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else [],
             "bloqueada": bool(blocked_by and str(blocked_by).strip()),
+            "asana_url": f"https://app.asana.com/0/0/{int(task_id)}/f" if task_id else None,
             "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
             "estado": estado,
             "estado_plazo": estado_plazo,
@@ -528,7 +530,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   </div>
   <div class="resumen-linea" id="resumenTareas"></div>
   <table>
-    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th><th>Bloqueo</th><th>Bloqueada por</th></tr></thead>
+    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th><th>Bloqueo</th><th>Bloqueada por</th><th>Link</th></tr></thead>
     <tbody id="tareasBody"></tbody>
   </table>
 </div>
@@ -1091,6 +1093,7 @@ function renderTareas() {
         ? `<span style="color:var(--rojo);font-weight:700;" title="Bloqueada por: ${(t.blocked_by||[]).join(', ')}">🔴 Bloqueada</span>`
         : `<span style="color:var(--verde);font-weight:700;">🟢 Liberada</span>`}</td>
       <td style="font-size:12px;">${t.bloqueada_por ? `<b>${t.bloqueada_por.name}</b><br>👤 ${t.bloqueada_por.assignee}` : '—'}</td>
+      <td>${t.asana_url ? `<a href="${t.asana_url}" target="_blank" style="color:var(--azul);text-decoration:none;font-weight:600;">🔗 Abrir</a>` : '—'}</td>
     </tr>`;
   });
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="8"><i>Sin tareas</i></td></tr>';
