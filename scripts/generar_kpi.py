@@ -903,17 +903,45 @@ function calcularBloqueo(tasks) {
       t.bloqueada_por = null;
       return;
     }
-    // Para cada nombre bloqueante, tomamos su grupo de tareas con ese nombre.
-    // Conservador: se considera bloqueante solo si TODAS las tareas de ese
-    // nombre siguen sin completar (evita falsos positivos con nombres duplicados).
     let pendienteEncontrada = null;
     for (const nombre of t.blocked_by) {
       const grupo = buscarGrupo(nombre, t.project);
-      if (!grupo) continue;
-      const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
-      if (todasPendientes) {
-        // tomamos la más reciente vencida/en curso como referencia para mostrar
-        pendienteEncontrada = grupo.find(g => g.estado_general !== 'Completada') || grupo[0];
+      if (!grupo || grupo.length === 0) continue;
+
+      let candidato;
+      if (grupo.length === 1) {
+        candidato = grupo[0];
+      } else {
+        // Múltiples tareas con el mismo nombre: las dependencias en Asana suelen
+        // agruparse por "lote" compartiendo la misma fecha de vencimiento.
+        // Elegimos el sub-grupo cuya fecha de vencimiento sea más cercana a la
+        // fecha de inicio de la tarea actual (t), que es la señal más confiable
+        // disponible en el export de Excel.
+        const refDate = t.start_iso || t.due_iso;
+        if (refDate) {
+          let mejor = null, mejorDiff = Infinity;
+          grupo.forEach(g => {
+            if (!g.due_iso) return;
+            const diff = Math.abs(new Date(g.due_iso) - new Date(refDate));
+            if (diff < mejorDiff) { mejorDiff = diff; mejor = g; }
+          });
+          if (mejor) {
+            // tomar todo el sub-grupo que comparte la misma fecha que "mejor"
+            const subgrupo = grupo.filter(g => g.due_iso === mejor.due_iso);
+            candidato = subgrupo.every(g => g.estado_general !== 'Completada')
+              ? (subgrupo.find(g => g.estado_general !== 'Completada') || subgrupo[0])
+              : null;
+          }
+        }
+        // fallback: si no se pudo afinar, usar regla conservadora (todas pendientes)
+        if (candidato === undefined) {
+          const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
+          candidato = todasPendientes ? (grupo.find(g => g.estado_general !== 'Completada') || grupo[0]) : null;
+        }
+      }
+
+      if (candidato && candidato.estado_general !== 'Completada') {
+        pendienteEncontrada = candidato;
         break;
       }
     }
