@@ -382,6 +382,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .pill { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
   .pill.verde { background: var(--verde-bg); color: var(--verde); }
   .pill.rojo { background: var(--rojo-bg); color: var(--rojo); }
+  .pill.amarillo { background: var(--amarillo-bg); color: var(--amarillo); }
   .estado-txt.rojo { color: var(--rojo); font-weight: 600; }
   .estado-txt.verde { color: var(--verde); font-weight: 600; }
   .estado-txt.encurso { color: var(--azul); font-weight: 600; }
@@ -1043,7 +1044,7 @@ function renderPersonas(tasks) {
       <td>${d.area}</td>
       <td>${d.total}</td>
       <td>${d.compl}</td>
-      <td><span class="pill ${p>=50?'verde':'rojo'}">${p.toFixed(0)}%</span></td>
+      <td><span class="pill ${p>=80?'verde':(p>=50?'amarillo':'rojo')}">${p.toFixed(0)}%</span></td>
       <td><span class="dot verde"></span>${d.cerrada_tiempo}</td>
       <td><span class="dot rojo"></span>${d.cerrada_atraso}</td>
       <td><span class="dot verde"></span>${d.abierta_tiempo}</td>
