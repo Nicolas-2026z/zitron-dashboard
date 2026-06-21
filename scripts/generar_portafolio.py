@@ -28,6 +28,18 @@ REGLAS DE CALCULO (avance nivel 1, sin cabeceras, ponderado por nivel 2/3)
 - Avance del PROYECTO = suma(d de todas las fases) / suma(t de todas las
   fases) * 100.
 
+REGLAS DE ESTADO / COLOR (actualizado)
+---------------------------------------------------------------------------
+- Color de barra segun % (rojo / amarillo patito / verde):
+    0-49%  -> rojo    (#E24B4A)
+    50-75% -> amarillo patito (#EAB308)
+    76-100%-> verde   (#1D9E75)
+- Badge de estado del proyecto ("Completado" / "En progreso"):
+    * "Completado" SOLO si la fase de Logistica/Despacho esta 100%
+      completa (mismo criterio que el badge "Despachado").
+    * En cualquier otro caso, el badge dice "En progreso",
+      independiente del % de avance.
+
 USO
 ---
   python3 generar_portafolio.py [data_excels] [data_servicios] [salida.html]
@@ -68,13 +80,15 @@ COUNTRY_KEYWORDS = [
 WORKSPACE_GID = "402967058777498"
 SERVICIOS_PROJECT_GID = "1213595645392940"
 
+# Colores de las secciones del tablero de Servicios.
+# "revisado" usa el mismo amarillo patito que el resto del dashboard.
 SECTION_COLORS = {
     "finalizado": "#6B7280",
     "finalizada": "#6B7280",
     "ejecucion": "#1D9E75",
     "ejecución": "#1D9E75",
     "proyecto": "#185FA5",
-    "revisado": "#BA7517",
+    "revisado": "#EAB308",
 }
 DEFAULT_SECTION_COLOR = "#378ADD"
 
@@ -318,9 +332,12 @@ def process_servicios(path):
 # ---------------------------------------------------------------------
 # TEMPLATE HTML
 # CAMBIOS vs version anterior:
-#   1. col()  -> rojo 0-49%, amarillo 50-75%, verde 76-100%
-#   2. bi()   -> solo 2 estados: "En progreso" / "Completado"
-#   3. rKPIs  -> KPIs simplificados: Completados (76%+) y En progreso
+#   1. col()  -> rojo 0-49%, amarillo patito 50-75% (#EAB308), verde 76-100%
+#   2. bi()   -> "Completado" SOLO si esta despachado (logistica 100%),
+#                si no, siempre "En progreso" (sin importar el %)
+#   3. rKPIs  -> "Completados (despachados)" y "En progreso" en base
+#                al mismo criterio de despacho, no al %
+#   4. svc-kpis "En curso" usa el amarillo patito tambien
 # ---------------------------------------------------------------------
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -330,7 +347,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Portafolio Proyectos — Zitron</title>
 <style>
-:root{--hdr:#1A3A5C;--grn:#1D9E75;--blu:#378ADD;--amb:#BA7517;--red:#E24B4A;--bg:#F3F6FA;--border:#E2E8F0;--text:#1A202C;--sub:#6B7280;}
+:root{--hdr:#1A3A5C;--grn:#1D9E75;--blu:#378ADD;--amb:#EAB308;--red:#E24B4A;--bg:#F3F6FA;--border:#E2E8F0;--text:#1A202C;--sub:#6B7280;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);}
 .header{background:var(--hdr);color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25);}
@@ -456,7 +473,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   <div class="sec-sub">Carpeta Servicios · __SVC_TOTAL__ tareas totales · Actualizado __FECHA__</div>
   <div class="svc-kpis">
     <div class="skpi"><div class="kl">Total tareas</div><div class="kv" style="color:#378ADD">__SVC_TOTAL__</div></div>
-    <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#BA7517">__SVC_CURSO__</div></div>
+    <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#EAB308">__SVC_CURSO__</div></div>
     <div class="skpi"><div class="kl">Finalizadas</div><div class="kv" style="color:#1D9E75">__SVC_FIN__</div></div>
     <div class="skpi"><div class="kl">Avance global</div><div class="kv" style="color:#1A3A5C">__SVC_AVANCE__%</div></div>
   </div>
@@ -473,11 +490,17 @@ var filt="all";
 
 var P = __P_JSON__;
 
-// CAMBIO 1: rojo 0-49%, amarillo 50-75%, verde 76-100%
-function col(p){return p>=76?"#1D9E75":p>=50?"#BA7517":"#E24B4A";}
+// Color de barra/porcentaje segun avance: rojo 0-49%, amarillo patito 50-75%, verde 76-100%
+function col(p){return p>=76?"#1D9E75":p>=50?"#EAB308":"#E24B4A";}
 
-// CAMBIO 2: solo 2 estados — En progreso / Completado
-function bi(p){if(p>=76)return{t:"Completado",c:"#1D9E75"};return{t:"En progreso",c:"#BA7517"};}
+// Si el proyecto esta despachado (fase Logistica/Despacho 100% completa)
+function isDespachado(x){
+  var lp=x.ph.find(function(ph){var n=ph[0].toLowerCase();return n.indexOf("logist")>=0||n.indexOf("despacho")>=0;});
+  return lp&&lp[1]>0&&lp[1]===lp[2];
+}
+
+// Badge de estado: "Completado" SOLO si esta despachado, si no "En progreso"
+function bi(despachado){if(despachado)return{t:"Completado",c:"#1D9E75"};return{t:"En progreso",c:"#EAB308"};}
 
 function getF(){
   var q=(document.getElementById("srch").value||"").toLowerCase();
@@ -486,8 +509,8 @@ function getF(){
     if(q&&x.n.toLowerCase().indexOf(q)<0&&x.p.toLowerCase().indexOf(q)<0)return false;
     if(PM[filt])return x.p===PM[filt];
     if(filt==="ot")return Object.values(PM).indexOf(x.p)<0;
-    if(filt==="des"){return x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}
-    if(filt==="pend"){return!x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}
+    if(filt==="des"){return isDespachado(x);}
+    if(filt==="pend"){return!isDespachado(x);}
     return true;
   });
   if(s==="pd")d.sort(function(a,b){return b.pct-a.pct;});
@@ -502,14 +525,15 @@ function rKPIs(){
   var ts=P.reduce(function(s,x){return s+x.t;},0);
   var ds=P.reduce(function(s,x){return s+x.d;},0);
   document.getElementById("hdrTotal").textContent=P.length+" proyectos";
-  // CAMBIO 3: KPIs simplificados — solo Completados y En progreso
+  var completados=P.filter(function(x){return isDespachado(x);}).length;
+  var enProgreso=P.length-completados;
   var ks=[
     {l:"Total proyectos",v:P.length,c:"#378ADD"},
     {l:"Avance promedio",v:avg+"%",c:col(avg)},
     {l:"Subtareas completadas",v:ds+"/"+ts,c:"#1D9E75"},
-    {l:"Completados (76%+)",v:P.filter(function(x){return x.pct>=76;}).length,c:"#1D9E75"},
-    {l:"En progreso",v:P.filter(function(x){return x.pct<76;}).length,c:"#BA7517"},
-    {l:"Despachados",v:P.filter(function(x){return x.ph.some(function(ph){var n=ph[0].toLowerCase();return(n.indexOf("logist")>=0||n.indexOf("despacho")>=0)&&ph[1]>0&&ph[1]===ph[2];});}).length,c:"#1D9E75"}
+    {l:"Completados (despachados)",v:completados,c:"#1D9E75"},
+    {l:"En progreso",v:enProgreso,c:"#EAB308"},
+    {l:"Despachados",v:completados,c:"#1D9E75"}
   ];
   document.getElementById("kpis").innerHTML=ks.map(function(k){return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';}).join("");
 }
@@ -526,14 +550,14 @@ function render(){
   rKPIs();
   var data=getF();
   document.getElementById("plist").innerHTML=data.map(function(x,i){
-    var c=col(x.pct),b=bi(x.pct);
+    var c=col(x.pct);
+    var desp=isDespachado(x);
+    var b=bi(desp);
     var phs=x.ph.map(function(ph){
       var fn=ph[0],ft=ph[1],fd=ph[2];
       var fp=ft>0?Math.round(fd/ft*100):0;
       return '<div class="phrow"><span class="phname">'+fn+'</span><div class="phbg"><div class="phfill" style="width:'+fp+'%;background:'+col(fp)+';"></div></div><span class="phpct" style="color:'+col(fp)+'">'+fp+'%</span><span class="phct">'+fd+'/'+ft+'</span></div>';
     }).join("");
-    var lp=x.ph.find(function(ph){var n=ph[0].toLowerCase();return n.indexOf("logist")>=0||n.indexOf("despacho")>=0;});
-    var desp=lp&&lp[1]>0&&lp[1]===lp[2];
     var db=desp
       ?'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#D1FAE5;color:#065F46;border:1.5px solid #1D9E75;white-space:nowrap">✓ Despachado</span>'
       :'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">Pend. despacho</span>';
