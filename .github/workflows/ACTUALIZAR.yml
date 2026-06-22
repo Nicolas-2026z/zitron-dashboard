@@ -1,13 +1,10 @@
 name: Actualizar Portafolio
-
 on:
   schedule:
     - cron: "0 13 * * 1-5"   # lunes a viernes 13:00 UTC (~9am Chile UTC-4)
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   actualizar:
     runs-on: ubuntu-latest
@@ -50,4 +47,5 @@ jobs:
           git config user.email "actions@github.com"
           git add index.html data
           git diff --staged --quiet || git commit -m "Actualiza portafolio $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase origin main
           git push
