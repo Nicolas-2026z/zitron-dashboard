@@ -65,7 +65,7 @@ PROYECTOS = [
     ("50001514 - CLIENTE POR DEFINIR A",                  "https://app.asana.com/1/402967058777498/project/1213185599076077"),
     ("50001515 - CLIENTE POR DEFINIR B",                  "https://app.asana.com/1/402967058777498/project/1213234368821945"),
     ("50001563 - ZITRON COLOMBIA ANTIOQUIA",              "https://app.asana.com/1/402967058777498/project/1215727332551578"),
-    ("50001566 - XEMORTIZ",                               "https://app.asana.com/1/402967058777498/project/1215922055649550")
+    ("50001566 - XEMORTIZ",                               "https://app.asana.com/1/402967058777498/project/1215922055649550"),
 ]
 
 
