@@ -978,13 +978,45 @@ function render() {
   renderTareas();
 }
 
+function diasHabilesJS(d1str, d2str) {
+  if (!d1str || !d2str) return null;
+  const feriados = new Set([
+    '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
+    '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
+    '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
+    '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
+    '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
+  ]);
+  let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
+  const sign = d2 >= d1 ? 1 : -1;
+  if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
+  let count = 0, cur = new Date(d1);
+  cur.setDate(cur.getDate()+1);
+  while (cur <= d2) {
+    const iso = cur.toISOString().slice(0,10);
+    if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count * sign;
+}
+
 function renderAreas(tasks) {
   const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
   tasks.forEach(t => {
-    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0};
+    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0, dias_totales:0, dias_count:0};
     areas[t.area].total++;
-    if (t.estado_general === 'Completada') areas[t.area].cerradas++;
+    if (t.estado_general === 'Completada') {
+      areas[t.area].cerradas++;
+      // promedio días hábiles reales (start_iso -> completed)
+      if (t.start_iso && t.completed) {
+        const d = diasHabilesJS(t.start_iso, t.completed);
+        if (d !== null && d >= 0) {
+          areas[t.area].dias_totales += d;
+          areas[t.area].dias_count++;
+        }
+      }
+    }
     if (t.estado === 'verde') areas[t.area].verde++;
     if (t.estado_general === 'Completada' && t.estado === 'rojo') areas[t.area].cerrada_atraso++;
     if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
@@ -998,12 +1030,14 @@ function renderAreas(tasks) {
     const a = areas[area];
     const p = pct(a.cerradas, a.total);
     const cls = a.total === 0 ? '' : (p >= 80 ? 'verde' : (p >= 50 ? 'amarillo' : 'rojo'));
+    const promDias = a.dias_count > 0 ? (a.dias_totales / a.dias_count).toFixed(1) : null;
     html += `<div class="area-card">
       <div class="titulo">${area}</div>
       <div class="pct ${cls}">${p.toFixed(0)}%</div>
       <div class="meta">${a.total} tareas · ${a.cerradas} cerradas<br>
         <span class="dot verde"></span>${a.verde} a tiempo
-        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde
+        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde<br>
+        ${promDias !== null ? `⏱ Promedio cierre: <b>${promDias}d hábiles</b>` : ''}
       </div>
     </div>`;
   });
