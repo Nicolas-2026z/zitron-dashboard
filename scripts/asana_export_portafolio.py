@@ -49,7 +49,6 @@ PROYECTOS = [
     ("50001504 - ZITRON PERU CODESTABLE B",               "https://app.asana.com/1/402967058777498/project/1213377149548924"),
     ("50001415 - ZITRON PERU METRO LIMA E05",             "https://app.asana.com/1/402967058777498/project/1213391072478428"),
     ("50001506 - ZCO EPM FRIO AIRE",                      "https://app.asana.com/1/402967058777498/project/1213244147627519"),
-    ("50001309 - ZITRON COLOMBIA BUGA BUENAVENTURA",      "https://app.asana.com/1/402967058777498/project/1213377149548388"),
     ("50001451 - ZITRON COLOMBIA",                        "https://app.asana.com/1/402967058777498/project/1213391072478496"),
     ("50001500 - EQ MIN LA HACIENDA A",                   "https://app.asana.com/1/402967058777498/project/1213234368822465"),
     ("50001497 - XEMORTIZ IMMSA STA BBR",                 "https://app.asana.com/1/402967058777498/project/1213193352022841"),
