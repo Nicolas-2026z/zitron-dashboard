@@ -653,11 +653,11 @@ def main():
     dir_proyectos = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
     dir_servicios = sys.argv[2] if len(sys.argv) > 2 else "/mnt/user-data/uploads/servicios"
     salida        = sys.argv[3] if len(sys.argv) > 3 else "/mnt/user-data/outputs/index.html"
-    dir_exw       = sys.argv[4] if len(sys.argv) > 4 else os.path.join(dir_proyectos, "exw")
+    dir_exw       = sys.argv[4] if len(sys.argv) > 4 else dir_proyectos
 
     # --- Leer fechas EXW ---
     fechas_exw = {}
-    exw_files = sorted(glob.glob(os.path.join(dir_exw, "*.xlsx"))) if os.path.isdir(dir_exw) else []
+    exw_files = sorted([f for f in glob.glob(os.path.join(dir_exw, "*.xlsx")) if any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte"])])
     exw_files = [f for f in exw_files if not os.path.basename(f).startswith("~$")]
     if exw_files:
         fechas_exw = leer_fechas_exw(exw_files[0])
@@ -666,7 +666,7 @@ def main():
 
     # --- Leer proyectos ---
     files = sorted(glob.glob(os.path.join(dir_proyectos, "*.xlsx")))
-    files = [f for f in files if not os.path.basename(f).startswith("~$")]
+    files = [f for f in files if not os.path.basename(f).startswith("~$") and not any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte"])]
     if not files:
         print(f"No se encontraron .xlsx en {dir_proyectos}")
         import sys as _sys; _sys.exit(1)
