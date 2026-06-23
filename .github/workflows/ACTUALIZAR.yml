@@ -31,8 +31,10 @@ jobs:
 
       - name: Limpiar carpeta data anterior
         run: |
-          rm -f data/*.xlsx data/*.csv
-          rm -f data/servicios/*.xlsx data/servicios/*.csv
+          find data -maxdepth 1 -name "*.xlsx" ! -name "*fabricaci*" ! -name "*exw*" ! -name "*reporte*" -delete
+          find data -maxdepth 1 -name "*.csv" -delete
+          find data/servicios -name "*.xlsx" -delete 2>/dev/null || true
+          find data/servicios -name "*.csv" -delete 2>/dev/null || true
           echo "Carpetas limpiadas"
 
       - name: Exportar proyectos y servicios desde Asana
