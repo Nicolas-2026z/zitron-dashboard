@@ -3,51 +3,32 @@
 """
 GENERA index.html - "Portafolio Proyectos Zitron"
 Lee los .xlsx de cada proyecto (carpeta data_excels/) + el .xlsx del
-board "Servicios y Mantencion" (carpeta data_servicios/) y genera un
-HTML con la MISMA estructura/diseno del portafolio original
-(tarjetas, filtros, detalle de fases por proyecto, tablero de servicios).
+board "Servicios y Mantencion" (carpeta data_servicios/) + el Excel de
+fechas EXW (carpeta data_exw/) y genera el HTML del portafolio.
 
 REGLAS DE CALCULO (avance nivel 1, sin cabeceras, ponderado por nivel 2/3)
 ---------------------------------------------------------------------------
-- Nivel 1 (FASE)   = tarea sin "Parent task" (ej: "Kick Off", "Compras", ...)
-                     Se descartan las que no tengan NINGUNA tarea nivel 2
-                     debajo (se asume que son cabeceras/notas, no fases).
-- Nivel 2          = tarea cuyo "Parent task" == nombre de una fase (nivel1).
-- Nivel 3          = tarea cuyo "Parent task" == nombre de una tarea nivel 2.
+- Nivel 1 (FASE)   = tarea sin "Parent task"
+- Nivel 2          = tarea cuyo "Parent task" == nombre de una fase nivel1
+- Nivel 3          = tarea cuyo "Parent task" == nombre de una tarea nivel2
+- Avance FASE      = suma(completadas n2/n3) / suma(total n2/n3)
+- Avance PROYECTO  = suma(d fases) / suma(t fases) * 100
 
-- Avance de una tarea nivel 2:
-    * Si tiene subtareas nivel 3  -> completadas_n3 / total_n3
-    * Si NO tiene subtareas n3    -> 100% si la propia tarea n2 esta
-                                      completada (Completed At != vacio),
-                                      0% si no.
-
-- Avance de una FASE (nivel1) = suma(completadas de cada n2) / suma(total
-  de cada n2)  ->  esto es el promedio ponderado por nivel 2/3 que pediste.
-  (d = completadas, t = total -> se muestran como "d/t subtareas").
-
-- Avance del PROYECTO = suma(d de todas las fases) / suma(t de todas las
-  fases) * 100.
-
-REGLAS DE ESTADO / COLOR (actualizado)
+REGLAS DE ESTADO / COLOR
 ---------------------------------------------------------------------------
-- Color de barra segun % (rojo / amarillo patito / verde):
-    0-49%  -> rojo    (#E24B4A)
-    50-75% -> amarillo patito (#EAB308)
-    76-100%-> verde   (#1D9E75)
-- Badge de estado del proyecto ("Completado" / "En progreso"):
-    * "Completado" SOLO si la fase de Logistica/Despacho esta 100%
-      completa (mismo criterio que el badge "Despachado").
-    * En cualquier otro caso, el badge dice "En progreso",
-      independiente del % de avance.
+- Color: 0-49% rojo, 50-75% amarillo patito (#EAB308), 76-100% verde
+- "Completado" SOLO si fase Logistica/Despacho esta al 100%
+- Fecha EXW: se lee del Excel de fabricacion, fecha maxima por pedido
 
 USO
 ---
-  python3 generar_portafolio.py [data_excels] [data_servicios] [salida.html]
+  python3 generar_portafolio.py [data_excels] [data_servicios] [salida.html] [data_exw]
 
 Por defecto:
   data_excels    = /mnt/user-data/uploads
   data_servicios = /mnt/user-data/uploads/servicios
   salida.html    = /mnt/user-data/outputs/index.html
+  data_exw       = /mnt/user-data/uploads/exw  (opcional)
 """
 
 import sys
@@ -56,6 +37,7 @@ import glob
 import json
 import datetime
 import warnings
+import re as _re
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -80,8 +62,6 @@ COUNTRY_KEYWORDS = [
 WORKSPACE_GID = "402967058777498"
 SERVICIOS_PROJECT_GID = "1213595645392940"
 
-# Colores de las secciones del tablero de Servicios.
-# "revisado" usa el mismo amarillo patito que el resto del dashboard.
 SECTION_COLORS = {
     "finalizado": "#6B7280",
     "finalizada": "#6B7280",
@@ -100,21 +80,16 @@ PASSWORD = "zitron2026!"
 
 def _norm(s):
     s = str(s or "").lower().strip()
-    repl = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ñ": "n"}
+    repl = {"á":"a","é":"e","í":"i","ó":"o","ú":"u","ñ":"n"}
     for a, b in repl.items():
         s = s.replace(a, b)
     return s
 
-
 def to_date(val):
-    if val is None:
-        return None
-    if isinstance(val, datetime.datetime):
-        return val.date()
-    if isinstance(val, datetime.date):
-        return val
+    if val is None: return None
+    if isinstance(val, datetime.datetime): return val.date()
+    if isinstance(val, datetime.date): return val
     return None
-
 
 def find_header_row(ws, max_scan=10):
     for r in range(1, max_scan + 1):
@@ -123,13 +98,87 @@ def find_header_row(ws, max_scan=10):
             return r, values
     return None, None
 
-
 def country_for(project_name):
     n = _norm(project_name)
     for kw, country in COUNTRY_KEYWORDS:
         if kw in n:
             return country
     return "Sin pais"
+
+# ---------------------------------------------------------------------
+# LEER EXCEL DE FECHAS EXW
+# Devuelve dict {pedido: "DD/MM/YYYY"} con la fecha maxima por pedido
+# ---------------------------------------------------------------------
+
+def leer_fechas_exw(path):
+    """
+    Lee el Excel de fabricacion y devuelve un dict
+    {numero_pedido_str: fecha_str_dd/mm/yyyy}
+    Toma la fecha maxima (mas tardia) cuando un pedido tiene varias OTs.
+    """
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = wb.active
+
+    # Buscar fila de encabezado: busca "PEDIDO" y fecha
+    header_row = None
+    col_pedido = col_fecha = None
+    for r in range(1, 15):
+        values = [str(c.value or "").strip() for c in ws[r]]
+        for i, v in enumerate(values):
+            vn = _norm(v)
+            if "pedido" in vn:
+                col_pedido = i
+            if "entrega" in vn or "exw" in vn or "prevista" in vn:
+                col_fecha = i
+        if col_pedido is not None and col_fecha is not None:
+            header_row = r
+            break
+
+    if header_row is None:
+        print("  [AVISO] No se encontro encabezado en el Excel EXW")
+        return {}
+
+    fechas = {}
+    pedido_actual = None
+
+    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
+        # Leer pedido (puede estar vacio si es continuacion del anterior)
+        raw_pedido = row[col_pedido] if col_pedido < len(row) else None
+        raw_fecha  = row[col_fecha]  if col_fecha  < len(row) else None
+
+        if raw_pedido not in (None, ""):
+            p = str(raw_pedido).strip()
+            # Solo acepta pedidos que parezcan numeros de 8 digitos
+            if _re.match(r'^\d{7,8}$', p):
+                pedido_actual = p
+
+        if pedido_actual is None:
+            continue
+
+        # Parsear fecha
+        fecha_date = None
+        if raw_fecha not in (None, ""):
+            if isinstance(raw_fecha, (datetime.datetime, datetime.date)):
+                fecha_date = to_date(raw_fecha)
+            else:
+                s = str(raw_fecha).strip()
+                for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+                    try:
+                        fecha_date = datetime.datetime.strptime(s, fmt).date()
+                        break
+                    except Exception:
+                        pass
+
+        if fecha_date is None:
+            continue
+
+        # Guardar la fecha maxima por pedido
+        if pedido_actual not in fechas or fecha_date > fechas[pedido_actual]:
+            fechas[pedido_actual] = fecha_date
+
+    result = {k: v.strftime("%d/%m/%Y") for k, v in fechas.items()}
+    print(f"  Fechas EXW leidas: {len(result)} pedidos")
+    return result
 
 
 # ---------------------------------------------------------------------
@@ -162,10 +211,6 @@ def process_project(path):
             "completed": to_date(row[col["Completed At"]]) is not None,
         })
 
-    by_name = {}
-    for r in rows:
-        by_name.setdefault(r["name"], r)
-
     nivel1 = [r for r in rows if r["parent"] is None]
     nivel1_names = {r["name"] for r in nivel1}
     nivel2 = [r for r in rows if r["parent"] in nivel1_names]
@@ -181,36 +226,28 @@ def process_project(path):
         n3_por_n2.setdefault(r["parent"], []).append(r)
 
     ph = []
-    total_t = 0
-    total_d = 0
+    total_t = total_d = 0
     nombre_conteo = {}
-    bodega_t = 0
-    bodega_d = 0
+    bodega_t = bodega_d = 0
     bodega_incluida = False
 
     for f in nivel1:
         hijos2 = n2_por_fase.get(f["name"], [])
         if not hijos2:
             continue
-
-        fase_t = 0
-        fase_d = 0
+        fase_t = fase_d = 0
         for h2 in hijos2:
             hijos3 = n3_por_n2.get(h2["name"], [])
             if hijos3:
-                t3 = len(hijos3)
-                d3 = sum(1 for x in hijos3 if x["completed"])
-                fase_t += t3
-                fase_d += d3
+                fase_t += len(hijos3)
+                fase_d += sum(1 for x in hijos3 if x["completed"])
             else:
                 fase_t += 1
                 fase_d += 1 if h2["completed"] else 0
 
         if "bodega" in f["name"].lower():
-            bodega_t += fase_t
-            bodega_d += fase_d
-            total_t += fase_t
-            total_d += fase_d
+            bodega_t += fase_t; bodega_d += fase_d
+            total_t  += fase_t; total_d  += fase_d
             if not bodega_incluida:
                 ph.append(["__BODEGA__", 0, 0])
                 bodega_incluida = True
@@ -220,22 +257,16 @@ def process_project(path):
         nombre_conteo[nombre_fase] = nombre_conteo.get(nombre_fase, 0) + 1
         if nombre_conteo[nombre_fase] > 1:
             sufijos = ["", " B", " C", " D", " E"]
-            nombre_fase = nombre_fase + sufijos[min(nombre_conteo[nombre_fase]-1, 4)]
+            nombre_fase += sufijos[min(nombre_conteo[nombre_fase]-1, 4)]
 
         ph.append([nombre_fase, fase_t, fase_d])
-        total_t += fase_t
-        total_d += fase_d
+        total_t += fase_t; total_d += fase_d
 
     for entry in ph:
         if entry[0] == "__BODEGA__":
-            entry[0] = "Bodega"
-            entry[1] = bodega_t
-            entry[2] = bodega_d
+            entry[0] = "Bodega"; entry[1] = bodega_t; entry[2] = bodega_d
 
-    if total_t == 0:
-        pct = 0
-    else:
-        pct = round(total_d / total_t * 100)
+    pct = round(total_d / total_t * 100) if total_t else 0
 
     return {
         "n": project_name,
@@ -244,17 +275,17 @@ def process_project(path):
         "d": total_d,
         "pct": pct,
         "ph": ph,
+        "exw": "",   # se rellena despues con el cruce
     }
 
 
 # ---------------------------------------------------------------------
-# PROCESAR EL XLSX DEL BOARD DE SERVICIOS -> SVC_TASKS + KPIs
+# PROCESAR SERVICIOS
 # ---------------------------------------------------------------------
 
 def process_servicios(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.active
-
     header_row, headers = find_header_row(ws)
     if header_row is None:
         return None
@@ -263,21 +294,19 @@ def process_servicios(path):
 
     def getcol(*names):
         for n in names:
-            if n in col:
-                return col[n]
+            if n in col: return col[n]
         return None
 
-    c_name = col.get("Name")
-    c_section = getcol("Section/Column", "Section")
+    c_name     = col.get("Name")
+    c_section  = getcol("Section/Column", "Section")
     c_assignee = col.get("Assignee")
-    c_due = col.get("Due Date")
-    c_completed = col.get("Completed At")
-    c_taskid = col.get("Task ID")
-    c_country = getcol("Pais", "País", "Country")
+    c_due      = col.get("Due Date")
+    c_completed= col.get("Completed At")
+    c_taskid   = col.get("Task ID")
+    c_country  = getcol("Pais", "País", "Country")
     c_priority = getcol("Prioridad", "Priority")
 
-    total = 0
-    completadas = 0
+    total = completadas = 0
     tasks_activas = []
     secciones = {}
 
@@ -285,45 +314,33 @@ def process_servicios(path):
         if c_name is None or row[c_name] in (None, ""):
             continue
         total += 1
-
-        name = str(row[c_name]).strip()
+        name    = str(row[c_name]).strip()
         section = str(row[c_section]).strip() if c_section is not None and row[c_section] else "Sin seccion"
         secciones[section] = secciones.get(section, 0) + 1
 
-        is_done = c_completed is not None and to_date(row[c_completed]) is not None
-        if is_done:
+        if c_completed is not None and to_date(row[c_completed]) is not None:
             completadas += 1
             continue
 
-        assignee = (str(row[c_assignee]).strip()
-                    if c_assignee is not None and row[c_assignee] else "(sin asignar)")
-        due = to_date(row[c_due]) if c_due is not None else None
-        country = (str(row[c_country]).strip()
-                   if c_country is not None and row[c_country] else "")
-        priority = (str(row[c_priority]).strip()
-                    if c_priority is not None and row[c_priority] else "")
-        taskid = str(row[c_taskid]).strip() if c_taskid is not None and row[c_taskid] else ""
-        url = (f"https://app.asana.com/1/{WORKSPACE_GID}/project/{SERVICIOS_PROJECT_GID}/task/{taskid}"
-               if taskid else "")
+        assignee = str(row[c_assignee]).strip() if c_assignee is not None and row[c_assignee] else "(sin asignar)"
+        due      = to_date(row[c_due]) if c_due is not None else None
+        country  = str(row[c_country]).strip() if c_country is not None and row[c_country] else ""
+        priority = str(row[c_priority]).strip() if c_priority is not None and row[c_priority] else ""
+        taskid   = str(row[c_taskid]).strip() if c_taskid is not None and row[c_taskid] else ""
+        url      = (f"https://app.asana.com/1/{WORKSPACE_GID}/project/{SERVICIOS_PROJECT_GID}/task/{taskid}"
+                    if taskid else "")
 
         tasks_activas.append({
-            "name": name,
-            "section": section,
-            "assignee": assignee,
+            "name": name, "section": section, "assignee": assignee,
             "due": due.strftime("%Y-%m-%d") if due else "",
-            "pais": country,
-            "prioridad": priority,
-            "url": url,
+            "pais": country, "prioridad": priority, "url": url,
         })
-
-    en_curso = total - completadas
-    avance = round(completadas / total * 100) if total else 0
 
     return {
         "total": total,
-        "en_curso": en_curso,
+        "en_curso": total - completadas,
         "finalizadas": completadas,
-        "avance": avance,
+        "avance": round(completadas / total * 100) if total else 0,
         "secciones": secciones,
         "tasks": tasks_activas,
     }
@@ -331,13 +348,6 @@ def process_servicios(path):
 
 # ---------------------------------------------------------------------
 # TEMPLATE HTML
-# CAMBIOS vs version anterior:
-#   1. col()  -> rojo 0-49%, amarillo patito 50-75% (#EAB308), verde 76-100%
-#   2. bi()   -> "Completado" SOLO si esta despachado (logistica 100%),
-#                si no, siempre "En progreso" (sin importar el %)
-#   3. rKPIs  -> "Completados (despachados)" y "En progreso" en base
-#                al mismo criterio de despacho, no al %
-#   4. svc-kpis "En curso" usa el amarillo patito tambien
 # ---------------------------------------------------------------------
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -356,7 +366,6 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .htitle{font-size:15px;font-weight:700;}
 .hsub{font-size:10px;opacity:.6;margin-top:1px;}
 .hright{font-size:11px;opacity:.7;text-align:right;line-height:1.7;}
-.main{max-width:1080px;margin:0 auto;padding:22px 18px;}
 .kpis{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;flex:1;min-width:110px;text-align:center;}
 .kl{font-size:10px;color:var(--sub);margin-bottom:5px;}
@@ -423,6 +432,8 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .p-alta{background:#FEE2E2;color:#991B1B;}
 .p-media{background:#FEF3C7;color:#92400E;}
 .p-baja{background:#D1FAE5;color:#065F46;}
+.exw-tag{font-size:10px;color:#1A3A5C;padding:2px 7px;border-radius:8px;background:#EEF4FF;border:1px solid #C7D9F5;white-space:nowrap;font-weight:600;}
+.exw-tag.vencida{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
 </style>
 </head>
 <body>
@@ -448,6 +459,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   <div class="hleft"><div class="hlogo">Z</div><div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2/3</div></div></div>
   <div class="hright"><div>Actualizado: __FECHA__ __HORA__</div><div style="color:#86EFAC" id="hdrTotal">__TOTAL__ proyectos</div></div>
 </header>
+<div style="max-width:1080px;margin:0 auto;padding:22px 18px;">
   <div class="kpis" id="kpis"></div>
   <div class="ctrl">
     <input type="text" id="srch" placeholder="Buscar proyecto o pais..." oninput="render()">
@@ -456,6 +468,8 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
       <option value="pa">Menor avance</option>
       <option value="na">Nombre A-Z</option>
       <option value="ct">Pais</option>
+      <option value="exwa">EXW mas antigua primero</option>
+      <option value="exwz">EXW mas reciente primero</option>
     </select>
   </div>
   <div class="pills">
@@ -483,24 +497,30 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   </div>
   <div class="svc-tasks"><h3>Tareas activas</h3><div class="stabs" id="svc-tabs"></div><div id="svc-tasklist"></div></div>
   <div class="footer" id="footer"></div>
-</main>
+</div>
 <script>
 var PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 var filt="all";
+var TODAY = new Date('__FECHA_ISO__');
 
 var P = __P_JSON__;
 
-// Color de barra/porcentaje segun avance: rojo 0-49%, amarillo patito 50-75%, verde 76-100%
 function col(p){return p>=76?"#1D9E75":p>=50?"#EAB308":"#E24B4A";}
 
-// Si el proyecto esta despachado (fase Logistica/Despacho 100% completa)
 function isDespachado(x){
   var lp=x.ph.find(function(ph){var n=ph[0].toLowerCase();return n.indexOf("logist")>=0||n.indexOf("despacho")>=0;});
-  return lp&&lp[1]>0&&lp[1]===lp[2];
+  return !!(lp&&lp[1]>0&&lp[1]===lp[2]);
 }
 
-// Badge de estado: "Completado" SOLO si esta despachado, si no "En progreso"
 function bi(despachado){if(despachado)return{t:"Completado",c:"#1D9E75"};return{t:"En progreso",c:"#EAB308"};}
+
+// Convierte "DD/MM/YYYY" -> Date para comparar/ordenar
+function parseExw(s){
+  if(!s)return null;
+  var p=s.split('/');
+  if(p.length!==3)return null;
+  return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+}
 
 function getF(){
   var q=(document.getElementById("srch").value||"").toLowerCase();
@@ -509,14 +529,31 @@ function getF(){
     if(q&&x.n.toLowerCase().indexOf(q)<0&&x.p.toLowerCase().indexOf(q)<0)return false;
     if(PM[filt])return x.p===PM[filt];
     if(filt==="ot")return Object.values(PM).indexOf(x.p)<0;
-    if(filt==="des"){return isDespachado(x);}
-    if(filt==="pend"){return!isDespachado(x);}
+    if(filt==="des")return isDespachado(x);
+    if(filt==="pend")return!isDespachado(x);
     return true;
   });
   if(s==="pd")d.sort(function(a,b){return b.pct-a.pct;});
   else if(s==="pa")d.sort(function(a,b){return a.pct-b.pct;});
   else if(s==="ct")d.sort(function(a,b){return a.p.localeCompare(b.p);});
-  else d.sort(function(a,b){return a.n.localeCompare(b.n);});
+  else if(s==="exwa"){
+    // Mas antigua primero; sin fecha al final
+    d.sort(function(a,b){
+      var da=parseExw(a.exw),db=parseExw(b.exw);
+      if(!da&&!db)return 0;
+      if(!da)return 1;
+      if(!db)return -1;
+      return da-db;
+    });
+  } else if(s==="exwz"){
+    d.sort(function(a,b){
+      var da=parseExw(a.exw),db=parseExw(b.exw);
+      if(!da&&!db)return 0;
+      if(!da)return 1;
+      if(!db)return -1;
+      return db-da;
+    });
+  } else d.sort(function(a,b){return a.n.localeCompare(b.n);});
   return d;
 }
 
@@ -526,13 +563,17 @@ function rKPIs(){
   var ds=P.reduce(function(s,x){return s+x.d;},0);
   document.getElementById("hdrTotal").textContent=P.length+" proyectos";
   var completados=P.filter(function(x){return isDespachado(x);}).length;
-  var enProgreso=P.length-completados;
+  var vencidos=P.filter(function(x){
+    var d=parseExw(x.exw);
+    return d&&d<TODAY&&!isDespachado(x);
+  }).length;
   var ks=[
     {l:"Total proyectos",v:P.length,c:"#378ADD"},
     {l:"Avance promedio",v:avg+"%",c:col(avg)},
     {l:"Subtareas completadas",v:ds+"/"+ts,c:"#1D9E75"},
     {l:"Completados (despachados)",v:completados,c:"#1D9E75"},
-    {l:"En progreso",v:enProgreso,c:"#EAB308"},
+    {l:"En progreso",v:P.length-completados,c:"#EAB308"},
+    {l:"EXW vencida",v:vencidos,c:"#E24B4A"},
     {l:"Despachados",v:completados,c:"#1D9E75"}
   ];
   document.getElementById("kpis").innerHTML=ks.map(function(k){return '<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv" style="color:'+k.c+'">'+k.v+'</div></div>';}).join("");
@@ -561,10 +602,18 @@ function render(){
     var db=desp
       ?'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#D1FAE5;color:#065F46;border:1.5px solid #1D9E75;white-space:nowrap">✓ Despachado</span>'
       :'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:#E24B4A;border:1.5px solid #E24B4A;white-space:nowrap">Pend. despacho</span>';
+    // Tag EXW
+    var exwTag='';
+    if(x.exw){
+      var exwDate=parseExw(x.exw);
+      var vencida=exwDate&&exwDate<TODAY&&!desp;
+      exwTag='<span class="exw-tag'+(vencida?' vencida':'')+'">📦 EXW '+(vencida?'⚠ ':'')+x.exw+'</span>';
+    }
     return '<div class="pcard" id="c'+i+'" onclick="toggle('+i+')">'
       +'<div class="ptop"><span class="pname" title="'+x.n+'">'+x.n+'</span>'
       +'<span class="pcountry">'+x.p+'</span>'
       +'<span class="pbadge" style="background:'+b.c+'22;color:'+b.c+'">'+b.t+'</span>'
+      +exwTag
       +'<span class="ppct" style="color:'+c+'">'+x.pct+'%</span>'
       +db+'<span class="pchev">&#9662;</span></div>'
       +'<div class="pbar-row"><div class="pbar-bg"><div class="pbar-fill" style="width:'+x.pct+'%;background:'+c+';"></div></div>'
@@ -584,11 +633,7 @@ var SVC_SECTION = SVC_SECTIONS.length?SVC_SECTIONS[0]:"";
 function sbarHtml(lbl,v,mx,clr){var p=mx>0?Math.round(v/mx*100):0;return '<div class="sbar-row"><span class="sbar-label">'+lbl+'</span><div class="sbar-track"><div class="sbar-fill" style="width:'+p+'%;background:'+clr+';"></div></div><span class="sbar-count">'+v+'</span></div>';}
 var SECTION_COLOR_MAP=__SECTION_COLORS_JSON__;
 function colorForSection(name){var k=name.toLowerCase();for(var key in SECTION_COLOR_MAP){if(k.indexOf(key)>=0)return SECTION_COLOR_MAP[key];}return "__SECTION_DEFAULT__";}
-function renderSvcSections(){
-  var entries=Object.entries(SVC_SECTION_COUNTS).sort(function(a,b){return b[1]-a[1];});
-  var mx=entries.length?entries[0][1]:1;
-  document.getElementById("svc-sections").innerHTML=entries.map(function(r){return sbarHtml(r[0],r[1],mx,colorForSection(r[0]));}).join("");
-}
+function renderSvcSections(){var entries=Object.entries(SVC_SECTION_COUNTS).sort(function(a,b){return b[1]-a[1];});var mx=entries.length?entries[0][1]:1;document.getElementById("svc-sections").innerHTML=entries.map(function(r){return sbarHtml(r[0],r[1],mx,colorForSection(r[0]));}).join("");}
 function renderSvcCountries(){var cc={};SVC_TASKS.forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);if(!sorted.length){document.getElementById("svc-countries").innerHTML='<i style="font-size:12px;color:#6B7280">Sin datos</i>';return;}var mx=sorted[0][1];document.getElementById("svc-countries").innerHTML=sorted.map(function(r){return sbarHtml(r[0],r[1],mx,"#378ADD");}).join("");}
 function renderSvcTabs(){document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){var cnt=SVC_TASKS.filter(function(t){return t.section===s;}).length;return '<button class="stab'+(s===SVC_SECTION?" act":"")+'" onclick="setSvcSec(\''+s+'\',this)">'+s+' ('+cnt+')</button>';}).join("");}
 function setSvcSec(s,btn){SVC_SECTION=s;document.querySelectorAll(".stab").forEach(function(b){b.classList.remove("act");});btn.classList.add("act");renderSvcList();}
@@ -607,15 +652,25 @@ renderSvcSections();renderSvcCountries();renderSvcTabs();renderSvcList();
 def main():
     dir_proyectos = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
     dir_servicios = sys.argv[2] if len(sys.argv) > 2 else "/mnt/user-data/uploads/servicios"
-    salida = sys.argv[3] if len(sys.argv) > 3 else "/mnt/user-data/outputs/index.html"
+    salida        = sys.argv[3] if len(sys.argv) > 3 else "/mnt/user-data/outputs/index.html"
+    dir_exw       = sys.argv[4] if len(sys.argv) > 4 else os.path.join(dir_proyectos, "exw")
 
+    # --- Leer fechas EXW ---
+    fechas_exw = {}
+    exw_files = sorted(glob.glob(os.path.join(dir_exw, "*.xlsx"))) if os.path.isdir(dir_exw) else []
+    exw_files = [f for f in exw_files if not os.path.basename(f).startswith("~$")]
+    if exw_files:
+        fechas_exw = leer_fechas_exw(exw_files[0])
+    else:
+        print(f"  [AVISO] No se encontro Excel EXW en {dir_exw}")
+
+    # --- Leer proyectos ---
     files = sorted(glob.glob(os.path.join(dir_proyectos, "*.xlsx")))
     files = [f for f in files if not os.path.basename(f).startswith("~$")]
     if not files:
         print(f"No se encontraron .xlsx en {dir_proyectos}")
-        sys.exit(1)
+        import sys as _sys; _sys.exit(1)
 
-    import re as _re
     def _clave(path):
         base = os.path.splitext(os.path.basename(path))[0]
         base = _re.sub(r'\s*\(\d+\)\s*$', '', base)
@@ -640,6 +695,10 @@ def main():
             if r is None:
                 errores.append((f, "encabezados/columnas no reconocidas"))
                 continue
+            # Cruzar con fecha EXW: buscar numero de 8 digitos en el nombre
+            m = _re.search(r'(\d{8})', r["n"])
+            if m:
+                r["exw"] = fechas_exw.get(m.group(1), "")
             P.append(r)
         except Exception as e:
             errores.append((f, str(e)))
@@ -648,40 +707,38 @@ def main():
         print("No se pudo procesar ningun proyecto.")
         for f, e in errores:
             print(f"  - {f}: {e}")
-        sys.exit(1)
+        import sys as _sys; _sys.exit(1)
 
-    svc = {"total": 0, "en_curso": 0, "finalizadas": 0, "avance": 0, "secciones": {}, "tasks": []}
+    # --- Servicios ---
+    svc = {"total":0,"en_curso":0,"finalizadas":0,"avance":0,"secciones":{},"tasks":[]}
     svc_files = sorted(glob.glob(os.path.join(dir_servicios, "*.xlsx"))) if os.path.isdir(dir_servicios) else []
     svc_files = [f for f in svc_files if not os.path.basename(f).startswith("~$")]
     if svc_files:
         r = process_servicios(svc_files[0])
-        if r:
-            svc = r
-        else:
-            print(f"  [AVISO] no se pudo procesar el board de servicios: {svc_files[0]}")
+        if r: svc = r
     else:
         print(f"  [AVISO] no se encontro xlsx de servicios en {dir_servicios}")
 
     now_chile = datetime.datetime.now(ZoneInfo("America/Santiago"))
     fecha_str = now_chile.strftime("%d/%m/%Y")
-    hora_str = now_chile.strftime("%H:%M hrs")
+    hora_str  = now_chile.strftime("%H:%M hrs")
     fecha_iso = now_chile.strftime("%Y-%m-%d")
 
     html_out = TEMPLATE
-    html_out = html_out.replace("__PASSWORD__", PASSWORD)
-    html_out = html_out.replace("__FECHA_ISO__", fecha_iso)
-    html_out = html_out.replace("__FECHA__", fecha_str)
-    html_out = html_out.replace("__HORA__", hora_str)
-    html_out = html_out.replace("__TOTAL__", str(len(P)))
-    html_out = html_out.replace("__P_JSON__", json.dumps(P, ensure_ascii=False))
-    html_out = html_out.replace("__SVC_JSON__", json.dumps(svc["tasks"], ensure_ascii=False))
+    html_out = html_out.replace("__PASSWORD__",          PASSWORD)
+    html_out = html_out.replace("__FECHA_ISO__",         fecha_iso)
+    html_out = html_out.replace("__FECHA__",             fecha_str)
+    html_out = html_out.replace("__HORA__",              hora_str)
+    html_out = html_out.replace("__TOTAL__",             str(len(P)))
+    html_out = html_out.replace("__P_JSON__",            json.dumps(P, ensure_ascii=False))
+    html_out = html_out.replace("__SVC_JSON__",          json.dumps(svc["tasks"], ensure_ascii=False))
     html_out = html_out.replace("__SVC_SECTIONS_JSON__", json.dumps(svc["secciones"], ensure_ascii=False))
-    html_out = html_out.replace("__SVC_TOTAL__", str(svc["total"]))
-    html_out = html_out.replace("__SVC_CURSO__", str(svc["en_curso"]))
-    html_out = html_out.replace("__SVC_FIN__", str(svc["finalizadas"]))
-    html_out = html_out.replace("__SVC_AVANCE__", str(svc["avance"]))
+    html_out = html_out.replace("__SVC_TOTAL__",         str(svc["total"]))
+    html_out = html_out.replace("__SVC_CURSO__",         str(svc["en_curso"]))
+    html_out = html_out.replace("__SVC_FIN__",           str(svc["finalizadas"]))
+    html_out = html_out.replace("__SVC_AVANCE__",        str(svc["avance"]))
     html_out = html_out.replace("__SECTION_COLORS_JSON__", json.dumps(SECTION_COLORS, ensure_ascii=False))
-    html_out = html_out.replace("__SECTION_DEFAULT__", DEFAULT_SECTION_COLOR)
+    html_out = html_out.replace("__SECTION_DEFAULT__",   DEFAULT_SECTION_COLOR)
 
     out_dir = os.path.dirname(salida)
     if out_dir:
