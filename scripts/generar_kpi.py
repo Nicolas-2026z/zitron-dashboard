@@ -1008,8 +1008,7 @@ function renderAreas(tasks) {
     areas[t.area].total++;
     if (t.estado_general === 'Completada') {
       areas[t.area].cerradas++;
-      // promedio días hábiles reales (start_iso -> completed)
-      if (t.start_iso && t.completed) {
+      if (t.start_iso && t.completed && t.start_iso !== t.completed) {
         const d = diasHabilesJS(t.start_iso, t.completed);
         if (d !== null && d >= 0) {
           areas[t.area].dias_totales += d;
@@ -1059,7 +1058,7 @@ function renderPersonas(tasks) {
     personas[key].total++;
     if (t.estado_general === 'Completada') {
       personas[key].compl++;
-      if (t.start_iso && t.completed) {
+      if (t.start_iso && t.completed && t.start_iso !== t.completed) {
         const d = diasHabilesJS(t.start_iso, t.completed);
         if (d !== null && d >= 0) {
           personas[key].dias_totales += d;
