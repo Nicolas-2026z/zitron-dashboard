@@ -511,7 +511,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <div class="tabcontent" id="tab-persona">
   <div class="area-pills" id="areaPills"></div>
   <table>
-    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>Cerradas en tiempo</th><th>Cerradas fuera de tiempo</th><th>Abiertas en tiempo</th><th>Abiertas fuera de tiempo</th><th>⏱ Prom. días cierre</th></tr></thead>
+    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>Cerradas en tiempo</th><th>Cerradas fuera de tiempo</th><th>Abiertas en tiempo</th><th>Abiertas fuera de tiempo</th></tr></thead>
     <tbody id="personaBody"></tbody>
   </table>
 </div>
@@ -1088,7 +1088,6 @@ function renderPersonas(tasks) {
       <td><span class="dot rojo"></span>${d.cerrada_atraso}</td>
       <td><span class="dot verde"></span>${d.abierta_tiempo}</td>
       <td><span class="dot rojo"></span>${d.abierta_atraso}</td>
-      <td style="font-weight:600;color:var(--azul);">${promDias}${d.dias_count > 0 ? 'd hábiles' : ''}</td>
     </tr>`;
   });
   document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="8"><i>Sin datos</i></td></tr>';
