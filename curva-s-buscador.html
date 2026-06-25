@@ -132,75 +132,6 @@ function diasLabSem(ti,tf,ws,we){
   if(a>b)return 0;return diasLab(a,b);
 }
 const DEMO={
-  '1213377149548388':{fases:[
-    {fase:"Kick Off meeting",subtasks:[
-      {name:"Definicion Jefe de proyecto",ini:"2026-01-09",fin:"2026-01-09",av:1.0,kickoff:true},
-      {name:"Apertura pedido",ini:"2026-01-09",fin:"2026-01-09",av:1.0,kickoff:true},
-      {name:"Alcance del proyecto",ini:"2026-01-09",fin:"2026-01-09",av:1.0,kickoff:true},
-      {name:"Definicion Tecnica de componentes principales",ini:"2026-01-09",fin:"2026-01-09",av:1.0,kickoff:true},
-      {name:"Plazo Contractual",ini:"2026-01-09",fin:"2026-01-09",av:1.0,kickoff:true}
-    ]},
-    {fase:"Ingenieria Jefe de proyecto",subtasks:[
-      {name:"Ingenieria Basica Motor",ini:"2026-01-12",fin:"2026-01-13",av:1.0},
-      {name:"Ingenieria basica Rodete",ini:"2026-01-12",fin:"2026-01-20",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-01-12",fin:"2026-01-20",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-01-12",fin:"2026-01-20",av:1.0}
-    ]},
-    {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor",ini:"2026-01-14",fin:"2026-01-15",av:1.0},
-      {name:"propuesta alabes",ini:"2026-01-21",fin:"2026-01-22",av:1.0},
-      {name:"propuesta nucleo rodete",ini:"2026-01-21",fin:"2026-01-22",av:1.0},
-      {name:"Propuesta Sensores y accesorios",ini:"2026-01-21",fin:"2026-01-22",av:1.0},
-      {name:"propuesta compras a codigo // aprovisionamiento",ini:"2026-01-21",fin:"2026-01-22",av:1.0}
-    ]},
-    {fase:"Compras",subtasks:[
-      {name:"Alabe OT 3756",ini:"2026-01-23",fin:"2026-05-18",av:0.0},
-      {name:"rodete OT 3756",ini:"2026-01-23",fin:"2026-03-16",av:0.5},
-      {name:"Motor OT 3756",ini:"2026-01-15",fin:"2026-06-09",av:0.33},
-      {name:"Materiales a codigo // compras locales aprovisionamientomiento:",ini:"2026-01-23",fin:"2026-03-12",av:1.0},
-      {name:"Sensores",ini:"2026-01-23",fin:"2026-05-12",av:1.0},
-      {name:"Sensores / Generación Oc sensores",ini:"2026-01-23",fin:"2026-02-20",av:0.0},
-      {name:"Sensores / Fabricación Sensores",ini:"2026-02-23",fin:"2026-05-12",av:0.0}
-    ]},
-    {fase:"Ingenieria y diseño",subtasks:[
-      {name:"Planos Preliminar OT 3756",ini:"2026-01-21",fin:"2026-02-09",av:1.0},
-      {name:"Planos Definitivos OT 3756",ini:"2026-03-16",fin:"2026-04-02",av:0.0},
-      {name:"Check Planos OT 3756",ini:"2026-04-03",fin:"2026-04-03",av:0.0},
-      {name:"Check Pruebas Fat",ini:"2026-06-17",fin:"2026-06-17",av:0.0}
-    ]},
-    {fase:"Bodega",subtasks:[
-      {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-03-13",fin:"2026-03-16",av:0.0},
-      {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-03-17",fin:"2026-03-18",av:0.0},
-      {name:"Recepcion Rodete",ini:"2026-03-17",fin:"2026-03-18",av:0.0},
-      {name:"Recepcion Alabe",ini:"2026-05-19",fin:"2026-05-20",av:0.0},
-      {name:"Recepcion motor",ini:"2026-06-10",fin:"2026-06-11",av:0.0},
-      {name:"Recepcion sensores",ini:"2026-05-13",fin:"2026-05-14",av:1.0}
-    ]},
-    {fase:"Caldereria",subtasks:[
-      {name:"Preparación Materiales",ini:"2026-03-19",fin:"2026-04-03",av:0.0},
-      {name:"Armado",ini:"2026-03-30",fin:"2026-04-01",av:0.0},
-      {name:"Control de calidad Armado",ini:"2026-04-02",fin:"2026-04-03",av:0.0}
-    ]},
-    {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-04-06",fin:"2026-04-23",av:0.0},
-      {name:"Montaje Sensor",ini:"2026-05-15",fin:"2026-05-18",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-05-21",fin:"2026-05-22",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-05-25",fin:"2026-05-26",av:0.0},
-      {name:"Montaje motor",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
-      {name:"Prueba FAT",ini:"2026-06-16",fin:"2026-06-16",av:0.0},
-      {name:"RE-PINTADO",ini:"2026-06-18",fin:"2026-06-18",av:0.0}
-    ]},
-    {fase:"Logistica",subtasks:[
-      {name:"Coordinacion Entrega con Cliente",ini:"2026-06-18",fin:"2026-06-18",av:0.0},
-      {name:"Embalaje",ini:"2026-06-19",fin:"2026-06-19",av:0.0},
-      {name:"PACKING LIST",ini:"2026-06-22",fin:"2026-06-22",av:0.0},
-      {name:"Despacho",ini:"2026-06-23",fin:"2026-06-23",av:0.0}
-    ]},
-    {fase:"Cierre proyecto",subtasks:[
-      {name:"Gestion",ini:"2026-06-24",fin:"2026-07-02",av:0.0},
-      {name:"Costos",ini:"2026-06-24",fin:"2026-07-02",av:0.0}
-    ]}
-  ]},
   '1213391072478428':{fases:[
     {fase:"Kick Off meeting",subtasks:[
       {name:"Definicion Jefe de proyecto",ini:"2025-11-10",fin:"2025-11-10",av:1.0,kickoff:true},
@@ -211,7 +142,7 @@ const DEMO={
     ]},
     {fase:"Ingenieria Servicios",subtasks:[
       {name:"Ingenieria electrica",ini:"2025-11-11",fin:"2025-11-13",av:1.0},
-      {name:"Revisión tableros pruebas",ini:"2026-03-16",fin:"2026-03-20",av:0.0}
+      {name:"Revisiónx tableros pruebas",ini:"2026-03-16",fin:"2026-03-20",av:1.0}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2025-11-11",fin:"2025-11-12",av:1.0},
@@ -274,10 +205,10 @@ const DEMO={
       {name:"RE-PINTADO",ini:"2026-05-15",fin:"2026-05-15",av:1.0}
     ]},
     {fase:"Logistica",subtasks:[
-      {name:"Coordinacion Entrega con Cliente",ini:"2026-05-18",fin:"2026-05-18",av:0.0},
-      {name:"Embalaje",ini:"2026-05-19",fin:"2026-05-19",av:0.2},
-      {name:"PACKING LIST",ini:"2026-05-20",fin:"2026-05-20",av:0.0},
-      {name:"Despacho",ini:"2026-05-22",fin:"2026-05-22",av:0.0}
+      {name:"Coordinacion Entrega con Cliente",ini:"2026-05-18",fin:"2026-05-18",av:1.0},
+      {name:"Embalaje",ini:"2026-05-19",fin:"2026-05-19",av:1.0},
+      {name:"PACKING LIST",ini:"2026-05-20",fin:"2026-05-20",av:1.0},
+      {name:"Despacho",ini:"2026-05-22",fin:"2026-05-22",av:1.0}
     ]},
     {fase:"Cierre proyecto",subtasks:[
       {name:"Gestion",ini:"2026-05-25",fin:"2026-06-02",av:0.0},
@@ -328,7 +259,7 @@ const DEMO={
       {name:"Planos Preliminares",ini:"2026-01-01",fin:"2026-01-07",av:1.0},
       {name:"Planos definitivos",ini:"2026-02-25",fin:"2026-03-03",av:1.0},
       {name:"Check Planos",ini:"2026-03-04",fin:"2026-03-04",av:1.0},
-      {name:"Check pruebas FAT",ini:"2026-05-29",fin:"2026-05-29",av:0.0}
+      {name:"Check pruebas FAT",ini:"2026-05-29",fin:"2026-05-29",av:1.0}
     ]},
     {fase:"Bodega",subtasks:[
       {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-02-20",fin:"2026-02-23",av:1.0},
@@ -345,18 +276,18 @@ const DEMO={
       {name:"Control de calidad Armado",ini:"2026-04-07",fin:"2026-04-08",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-04-09",fin:"2026-04-17",av:0.0},
-      {name:"Montaje motor",ini:"2026-05-27",fin:"2026-05-28",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-05-05",fin:"2026-05-06",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-05-07",fin:"2026-04-08",av:0.0},
-      {name:"Montaje sensores",ini:"2026-04-24",fin:"2026-04-28",av:0.0},
-      {name:"Pruebas FAT",ini:"2026-05-28",fin:"2026-05-28",av:0.0},
-      {name:"RE-PINTADO",ini:"2026-05-30",fin:"2026-05-30",av:0.0}
+      {name:"Revestimiento",ini:"2026-04-09",fin:"2026-04-17",av:1.0},
+      {name:"Montaje motor",ini:"2026-05-27",fin:"2026-05-28",av:1.0},
+      {name:"Montaje Alabe",ini:"2026-05-05",fin:"2026-05-06",av:1.0},
+      {name:"Montaje Rodete",ini:"2026-05-07",fin:"2026-04-08",av:1.0},
+      {name:"Montaje sensores",ini:"2026-04-24",fin:"2026-04-28",av:1.0},
+      {name:"Pruebas FAT",ini:"2026-05-28",fin:"2026-05-28",av:1.0},
+      {name:"RE-PINTADO",ini:"2026-05-30",fin:"2026-05-30",av:1.0}
     ]},
     {fase:"Logistica",subtasks:[
       {name:"Coordinacion Entrega con Cliente",ini:"2026-06-02",fin:"2026-06-02",av:0.0},
       {name:"Embalaje",ini:"2026-06-03",fin:"2026-06-05",av:0.0},
-      {name:"PACKING LIST",ini:"2026-06-08",fin:"2026-06-08",av:0.0},
+      {name:"PACKING LIST",ini:"2026-06-08",fin:"2026-06-08",av:1.0},
       {name:"Despacho",ini:"2026-06-09",fin:"2026-06-09",av:0.0}
     ]},
     {fase:"Cierre proyecto",subtasks:[
@@ -457,13 +388,12 @@ const DEMO={
       {name:"Ingenieria Basica Motor",ini:"2026-04-15",fin:"2026-04-16",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-04-15",fin:"2026-04-23",av:1.0},
       {name:"Ingenieria Detalle",ini:"2026-04-15",fin:"2026-04-23",av:1.0},
-      {name:"Ingeniería Sensores",ini:"2026-04-15",fin:"2026-04-23",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-04-15",fin:"2026-04-23",av:0.0}
+      {name:"Ingeniería Sensores",ini:"2026-04-15",fin:"2026-04-23",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta motor",ini:"2026-04-17",fin:"2026-04-20",av:1.0},
       {name:"propuesta alabes",ini:"2026-04-24",fin:"2026-04-27",av:1.0},
-      {name:"propuesta nucleo rodete",ini:"2026-04-24",fin:"2026-04-27",av:0.0},
+      {name:"propuesta nucleo rodete",ini:"2026-04-24",fin:"2026-04-27",av:1.0},
       {name:"propuesta Corte Laser",ini:"2026-06-26",fin:"2026-06-29",av:1.0},
       {name:"Propuesta Sensor",ini:"2026-04-24",fin:"2026-04-27",av:1.0},
       {name:"Propuesta Corte plasma",ini:"2026-06-26",fin:"2026-06-29",av:1.0},
@@ -472,7 +402,7 @@ const DEMO={
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe- OT 4302",ini:"2026-04-30",fin:"2026-08-31",av:1.0},
-      {name:"rodete-OT 4302",ini:"2026-04-28",fin:"2026-06-17",av:0.0},
+      {name:"rodete-OT 4302",ini:"2026-04-28",fin:"2026-06-17",av:1.0},
       {name:"Motor",ini:"2026-04-21",fin:"2026-10-13",av:1.0},
       {name:"Materiales corte Laser - OT 4302",ini:"2026-06-30",fin:"2026-07-10",av:1.0},
       {name:"Sensor",ini:"2026-04-28",fin:"2026-06-15",av:1.0},
@@ -484,18 +414,18 @@ const DEMO={
       {name:"Planos preliminar",ini:"2026-04-24",fin:"2026-04-30",av:1.0},
       {name:"Planos definitivos",ini:"2026-06-18",fin:"2026-06-24",av:1.0},
       {name:"check planos",ini:"2026-06-25",fin:"2026-06-25",av:1.0},
-      {name:"check pruebas FAT",ini:"2026-10-21",fin:"2026-10-21",av:0.0}
+      {name:"check pruebas FAT",ini:"2026-10-21",fin:"2026-10-21",av:1.0}
     ]},
     {fase:"Bodega",subtasks:[
       {name:"Recepcion materiales corte laser",ini:"2026-07-13",fin:"2026-04-14",av:1.0},
       {name:"Recepcion Materiales corte plasma",ini:"2026-04-20",fin:"2026-04-21",av:1.0},
       {name:"Recepcion mecanizado",ini:"2026-07-16",fin:"2026-07-17",av:1.0},
       {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-07-22",fin:"2026-07-23",av:1.0},
-      {name:"Recepcion Rodete",ini:"2026-06-18",fin:"2026-06-19",av:0.0},
-      {name:"Recepcion Alabe",ini:"2026-09-01",fin:"2026-09-02",av:0.0},
-      {name:"Recepcion motor",ini:"2026-10-14",fin:"2026-10-15",av:0.0},
-      {name:"Recepcion Sensor",ini:"2026-06-16",fin:"2026-06-17",av:0.0},
-      {name:"Recepcion fabricación externa",ini:"2026-08-05",fin:"2026-08-06",av:0.0}
+      {name:"Recepcion Rodete",ini:"2026-06-18",fin:"2026-06-19",av:1.0},
+      {name:"Recepcion Alabe",ini:"2026-09-01",fin:"2026-09-02",av:1.0},
+      {name:"Recepcion motor",ini:"2026-10-14",fin:"2026-10-15",av:1.0},
+      {name:"Recepcion Sensor",ini:"2026-06-16",fin:"2026-06-17",av:1.0},
+      {name:"Recepcion fabricación externa",ini:"2026-08-05",fin:"2026-08-06",av:1.0}
     ]},
     {fase:"Caldereria",subtasks:[
       {name:"Preparación Materiales",ini:"2026-07-24",fin:"2026-08-03",av:1.0},
@@ -503,19 +433,19 @@ const DEMO={
       {name:"Control de calidad Armado",ini:"2026-08-24",fin:"2026-08-25",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-08-26",fin:"2026-09-14",av:0.0},
-      {name:"Montaje Sensor",ini:"2026-09-15",fin:"2026-09-17",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-09-21",fin:"2026-09-23",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-09-24",fin:"2026-09-28",av:0.0},
-      {name:"Montaje motor",ini:"2026-10-16",fin:"2026-10-19",av:0.0},
-      {name:"Pruebas FAT",ini:"2026-10-20",fin:"2026-10-20",av:0.0},
-      {name:"RE-PINTADO",ini:"2026-10-22",fin:"2026-10-22",av:0.0}
+      {name:"Revestimiento",ini:"2026-08-26",fin:"2026-09-14",av:1.0},
+      {name:"Montaje Sensor",ini:"2026-09-15",fin:"2026-09-17",av:1.0},
+      {name:"Montaje Alabe",ini:"2026-09-21",fin:"2026-09-23",av:1.0},
+      {name:"Montaje Rodete",ini:"2026-09-24",fin:"2026-09-28",av:1.0},
+      {name:"Montaje motor",ini:"2026-10-16",fin:"2026-10-19",av:1.0},
+      {name:"Pruebas FAT",ini:"2026-10-20",fin:"2026-10-20",av:1.0},
+      {name:"RE-PINTADO",ini:"2026-10-22",fin:"2026-10-22",av:1.0}
     ]},
     {fase:"Logistica",subtasks:[
-      {name:"Coordinacion Entrega con Cliente",ini:"2026-10-23",fin:"2026-10-23",av:0.0},
-      {name:"Embalaje",ini:"2026-10-26",fin:"2026-10-26",av:0.0},
-      {name:"PACKING LIST",ini:"2026-10-27",fin:"2026-10-27",av:0.0},
-      {name:"Despacho",ini:"2026-10-28",fin:"2026-10-28",av:0.0}
+      {name:"Coordinacion Entrega con Cliente",ini:"2026-10-23",fin:"2026-10-23",av:1.0},
+      {name:"Embalaje",ini:"2026-10-26",fin:"2026-10-26",av:1.0},
+      {name:"PACKING LIST",ini:"2026-10-27",fin:"2026-10-27",av:1.0},
+      {name:"Despacho",ini:"2026-10-28",fin:"2026-10-28",av:1.0}
     ]},
     {fase:"Cierre proyecto",subtasks:[
       {name:"Gestion",ini:"2026-10-29",fin:"2026-11-06",av:0.0},
@@ -647,12 +577,12 @@ const DEMO={
       {name:"Planos Preliminares",ini:"2025-12-08",fin:"2025-12-12",av:1.0},
       {name:"Planos Definitivos",ini:"2026-02-10",fin:"2026-02-16",av:1.0},
       {name:"Check Planos",ini:"2026-02-17",fin:"2026-02-17",av:1.0},
-      {name:"Check Pruebas Fat",ini:"2026-05-15",fin:"2026-05-15",av:0.0}
+      {name:"Check Pruebas Fat",ini:"2026-05-15",fin:"2026-05-15",av:1.0}
     ]},
     {fase:"Bodega",subtasks:[
       {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-02-04",fin:"2026-02-06",av:1.0},
       {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-02-09",fin:"2026-02-10",av:1.0},
-      {name:"Recepcion Alabe",ini:"2026-04-10",fin:"2026-04-13",av:0.0},
+      {name:"Recepcion Alabe",ini:"2026-04-10",fin:"2026-04-13",av:1.0},
       {name:"Recepcion Rodete",ini:"2026-02-04",fin:"2026-02-05",av:1.0},
       {name:"Recepcion motor",ini:"2026-05-08",fin:"2026-05-11",av:1.0},
       {name:"Recepcion Tableros",ini:"2026-03-19",fin:"2026-03-20",av:0.0},
@@ -664,17 +594,17 @@ const DEMO={
       {name:"Control de calidad Armado",ini:"2026-03-11",fin:"2026-03-12",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-03-13",fin:"2026-04-01",av:0.0},
-      {name:"Montaje motor",ini:"2026-05-12",fin:"2026-05-13",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-04-14",fin:"2026-04-16",av:0.0},
-      {name:"Montaje Sensores",ini:"2026-04-21",fin:"2026-04-22",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-04-17",fin:"2026-04-20",av:0.0},
-      {name:"Pruebas FAT",ini:"2026-05-14",fin:"2026-05-14",av:0.0},
-      {name:"RE-PINTADO",ini:"2026-05-18",fin:"2026-05-18",av:0.0}
+      {name:"Revestimiento",ini:"2026-03-13",fin:"2026-04-01",av:1.0},
+      {name:"Montaje motor",ini:"2026-05-12",fin:"2026-05-13",av:1.0},
+      {name:"Montaje Alabe",ini:"2026-04-14",fin:"2026-04-16",av:1.0},
+      {name:"Montaje Sensores",ini:"2026-04-21",fin:"2026-04-22",av:1.0},
+      {name:"Montaje Rodete",ini:"2026-04-17",fin:"2026-04-20",av:1.0},
+      {name:"Pruebas FAT",ini:"2026-05-14",fin:"2026-05-14",av:1.0},
+      {name:"RE-PINTADO",ini:"2026-05-18",fin:"2026-05-18",av:1.0}
     ]},
     {fase:"Logistica",subtasks:[
       {name:"Coordinacion Entrega con Cliente",ini:"2026-05-19",fin:"2026-05-19",av:0.0},
-      {name:"Embalaje",ini:"2026-05-20",fin:"2026-05-20",av:0.0},
+      {name:"Embalaje",ini:"2026-05-20",fin:"2026-05-20",av:1.0},
       {name:"PACKING LIST",ini:"2026-05-22",fin:"2026-05-22",av:0.0},
       {name:"Despacho",ini:"2026-05-25",fin:"2026-05-25",av:0.0}
     ]},
@@ -756,7 +686,7 @@ const DEMO={
       {name:"Revestimiento",ini:"2026-03-30",fin:"2026-04-07",av:0.0},
       {name:"Montaje motor",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
       {name:"Montaje Alabe",ini:"2026-04-22",fin:"2026-04-23",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-04-24",fin:"2026-04-27",av:0.0},
+      {name:"Montaje Rodete",ini:"2026-04-24",fin:"2026-04-27",av:0.5},
       {name:"Montaje Sensor",ini:"2026-04-17",fin:"2026-04-20",av:0.0},
       {name:"Pruebas FAT",ini:"2026-05-11",fin:"2026-05-11",av:0.0},
       {name:"RE-PINTADO",ini:"2026-05-12",fin:"2026-05-12",av:0.0}
@@ -884,7 +814,7 @@ const DEMO={
       {name:"Motor",ini:"2025-12-15",fin:"2026-02-11",av:1.0},
       {name:"Alabe",ini:"2025-12-22",fin:"2026-04-22",av:1.0},
       {name:"rodete OT 4200",ini:"2025-12-22",fin:"2026-02-17",av:1.0},
-      {name:"Tablero OT 4201",ini:"2025-12-16",fin:"2026-04-02",av:0.0},
+      {name:"Tablero OT 4201",ini:"2025-12-16",fin:"2026-04-02",av:1.0},
       {name:"Sensores",ini:"2025-12-22",fin:"2026-04-24",av:1.0},
       {name:"Sensores / Generación OC Sensores",ini:"2025-12-22",fin:"2026-02-03",av:0.0},
       {name:"Sensores / Fabricación Sensores",ini:"2026-02-04",fin:"2026-04-24",av:0.0},
@@ -897,26 +827,26 @@ const DEMO={
       {name:"Check Pruebas fat",ini:"2026-05-18",fin:"2026-05-18",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
-      {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-02-16",fin:"2026-02-17",av:0.0},
-      {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-02-18",fin:"2026-02-19",av:0.0},
-      {name:"Recepcion motor",ini:"2026-05-11",fin:"2026-05-12",av:0.0},
-      {name:"Recepcion Alabe",ini:"2026-04-22",fin:"2026-04-24",av:0.0},
-      {name:"Recepcion Rodete",ini:"2026-02-18",fin:"2026-02-19",av:0.0},
+      {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-02-16",fin:"2026-02-17",av:1.0},
+      {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-02-18",fin:"2026-02-19",av:1.0},
+      {name:"Recepcion motor",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
+      {name:"Recepcion Alabe",ini:"2026-04-22",fin:"2026-04-24",av:1.0},
+      {name:"Recepcion Rodete",ini:"2026-02-18",fin:"2026-02-19",av:1.0},
       {name:"Recepcion Tableros",ini:"2026-04-03",fin:"2026-04-06",av:0.0},
-      {name:"Recepción Sensores",ini:"2026-04-27",fin:"2026-04-28",av:0.0}
+      {name:"Recepción Sensores",ini:"2026-04-27",fin:"2026-04-28",av:1.0}
     ]},
     {fase:"Fabricación externa",subtasks:[
-      {name:"Generacion OC Fabricación externa",ini:"2026-02-20",fin:"2026-03-02",av:0.0},
-      {name:"Armado fabricación externa",ini:"2026-03-03",fin:"2026-03-20",av:0.0},
-      {name:"Control de calidad Armado",ini:"2026-03-23",fin:"2026-03-24",av:0.0}
+      {name:"Generacion OC Fabricación externa",ini:"2026-02-20",fin:"2026-03-02",av:1.0},
+      {name:"Armado fabricación externa",ini:"2026-03-03",fin:"2026-03-20",av:1.0},
+      {name:"Control de calidad Armado",ini:"2026-03-23",fin:"2026-03-24",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-03-25",fin:"2026-04-13",av:0.0},
-      {name:"Montaje motor",ini:"2026-05-13",fin:"2026-05-14",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-04-27",fin:"2026-04-28",av:0.0},
-      {name:"Montaje Rodete",ini:"2026-04-29",fin:"2026-04-30",av:0.0},
-      {name:"Montaje Sensores",ini:"2026-05-04",fin:"2026-05-05",av:0.0},
-      {name:"Pruebas FAT",ini:"2026-05-15",fin:"2026-05-15",av:0.0},
+      {name:"Revestimiento",ini:"2026-03-25",fin:"2026-04-13",av:1.0},
+      {name:"Montaje motor",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
+      {name:"Montaje Alabe",ini:"2026-04-27",fin:"2026-04-28",av:1.0},
+      {name:"Montaje Rodete",ini:"2026-04-29",fin:"2026-04-30",av:1.0},
+      {name:"Montaje Sensores",ini:"2026-05-04",fin:"2026-05-05",av:1.0},
+      {name:"Pruebas FAT",ini:"2026-05-15",fin:"2026-05-15",av:1.0},
       {name:"RE-PINTADO",ini:"2026-05-19",fin:"2026-05-19",av:0.0}
     ]},
     {fase:"Logistica",subtasks:[
@@ -959,9 +889,9 @@ const DEMO={
       {name:"propuesta nucleo rodete",ini:"2025-12-23",fin:"2025-12-22",av:1.0},
       {name:"Propuestar Sensores",ini:"2025-12-23",fin:"2025-12-22",av:1.0},
       {name:"Propuesta corte laser OT 4202 -4203",ini:"2025-12-24",fin:"2025-12-22",av:1.0},
-      {name:"Propuesta Fabricación externa  OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:0.0},
-      {name:"Propuesta mecanizado OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:0.0},
-      {name:"Propuesta Corte Plasma  OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:0.0}
+      {name:"Propuesta Fabricación externa  OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:1.0},
+      {name:"Propuesta mecanizado OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:1.0},
+      {name:"Propuesta Corte Plasma  OT 4202 -4203",ini:"2026-04-24",fin:"2026-04-23",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
       {name:"Motor",ini:"2026-05-11",fin:"2025-12-17",av:0.0},
@@ -983,9 +913,9 @@ const DEMO={
       {name:"Corte Laser",ini:"2026-02-16",fin:"2025-12-24",av:0.95},
       {name:"Corte Laser / Generación OC corte laser",ini:"2026-01-15",fin:"2025-12-23",av:0.0},
       {name:"Corte Laser / Fabricacion corte laser",ini:"2026-02-16",fin:"2026-01-16",av:0.0},
-      {name:"Corte Plasma OT 4202 -4203",ini:"2026-03-12",fin:"2026-02-25",av:0.0},
+      {name:"Corte Plasma OT 4202 -4203",ini:"2026-03-12",fin:"2026-02-25",av:1.0},
       {name:"Fabricación externa OT 4202 -4203",ini:"2026-04-01",fin:"2026-02-25",av:0.0},
-      {name:"Mecanizado OT 4202 -4203",ini:"2026-03-12",fin:"2026-02-25",av:0.0}
+      {name:"Mecanizado OT 4202 -4203",ini:"2026-03-12",fin:"2026-02-25",av:1.0}
     ]},
     {fase:"Ingenieria y diseño",subtasks:[
       {name:"Planos Preliminar",ini:"2025-12-25",fin:"2025-12-22",av:1.0},
@@ -994,24 +924,24 @@ const DEMO={
       {name:"Check Pruebas Fat",ini:"2026-05-25",fin:"2026-05-25",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
-      {name:"Recepcion Corte Laser",ini:"2026-03-16",fin:"2026-03-13",av:0.0},
-      {name:"Recepcion Corte Plasma",ini:"2026-03-16",fin:"2026-03-13",av:0.0},
-      {name:"Recepcion Mecanizado",ini:"2026-03-16",fin:"2026-03-13",av:0.0},
-      {name:"Control de calidad corte laser, plasma y mecanizado",ini:"2026-03-18",fin:"2026-03-17",av:0.0},
-      {name:"Recepcion motor",ini:"2026-05-13",fin:"2026-05-12",av:0.0},
-      {name:"Recepcion Alabe",ini:"2026-04-28",fin:"2026-04-27",av:0.0},
+      {name:"Recepcion Corte Laser",ini:"2026-03-16",fin:"2026-03-13",av:1.0},
+      {name:"Recepcion Corte Plasma",ini:"2026-03-16",fin:"2026-03-13",av:1.0},
+      {name:"Recepcion Mecanizado",ini:"2026-03-16",fin:"2026-03-13",av:1.0},
+      {name:"Control de calidad corte laser, plasma y mecanizado",ini:"2026-03-18",fin:"2026-03-17",av:1.0},
+      {name:"Recepcion motor",ini:"2026-05-13",fin:"2026-05-12",av:1.0},
+      {name:"Recepcion Alabe",ini:"2026-04-28",fin:"2026-04-27",av:1.0},
       {name:"Recepcion Rodete",ini:"2026-02-19",fin:"2026-02-18",av:0.0},
       {name:"Recepcion Tableros y componentes electricos",ini:"2026-04-14",fin:"2026-04-13",av:0.0},
       {name:"Recepción sensores",ini:"2026-04-13",fin:"2026-04-10",av:0.0},
       {name:"Recepcion Fabricación externa",ini:"2026-04-03",fin:"2026-04-02",av:0.0}
     ]},
-    {fase:"Fabricación externa",subtasks:[
-      {name:"Generación OC",ini:"2026-03-27",fin:"2026-03-19",av:0.0},
-      {name:"Armado Fabricación externo",ini:"2026-04-27",fin:"2026-03-30",av:0.0},
-      {name:"Control de calidad Armado",ini:"2026-04-29",fin:"2026-04-28",av:0.0}
+    {fase:"Caldereria",subtasks:[
+      {name:"Preparacion material",ini:"2026-03-27",fin:"2026-03-19",av:1.0},
+      {name:"Armado Fabricación",ini:"2026-04-27",fin:"2026-03-30",av:1.0},
+      {name:"Control de calidad",ini:"2026-04-29",fin:"2026-04-28",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-05-08",fin:"2026-04-30",av:0.0},
+      {name:"Revestimiento",ini:"2026-05-08",fin:"2026-04-30",av:1.0},
       {name:"Montaje Sensores",ini:"2026-05-12",fin:"2026-05-11",av:0.0},
       {name:"Montaje Alabe",ini:"2026-04-14",fin:"2026-05-13",av:0.0},
       {name:"Montaje Rodete",ini:"2026-05-18",fin:"2026-05-15",av:0.0},
@@ -1365,10 +1295,10 @@ const DEMO={
       {name:"Propuesta Damper",ini:"2026-03-12",fin:"2026-03-13",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
-      {name:"Alabe  ot 4264",ini:"2026-03-16",fin:"2026-07-08",av:0.5},
-      {name:"Tablero ot 4265 - ot 4266",ini:"2026-03-10",fin:"2026-06-24",av:0.0},
-      {name:"Motor ot 4264",ini:"2026-03-09",fin:"2026-03-09",av:0.66},
-      {name:"rodete ot 4264",ini:"2026-03-16",fin:"2026-05-06",av:0.0},
+      {name:"Alabe  ot 4264",ini:"2026-03-16",fin:"2026-07-08",av:1.0},
+      {name:"Tablero ot 4265 - ot 4266",ini:"2026-03-10",fin:"2026-06-24",av:1.0},
+      {name:"Motor ot 4264",ini:"2026-03-09",fin:"2026-03-09",av:1.0},
+      {name:"rodete ot 4264",ini:"2026-03-16",fin:"2026-05-06",av:1.0},
       {name:"Materiales a codigo // compras locales aprovisionamientomiento:",ini:"2026-03-16",fin:"2026-05-04",av:1.0},
       {name:"Sensores",ini:"2026-03-16",fin:"2026-06-30",av:1.0}
     ]},
@@ -1379,8 +1309,8 @@ const DEMO={
       {name:"Check pruebas FAT",ini:"2026-08-09",fin:"2026-08-09",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
-      {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-05-05",fin:"2026-05-06",av:0.0},
-      {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
+      {name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:"2026-05-05",fin:"2026-05-06",av:1.0},
+      {name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:"2026-05-07",fin:"2026-05-08",av:1.0},
       {name:"Recepcion Alabe",ini:"2026-07-09",fin:"2026-07-10",av:0.0},
       {name:"Recepcion Tableros",ini:"2026-06-25",fin:"2026-06-26",av:0.0},
       {name:"Recepcion Sensores",ini:"2026-07-01",fin:"2026-07-02",av:0.0},
@@ -1526,8 +1456,7 @@ const DEMO={
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-03-23",fin:"2026-03-20",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-03-23",fin:"2026-03-20",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-03-24",fin:"2026-03-20",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-03-27",fin:"2026-03-20",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-03-24",fin:"2026-03-20",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta alabes",ini:"2026-03-25",fin:"2026-03-24",av:1.0},
@@ -1537,7 +1466,7 @@ const DEMO={
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe ot 4280",ini:"2026-01-26",fin:"2026-01-21",av:1.0},
-      {name:"rodete ot 4280",ini:"2026-04-16",fin:"2026-03-26",av:0.0},
+      {name:"rodete ot 4280",ini:"2026-04-16",fin:"2026-03-26",av:1.0},
       {name:"Motor ot 4280",ini:"2026-04-30",fin:"2026-03-26",av:1.0},
       {name:"Materiales a codigo // compras locales aprovisionamientomiento: ot 4280",ini:"2026-05-08",fin:"2026-04-24",av:1.0}
     ]},
@@ -1556,13 +1485,13 @@ const DEMO={
     ]},
     {fase:"Caldereria",subtasks:[
       {name:"Preparación Materiales",ini:"2026-05-15",fin:"2026-05-13",av:1.0},
-      {name:"Armado",ini:"2026-05-22",fin:"2026-05-18",av:0.6},
-      {name:"Control de calidad Armado",ini:"2026-05-25",fin:"2026-05-25",av:0.6}
+      {name:"Armado",ini:"2026-05-22",fin:"2026-05-18",av:1.0},
+      {name:"Control de calidad Armado",ini:"2026-05-25",fin:"2026-05-25",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
-      {name:"Revestimiento",ini:"2026-06-01",fin:"2026-05-26",av:0.0},
+      {name:"Revestimiento",ini:"2026-06-01",fin:"2026-05-26",av:1.0},
       {name:"Montaje motor",ini:"2026-06-02",fin:"2026-06-02",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-06-03",fin:"2026-06-03",av:0.0},
+      {name:"Montaje Alabe",ini:"2026-06-03",fin:"2026-06-03",av:1.0},
       {name:"Montaje Rodete",ini:"2026-06-04",fin:"2026-06-04",av:0.0},
       {name:"Pruebas FAT",ini:"2026-06-05",fin:"2026-06-05",av:0.0},
       {name:"RE-PINTADO",ini:"2026-06-09",fin:"2026-06-09",av:0.0}
@@ -1593,8 +1522,7 @@ const DEMO={
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-03-26",fin:"2026-03-25",av:0.0},
       {name:"Ingenieria basica Rodete",ini:"2026-04-02",fin:"2026-03-25",av:0.0},
-      {name:"Ingenieria Detalle",ini:"2026-04-02",fin:"2026-03-25",av:0.0},
-      {name:"Analisis de costeo",ini:"2026-04-02",fin:"2026-03-25",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-04-02",fin:"2026-03-25",av:0.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta alabes",ini:"2026-04-06",fin:"2026-04-03",av:0.0},
@@ -1676,13 +1604,13 @@ const DEMO={
       {name:"propuesta alabes",ini:"2026-04-09",fin:"2026-04-10",av:1.0},
       {name:"propuesta rodete",ini:"2026-04-09",fin:"2026-04-10",av:1.0},
       {name:"propuesta tableros",ini:"2026-04-09",fin:"2026-04-10",av:1.0},
-      {name:"propuesta compras a codigo // aprovisionamiento ot 4294 - 4296 - 4297",ini:"2026-06-18",fin:"2026-06-19",av:0.0},
+      {name:"propuesta compras a codigo // aprovisionamiento ot 4294 - 4296 - 4297",ini:"2026-06-18",fin:"2026-06-19",av:1.0},
       {name:"Propuesta Sensores",ini:"2026-04-09",fin:"2026-04-10",av:1.0},
       {name:"Propuesta Fabricacion Externa  ot 4294 - 4296 - 4297",ini:"2026-06-18",fin:"2026-06-19",av:0.0},
       {name:"Propuesta Atenuadores",ini:"2026-04-09",fin:"2026-04-10",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
-      {name:"Alabe  ot 4294 - 4296 - 4297",ini:"2026-04-13",fin:"2026-08-11",av:0.0},
+      {name:"Alabe  ot 4294 - 4296 - 4297",ini:"2026-04-13",fin:"2026-08-11",av:1.0},
       {name:"Alabe  ot 4294 - 4296 - 4297 / Generación OC Alabe  ot 4294 - 4296 - 4297",ini:"2025-11-24",fin:"2025-11-25",av:0.0},
       {name:"Alabe  ot 4294 - 4296 - 4297 / Fabricación Alabe  ot 4294 - 4296 - 4297",ini:"2025-11-26",fin:"2026-03-24",av:0.0},
       {name:"Tablero y componentes electricos  OT 4298 - 4299 -4300 -4301",ini:"2026-04-13",fin:"2026-08-04",av:0.0},
@@ -1760,8 +1688,7 @@ const DEMO={
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-04-22",fin:"2026-04-21",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-04-22",fin:"2026-04-21",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-04-29",fin:"2026-04-21",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-04-29",fin:"2026-04-21",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-04-29",fin:"2026-04-21",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta alabes",ini:"2026-04-24",fin:"2026-04-23",av:1.0},
@@ -1769,21 +1696,21 @@ const DEMO={
       {name:"propuesta motor  OT 4307",ini:"2026-04-24",fin:"2026-04-23",av:1.0},
       {name:"propuesta Corte laser",ini:"2026-05-26",fin:"2026-05-25",av:1.0},
       {name:"Propuesta Corte plasma",ini:"2026-05-26",fin:"2026-05-25",av:1.0},
-      {name:"Propuesta Fabricación externa  OT 4307",ini:"2026-05-26",fin:"2026-05-25",av:0.0},
+      {name:"Propuesta Fabricación externa  OT 4307",ini:"2026-05-26",fin:"2026-05-25",av:1.0},
       {name:"Propuesta Mecanizado",ini:"2026-05-26",fin:"2026-05-25",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe",ini:"2026-04-30",fin:"2026-04-27",av:1.0},
       {name:"rodete",ini:"2026-05-19",fin:"2026-04-27",av:1.0},
-      {name:"Motor OT 4307",ini:"2026-06-02",fin:"2026-05-05",av:0.0},
+      {name:"Motor OT 4307",ini:"2026-06-02",fin:"2026-05-05",av:1.0},
       {name:"Corte Laser",ini:"2026-06-04",fin:"2026-05-25",av:1.0},
       {name:"Corte plasma",ini:"2026-06-04",fin:"2026-05-25",av:1.0},
       {name:"Mecanizado",ini:"2026-06-04",fin:"2026-05-25",av:1.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
       {name:"Plano Preliminar",ini:"2026-05-07",fin:"2026-04-30",av:1.0},
-      {name:"Plano Definitivos",ini:"2026-05-20",fin:"2026-05-14",av:0.0},
-      {name:"Check Planos",ini:"2026-05-22",fin:"2026-05-22",av:0.0},
+      {name:"Plano Definitivos",ini:"2026-05-20",fin:"2026-05-14",av:1.0},
+      {name:"Check Planos",ini:"2026-05-22",fin:"2026-05-22",av:1.0},
       {name:"Check pruebas FAT",ini:"2026-07-21",fin:"2026-07-21",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
@@ -1793,13 +1720,13 @@ const DEMO={
       {name:"Control de calidad corte Laser",ini:"2026-06-10",fin:"2026-06-09",av:1.0},
       {name:"Control de calidad Corte plasma",ini:"2026-06-10",fin:"2026-06-09",av:1.0},
       {name:"Control de calidad Mecanizado",ini:"2026-06-10",fin:"2026-06-09",av:1.0},
-      {name:"Recepcion Alabe",ini:"2026-05-04",fin:"2026-05-04",av:0.0},
+      {name:"Recepcion Alabe",ini:"2026-05-04",fin:"2026-05-04",av:1.0},
       {name:"Recepcion Rodete",ini:"2026-05-20",fin:"2026-05-20",av:1.0},
-      {name:"Recepcion motor",ini:"2026-06-03",fin:"2026-06-03",av:0.0}
+      {name:"Recepcion motor",ini:"2026-06-03",fin:"2026-06-03",av:1.0}
     ]},
     {fase:"Fabricación externa",subtasks:[
-      {name:"Generación OC Fabricación externa",ini:"2026-05-05",fin:"2026-05-27",av:0.0},
-      {name:"Armado",ini:"2026-07-03",fin:"2026-06-11",av:0.0},
+      {name:"Generación OC Fabricación externa",ini:"2026-05-05",fin:"2026-05-27",av:1.0},
+      {name:"Armado",ini:"2026-07-03",fin:"2026-06-11",av:1.0},
       {name:"Control de calidad Armado",ini:"2026-07-07",fin:"2026-07-06",av:1.0}
     ]},
     {fase:"Montaje",subtasks:[
@@ -1830,15 +1757,14 @@ const DEMO={
       {name:"Plazo Contractual",ini:"2026-05-05",fin:"2026-05-05",av:1.0,kickoff:true}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
-      {name:"Ingenieria Basica Motor",ini:"2026-05-05",fin:"2026-05-06",av:0.0},
-      {name:"Ingenieria basica Rodete",ini:"2026-05-05",fin:"2026-05-06",av:0.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-05",fin:"2026-05-13",av:0.0},
-      {name:"Analisis de costeo",ini:"2026-05-05",fin:"2026-05-13",av:0.0}
+      {name:"Ingenieria Basica Motor",ini:"2026-05-05",fin:"2026-05-06",av:1.0},
+      {name:"Ingenieria basica Rodete",ini:"2026-05-05",fin:"2026-05-06",av:1.0},
+      {name:"Ingenieria Detalle",ini:"2026-05-05",fin:"2026-05-13",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta motor OT 4309",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
       {name:"propuesta alabes OT 4309",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
-      {name:"propuesta nucleo rodete OT 4309",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
+      {name:"propuesta nucleo rodete OT 4309",ini:"2026-05-07",fin:"2026-05-08",av:1.0},
       {name:"propuesta Corte Laser OT 4309",ini:"2026-05-04",fin:"2026-05-05",av:0.0},
       {name:"Propuesta Corte plasma  OT 4309",ini:"2026-06-04",fin:"2026-05-05",av:0.0},
       {name:"Propuesta Mecanizado OT 4309",ini:"2026-06-04",fin:"2026-05-05",av:0.0},
@@ -1846,7 +1772,7 @@ const DEMO={
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe OT 4309",ini:"2026-05-11",fin:"2026-05-14",av:0.0},
-      {name:"rodete OT 4309",ini:"2026-05-11",fin:"2026-06-01",av:0.0},
+      {name:"rodete OT 4309",ini:"2026-05-11",fin:"2026-06-01",av:1.0},
       {name:"Motor OT 4309",ini:"2026-05-11",fin:"2026-06-17",av:0.0},
       {name:"Materiales corte Laser OT 4309",ini:"2026-05-08",fin:"2026-06-16",av:0.0},
       {name:"Materiales Corte Plasma  OT 4309",ini:"2026-05-08",fin:"2026-06-16",av:0.0},
@@ -1854,7 +1780,7 @@ const DEMO={
       {name:"Mecanizado OT 4309",ini:"2026-06-08",fin:"2026-06-16",av:0.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
-      {name:"Planos preliminar",ini:"2026-05-14",fin:"2026-05-20",av:0.0},
+      {name:"Planos preliminar",ini:"2026-05-14",fin:"2026-05-20",av:1.0},
       {name:"Planos definitivos",ini:"2026-05-27",fin:"2026-06-02",av:0.0},
       {name:"check planos",ini:"2026-06-03",fin:"2026-06-03",av:0.0},
       {name:"check pruebas FAT",ini:"2026-07-29",fin:"2026-07-29",av:0.0}
@@ -1878,7 +1804,7 @@ const DEMO={
     ]},
     {fase:"Montaje",subtasks:[
       {name:"Revestimiento",ini:"2026-07-16",fin:"2026-07-22",av:0.0},
-      {name:"Montaje Alabe",ini:"2026-07-23",fin:"2026-07-23",av:0.0},
+      {name:"Montaje Alabe",ini:"2026-07-23",fin:"2026-07-23",av:1.0},
       {name:"Montaje Rodete",ini:"2026-07-24",fin:"2026-07-24",av:0.0},
       {name:"Montaje motor",ini:"2026-07-27",fin:"2026-07-27",av:0.0},
       {name:"Pruebas FAT",ini:"2026-07-28",fin:"2026-07-28",av:0.0},
@@ -1937,7 +1863,7 @@ const DEMO={
       {name:"Planos preliminar",ini:"2026-04-28",fin:"2026-05-05",av:1.0},
       {name:"Planos definitivos",ini:"2026-05-11",fin:"2026-05-15",av:1.0},
       {name:"check planos",ini:"2026-05-18",fin:"2026-05-19",av:1.0},
-      {name:"check pruebas FAT",ini:"2026-07-07",fin:"2026-07-07",av:0.0}
+      {name:"check pruebas FAT",ini:"2026-07-07",fin:"2026-07-07",av:1.0}
     ]},
     {fase:"Bodega",subtasks:[
       {name:"Recepcion materiales corte laser",ini:"2026-06-05",fin:"2026-06-08",av:1.0},
@@ -1963,7 +1889,7 @@ const DEMO={
       {name:"Montaje Rodete",ini:"2026-07-02",fin:"2026-07-02",av:1.0},
       {name:"Montaje motor",ini:"2026-07-03",fin:"2026-07-03",av:1.0},
       {name:"Pruebas FAT",ini:"2026-07-06",fin:"2026-07-06",av:1.0},
-      {name:"RE-PINTADO",ini:"2026-07-08",fin:"2026-07-08",av:0.0}
+      {name:"RE-PINTADO",ini:"2026-07-08",fin:"2026-07-08",av:1.0}
     ]},
     {fase:"Logistica",subtasks:[
       {name:"Coordinacion Entrega con Cliente",ini:"2026-07-09",fin:"2026-07-09",av:1.0},
@@ -1991,13 +1917,12 @@ const DEMO={
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-11",fin:"2026-05-19",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-05-11",fin:"2026-05-19",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-05-11",fin:"2026-05-19",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:0.0},
-      {name:"propuesta alabes OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:0.0},
-      {name:"propuesta nucleo rodete OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:0.0},
+      {name:"propuesta motor OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
+      {name:"propuesta alabes OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
+      {name:"propuesta nucleo rodete OT 4315",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
       {name:"propuesta Corte Laser OT 4315",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
       {name:"Propuesta Corte plasma  OT 4315",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
       {name:"Propuesta Mecanizado OT 4315",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
@@ -2065,17 +1990,16 @@ const DEMO={
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-11",fin:"2026-05-19",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-05-11",fin:"2026-05-19",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-05-11",fin:"2026-05-19",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
       {name:"propuesta motor",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
       {name:"propuesta alabes",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
-      {name:"propuesta nucleo rodeteOT 4316",ini:"2026-05-13",fin:"2026-05-14",av:0.0},
-      {name:"propuesta Corte Laser OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
+      {name:"propuesta nucleo rodeteOT 4316",ini:"2026-05-13",fin:"2026-05-14",av:1.0},
+      {name:"propuesta Corte Laser OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:1.0},
       {name:"Propuesta Corte plasma OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
-      {name:"Propuesta Mecanizado OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:0.0},
-      {name:"Propuesta Fabricación externa  OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:0.0}
+      {name:"Propuesta Mecanizado OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:1.0},
+      {name:"Propuesta Fabricación externa  OT 4316",ini:"2026-06-12",fin:"2026-06-15",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe OT 4316",ini:"2026-05-15",fin:"2026-05-20",av:1.0},
@@ -2083,13 +2007,13 @@ const DEMO={
       {name:"Motor OT 4316",ini:"2026-05-15",fin:"2026-06-23",av:1.0},
       {name:"Materiales corte Laser OT 4316",ini:"2026-06-16",fin:"2026-06-26",av:0.0},
       {name:"Materiales Corte Plasma  OT 4316",ini:"2026-06-16",fin:"2026-06-26",av:0.0},
-      {name:"Fabricación Externa  OT 4316",ini:"2026-06-16",fin:"2026-07-27",av:0.0},
+      {name:"Fabricación Externa  OT 4316",ini:"2026-06-16",fin:"2026-07-27",av:1.0},
       {name:"Mecanizado OT 4316",ini:"2026-06-16",fin:"2026-07-07",av:0.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
-      {name:"Planos preliminar",ini:"2026-05-20",fin:"2026-05-26",av:0.0},
-      {name:"Planos definitivos",ini:"2026-05-04",fin:"2026-06-10",av:0.0},
-      {name:"check planos",ini:"2026-06-11",fin:"2026-05-11",av:0.0},
+      {name:"Planos preliminar",ini:"2026-05-20",fin:"2026-05-26",av:1.0},
+      {name:"Planos definitivos",ini:"2026-05-04",fin:"2026-06-10",av:1.0},
+      {name:"check planos",ini:"2026-06-11",fin:"2026-05-11",av:1.0},
       {name:"check pruebas FAT",ini:"2026-08-07",fin:"2026-08-07",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
@@ -2146,10 +2070,10 @@ const DEMO={
       {name:"propuesta motor OT 4317",ini:"2026-04-30",fin:"2026-05-04",av:1.0},
       {name:"propuesta alabes OT 4317",ini:"2026-05-08",fin:"2026-05-11",av:1.0},
       {name:"propuesta nucleo rodete OT 4317",ini:"2026-05-08",fin:"2026-05-11",av:1.0},
-      {name:"propuesta Corte Laser OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:0.0},
-      {name:"Propuesta Corte plasma  OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:0.0},
-      {name:"Propuesta Mecanizado OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:0.0},
-      {name:"Propuesta Fabricación externa  OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:0.0}
+      {name:"propuesta Corte Laser OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:1.0},
+      {name:"Propuesta Corte plasma  OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:1.0},
+      {name:"Propuesta Mecanizado OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:1.0},
+      {name:"Propuesta Fabricación externa  OT 4317",ini:"2026-07-09",fin:"2026-07-10",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
       {name:"Alabe OT 4317",ini:"2026-05-12",fin:"2026-09-02",av:0.0},
@@ -2211,22 +2135,21 @@ const DEMO={
       {name:"Plazo Contractual",ini:"2026-05-06",fin:"2026-05-06",av:1.0,kickoff:true}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
-      {name:"Ingenieria Basica Motor",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
-      {name:"Ingenieria basica Rodete",ini:"2026-05-07",fin:"2026-05-08",av:0.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-07",fin:"2026-05-15",av:0.0},
-      {name:"Analisis de costeo",ini:"2026-05-07",fin:"2026-05-15",av:0.0}
+      {name:"Ingenieria Basica Motor",ini:"2026-05-07",fin:"2026-05-08",av:1.0},
+      {name:"Ingenieria basica Rodete",ini:"2026-05-07",fin:"2026-05-08",av:1.0},
+      {name:"Ingenieria Detalle",ini:"2026-05-07",fin:"2026-05-15",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor OT4327",ini:"2026-05-11",fin:"2026-05-12",av:0.0},
-      {name:"propuesta alabes OT4327",ini:"2026-05-11",fin:"2026-05-12",av:0.0},
-      {name:"propuesta nucleo rodete OT4327",ini:"2026-05-11",fin:"2026-05-12",av:0.0},
+      {name:"propuesta motor OT4327",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
+      {name:"propuesta alabes OT4327",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
+      {name:"propuesta nucleo rodete OT4327",ini:"2026-05-11",fin:"2026-05-12",av:1.0},
       {name:"propuesta Corte Laser OT4327",ini:"2026-06-15",fin:"2026-06-16",av:0.0},
       {name:"Propuesta Corte plasma  OT4327",ini:"2026-06-15",fin:"2026-06-16",av:0.0},
       {name:"Propuesta Mecanizado OT4327",ini:"2026-06-15",fin:"2026-06-16",av:0.0},
       {name:"Propuesta Fabricación externa  OT4327",ini:"2026-06-15",fin:"2026-06-16",av:0.0}
     ]},
     {fase:"Compras",subtasks:[
-      {name:"Alabe OT4327",ini:"2026-05-13",fin:"2026-05-18",av:0.0},
+      {name:"Alabe OT4327",ini:"2026-05-13",fin:"2026-05-18",av:1.0},
       {name:"rodete OT4327",ini:"2026-05-13",fin:"2026-05-18",av:0.0},
       {name:"Motor OT4327",ini:"2026-05-13",fin:"2026-06-22",av:0.0},
       {name:"Materiales corte Laser OT4327",ini:"2026-06-17",fin:"2026-06-29",av:0.0},
@@ -2235,9 +2158,9 @@ const DEMO={
       {name:"Mecanizado OT4327",ini:"2026-06-17",fin:"2026-06-29",av:0.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
-      {name:"Planos preliminar",ini:"2026-05-18",fin:"2026-05-25",av:0.0},
-      {name:"Planos definitivos",ini:"2026-06-03",fin:"2026-06-11",av:0.0},
-      {name:"check planos",ini:"2026-06-12",fin:"2026-06-12",av:0.0},
+      {name:"Planos preliminar",ini:"2026-05-18",fin:"2026-05-25",av:1.0},
+      {name:"Planos definitivos",ini:"2026-06-03",fin:"2026-06-11",av:1.0},
+      {name:"check planos",ini:"2026-06-12",fin:"2026-06-12",av:1.0},
       {name:"check pruebas FAT",ini:"2026-07-22",fin:"2026-07-22",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
@@ -2285,29 +2208,30 @@ const DEMO={
       {name:"Plazo Contractual",ini:"2026-05-11",fin:"2026-05-11",av:1.0,kickoff:true}
     ]},
     {fase:"Ingenieria Servicios",subtasks:[
-      {name:"Ingenieria Electrica",ini:"2026-05-12",fin:"2026-05-14",av:0.0},
+      {name:"Ingenieria Electrica",ini:"2026-05-12",fin:"2026-05-14",av:1.0},
       {name:"Revision Tableros",ini:"2026-07-20",fin:"2026-07-24",av:0.0}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
       {name:"Ingenieria Basica Motor",ini:"2026-05-12",fin:"2026-05-13",av:1.0},
       {name:"Ingenieria basica Rodete",ini:"2026-05-12",fin:"2026-05-13",av:1.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-12",fin:"2026-05-20",av:1.0},
-      {name:"Analisis de costeo",ini:"2026-05-12",fin:"2026-05-20",av:0.0}
+      {name:"Ingenieria Detalle",ini:"2026-05-12",fin:"2026-05-20",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor  ot 4328 - 4330",ini:"2026-05-14",fin:"2026-05-15",av:0.0},
+      {name:"propuesta motor  ot 4328 - 4330",ini:"2026-05-14",fin:"2026-05-15",av:1.0},
       {name:"propuesta alabes  ot 4328 - 4330",ini:"2026-05-14",fin:"2026-05-15",av:0.0},
-      {name:"propuesta nucleo rodete  ot 4328 - 4330",ini:"2026-05-14",fin:"2026-05-15",av:0.0},
-      {name:"propuesta Corte Laser  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:0.0},
-      {name:"Propuesta Corte plasma   ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:0.0},
-      {name:"Propuesta Mecanizado  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:0.0},
-      {name:"Propuesta Fabricación externa  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:0.0},
+      {name:"propuesta nucleo rodete  ot 4328 - 4330",ini:"2026-05-14",fin:"2026-05-15",av:1.0},
+      {name:"propuesta Corte Laser  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:1.0},
+      {name:"Propuesta Corte plasma   ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:1.0},
+      {name:"Propuesta Mecanizado  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:1.0},
+      {name:"Propuesta Fabricación externa  ot 4328 - 4330",ini:"2026-06-17",fin:"2026-06-18",av:1.0},
       {name:"Propuesta Tableros ot 4329 - 4331",ini:"2026-05-15",fin:"2026-05-18",av:0.0}
     ]},
+    {fase:"Reserva  produccion",subtasks:[
+      {name:"Reserva Motor  4328 - 4330",ini:"2026-05-18",fin:"2026-05-25",av:1.0},
+      {name:"Reserva alabes  4328 - 4330",ini:"2026-05-18",fin:"2026-05-25",av:1.0}
+    ]},
     {fase:"Compras",subtasks:[
-      {name:"Alabe ot 4328 - 4330",ini:"2026-05-18",fin:"2026-05-22",av:0.0},
-      {name:"rodete  ot 4328 - 4330",ini:"2026-05-18",fin:"2026-06-10",av:0.0},
-      {name:"Moto  ot 4328 - 4330r",ini:"2026-05-18",fin:"2026-06-26",av:0.0},
+      {name:"rodete  ot 4328 - 4330",ini:"2026-05-18",fin:"2026-06-10",av:1.0},
       {name:"Tableros  ot 4329 - 4331",ini:"2026-05-18",fin:"2026-07-16",av:0.0},
       {name:"Materiales corte Laser  ot 4328 - 4330",ini:"2026-06-19",fin:"2026-07-01",av:0.0},
       {name:"Materiales Corte Plasma  ot 4328 - 4330",ini:"2026-05-19",fin:"2026-07-01",av:0.0},
@@ -2316,8 +2240,8 @@ const DEMO={
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
       {name:"Planos preliminar",ini:"2026-05-19",fin:"2026-05-26",av:1.0},
-      {name:"Planos definitivos",ini:"2026-06-09",fin:"2026-06-15",av:0.0},
-      {name:"check planos",ini:"2026-06-16",fin:"2026-06-16",av:0.0},
+      {name:"Planos definitivos",ini:"2026-06-09",fin:"2026-06-15",av:1.0},
+      {name:"check planos",ini:"2026-06-16",fin:"2026-06-16",av:1.0},
       {name:"check pruebas FAT",ini:"2026-08-03",fin:"2026-08-03",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
@@ -2328,8 +2252,8 @@ const DEMO={
       {name:"Recepcion mecanizado",ini:"2026-07-02",fin:"2026-07-03",av:0.0},
       {name:"Control de calidad Mecanizado",ini:"2026-07-06",fin:"2026-07-07",av:0.0},
       {name:"Recepcion Rodete",ini:"2026-06-11",fin:"2026-06-11",av:0.0},
-      {name:"Recepcion Alabe",ini:"2026-05-25",fin:"2026-05-25",av:0.0},
-      {name:"Recepcion motor",ini:"2026-06-29",fin:"2026-06-29",av:0.0},
+      {name:"Recepcion Alabe ot 4328 - 4330",ini:"2026-05-25",fin:"2026-05-25",av:0.0},
+      {name:"Recepcion motor ot 4328 - 4330",ini:"2026-05-26",fin:"2026-05-26",av:0.0},
       {name:"Recepcion fabricación externa",ini:"2026-08-31",fin:"2026-08-31",av:0.0},
       {name:"Recepcion Tableros",ini:"2026-07-17",fin:"2026-07-17",av:0.0}
     ]},
@@ -2370,15 +2294,14 @@ const DEMO={
       {name:"Plazo Contractual",ini:"2026-05-11",fin:"2026-05-11",av:1.0,kickoff:true}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
-      {name:"Ingenieria Basica Motor",ini:"2026-05-12",fin:"2026-05-13",av:0.0},
-      {name:"Ingenieria basica Rodete",ini:"2026-05-12",fin:"2026-05-20",av:0.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-12",fin:"2026-05-20",av:0.0},
-      {name:"Analisis de costeo",ini:"2026-05-12",fin:"2026-05-20",av:0.0}
+      {name:"Ingenieria Basica Motor",ini:"2026-05-12",fin:"2026-05-13",av:1.0},
+      {name:"Ingenieria basica Rodete",ini:"2026-05-12",fin:"2026-05-20",av:1.0},
+      {name:"Ingenieria Detalle",ini:"2026-05-12",fin:"2026-05-20",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor ot 4332",ini:"2026-05-14",fin:"2026-05-15",av:0.0},
+      {name:"propuesta motor ot 4332",ini:"2026-05-14",fin:"2026-05-15",av:1.0},
       {name:"propuesta alabes ot 4332",ini:"2026-05-22",fin:"2026-05-25",av:0.0},
-      {name:"propuesta nucleo rodete ot 4332",ini:"2026-05-22",fin:"2026-05-25",av:0.0},
+      {name:"propuesta nucleo rodete ot 4332",ini:"2026-05-22",fin:"2026-05-25",av:1.0},
       {name:"propuesta Corte Laser ot 4332",ini:"2026-07-21",fin:"2026-07-22",av:0.0},
       {name:"Propuesta Corte plasma  ot 4332",ini:"2026-07-21",fin:"2026-07-22",av:0.0},
       {name:"Propuesta Mecanizado ot 4332",ini:"2026-07-21",fin:"2026-07-22",av:0.0},
@@ -2394,9 +2317,9 @@ const DEMO={
       {name:"Mecanizado ot 4332",ini:"2026-07-23",fin:"2026-08-04",av:0.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
-      {name:"Planos preliminar",ini:"2026-05-22",fin:"2026-05-28",av:0.0},
-      {name:"Planos definitivos",ini:"2026-07-13",fin:"2026-07-17",av:0.0},
-      {name:"check planos",ini:"2026-07-20",fin:"2026-07-20",av:0.0},
+      {name:"Planos preliminar",ini:"2026-05-22",fin:"2026-05-28",av:1.0},
+      {name:"Planos definitivos",ini:"2026-07-13",fin:"2026-07-17",av:1.0},
+      {name:"check planos",ini:"2026-07-20",fin:"2026-07-20",av:1.0},
       {name:"check pruebas FAT",ini:"2026-10-13",fin:"2026-10-13",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
@@ -2437,35 +2360,36 @@ const DEMO={
   ]},
   '1215504785832997':{fases:[
     {fase:"Kick Off meeting",subtasks:[
-      {name:"Apertura pedido",ini:"2026-05-19",fin:"2026-05-19",av:0.0,kickoff:true},
-      {name:"Alcance del proyecto",ini:"2026-05-19",fin:"2026-05-19",av:0.0,kickoff:true},
-      {name:"Definición Técnica de componentes principales",ini:"2026-05-19",fin:"2026-05-19",av:0.0,kickoff:true},
-      {name:"Plazo Contractual",ini:"2026-05-19",fin:"2026-05-19",av:0.0,kickoff:true}
+      {name:"Apertura pedido",ini:"2026-05-19",fin:"2026-05-19",av:1.0,kickoff:true},
+      {name:"Alcance del proyecto",ini:"2026-05-19",fin:"2026-05-19",av:1.0,kickoff:true},
+      {name:"Definición Técnica de componentes principales",ini:"2026-05-19",fin:"2026-05-19",av:1.0,kickoff:true},
+      {name:"Plazo Contractual",ini:"2026-05-19",fin:"2026-05-19",av:1.0,kickoff:true}
     ]},
     {fase:"Ingenieria Servicios",subtasks:[
-      {name:"Ingenieria Electrica",ini:"2026-05-20",fin:"2026-05-25",av:0.0},
+      {name:"Ingenieria Electrica",ini:"2026-05-20",fin:"2026-05-25",av:1.0},
       {name:"Revision Tableros",ini:"2026-07-27",fin:"2026-08-04",av:0.0}
     ]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[
-      {name:"Ingenieria Basica Motor",ini:"2026-05-20",fin:"2026-05-22",av:0.0},
-      {name:"Ingenieria basica Rodete",ini:"2026-05-20",fin:"2026-05-29",av:0.0},
-      {name:"Ingenieria Detalle",ini:"2026-05-20",fin:"2026-05-29",av:0.0},
-      {name:"Analisis de costeo",ini:"2026-05-20",fin:"2026-05-29",av:0.0}
+      {name:"Ingenieria Basica Motor",ini:"2026-05-20",fin:"2026-05-22",av:1.0},
+      {name:"Ingenieria basica Rodete",ini:"2026-05-20",fin:"2026-05-29",av:1.0},
+      {name:"Ingenieria Detalle",ini:"2026-05-20",fin:"2026-05-29",av:1.0}
     ]},
     {fase:"Propuesta compras",subtasks:[
-      {name:"propuesta motor",ini:"2026-05-25",fin:"2026-05-26",av:0.0},
-      {name:"propuesta alabes",ini:"2026-06-01",fin:"2026-06-02",av:0.0},
-      {name:"propuesta nucleo rodete",ini:"2026-06-01",fin:"2026-06-02",av:0.0},
-      {name:"propuesta Corte Laser",ini:"2026-08-14",fin:"2026-08-17",av:0.0},
-      {name:"Propuesta Corte plasma",ini:"2026-08-14",fin:"2026-08-17",av:0.0},
-      {name:"Propuesta Mecanizado",ini:"2026-08-14",fin:"2026-08-17",av:0.0},
-      {name:"Propuesta Fabricación externa",ini:"2026-08-14",fin:"2026-08-17",av:0.0},
-      {name:"Propuesta Tableros",ini:"2026-05-26",fin:"2026-05-27",av:0.0}
+      {name:"propuesta motor  ot 4347",ini:"2026-05-25",fin:"2026-05-26",av:1.0},
+      {name:"propuesta alabes  ot 4347",ini:"2026-06-01",fin:"2026-06-02",av:1.0},
+      {name:"propuesta nucleo rodete  ot 4347",ini:"2026-06-01",fin:"2026-06-02",av:1.0},
+      {name:"propuesta Corte Laser ot 4347",ini:"2026-08-14",fin:"2026-08-17",av:1.0},
+      {name:"Propuesta Corte plasma  ot 4347",ini:"2026-08-14",fin:"2026-08-17",av:1.0},
+      {name:"Propuesta Mecanizado ot 4347",ini:"2026-08-14",fin:"2026-08-17",av:0.0},
+      {name:"Propuesta Fabricación externa ot 4347",ini:"2026-08-14",fin:"2026-08-17",av:1.0},
+      {name:"Propuesta Tableros",ini:"2026-05-26",fin:"2026-05-27",av:1.0}
+    ]},
+    {fase:"Reserva material",subtasks:[
+      {name:"Reserva motor ot 4347",ini:"2026-05-27",fin:"2026-06-02",av:1.0},
+      {name:"Reserva alabe ot 4347",ini:"2026-06-03",fin:"2026-06-09",av:1.0},
+      {name:"Reserva rodete ot 4347",ini:"2026-06-03",fin:"2026-06-09",av:1.0}
     ]},
     {fase:"Compras",subtasks:[
-      {name:"Alabe ot 4347",ini:"2026-08-03",fin:"2026-09-24",av:0.0},
-      {name:"rodete ot 4347",ini:"2026-06-03",fin:"2026-06-08",av:0.0},
-      {name:"Motor ot 4347",ini:"2026-05-27",fin:"2026-10-16",av:0.0},
       {name:"Tableros ot 4348",ini:"2026-05-28",fin:"2026-07-22",av:0.0},
       {name:"Materiales corte Laser ot 4347",ini:"2026-08-18",fin:"2026-08-28",av:0.0},
       {name:"Materiales Corte Plasma  ot 4347",ini:"2026-08-18",fin:"2026-08-28",av:0.0},
@@ -2473,9 +2397,9 @@ const DEMO={
       {name:"Mecanizado  ot 4347",ini:"2026-08-18",fin:"2026-08-28",av:0.0}
     ]},
     {fase:"Ingenieria y diseñoo",subtasks:[
-      {name:"Planos preliminar",ini:"2026-06-01",fin:"2026-06-18",av:0.0},
-      {name:"Planos definitivos",ini:"2026-07-24",fin:"2026-08-12",av:0.0},
-      {name:"check planos",ini:"2026-08-13",fin:"2026-08-13",av:0.0},
+      {name:"Planos preliminar",ini:"2026-06-01",fin:"2026-06-18",av:1.0},
+      {name:"Planos definitivos",ini:"2026-07-24",fin:"2026-08-12",av:1.0},
+      {name:"check planos",ini:"2026-08-13",fin:"2026-08-13",av:1.0},
       {name:"check pruebas FAT",ini:"2026-10-27",fin:"2026-10-27",av:0.0}
     ]},
     {fase:"Bodega",subtasks:[
