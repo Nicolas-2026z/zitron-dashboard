@@ -547,8 +547,6 @@ TEMPLATE = r"""<!DOCTYPE html>
       <option value="">Todas las cadenas</option>
       <option value="con_atraso">Solo con atraso</option>
     </select>
-    <select id="fCascadaUsuario" onchange="renderCascada()"><option value="">Usuario: Todos</option></select>
-    <select id="fCascadaArea" onchange="renderCascada()"><option value="">Área: Todas</option></select>
   </div>
   <div id="cascadaContainer"></div>
 </div>
@@ -635,12 +633,6 @@ function pct(verde, total) { return total ? (100 * verde / total) : 0; }
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
-  const filtUsuario = document.getElementById('fCascadaUsuario').value;
-  const filtArea = document.getElementById('fCascadaArea').value;
-
-  // poblar selectores con usuarios/areas de las cadenas encontradas
-  const curU = document.getElementById('fCascadaUsuario').value;
-  const curA = document.getElementById('fCascadaArea').value;
 
   const byName = {};
   tasks.forEach(t => {
@@ -747,21 +739,9 @@ function renderCascada() {
     });
   }
 
-  // poblar selectores con usuarios/areas que aparecen en cadenas
-  const todosEnCadenas = cadenas.flat();
-  const usuariosCadenas = [...new Set(todosEnCadenas.map(t => t.assignee))].sort();
-  const areasCadenas = [...new Set(todosEnCadenas.map(t => t.area))].sort();
-  const selU = document.getElementById('fCascadaUsuario');
-  const selA = document.getElementById('fCascadaArea');
-  selU.innerHTML = '<option value="">Usuario: Todos</option>' + usuariosCadenas.map(u => `<option value="${u}" ${u===curU?'selected':''}>${u}</option>`).join('');
-  selA.innerHTML = '<option value="">Área: Todas</option>' + areasCadenas.map(a => `<option value="${a}" ${a===curA?'selected':''}>${a}</option>`).join('');
-
   let filtradas = soloAtraso
     ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
     : cadenas;
-
-  if (filtUsuario) filtradas = filtradas.filter(c => c.some(t => t.assignee === filtUsuario));
-  if (filtArea) filtradas = filtradas.filter(c => c.some(t => t.area === filtArea));
 
   if (filtradas.length === 0) {
     if (cadenas.length === 0) {
@@ -794,10 +774,16 @@ function renderCascada() {
       const diasReales = (t.completed && t.start_iso)
         ? diasHabilesJS(t.start_iso, t.completed) : null;
 
-      // antecesora real según blocked_by
-      const antecReal = (t.blocked_by && t.blocked_by.length > 0)
-        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0]
-        : (i > 0 ? chain[i-1] : null);
+      // antecesora real según blocked_by - usar la que terminó más tarde
+      const todasAntecesoras = (t.blocked_by && t.blocked_by.length > 0)
+        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)
+        : (i > 0 ? [chain[i-1]] : []);
+
+      // la que terminó más tarde es la que más impacta el atraso heredado
+      const antecReal = todasAntecesoras
+        .filter(a => a.completed)
+        .sort((a,b) => (b.completed||'').localeCompare(a.completed||''))[0]
+        || todasAntecesoras[0] || null;
 
       let atrasoHeredado = null;
       if (antecReal) {
@@ -836,13 +822,14 @@ function renderCascada() {
           <span>🏢 ${t.area}</span>
         </div>
         ${(() => {
-          const antecRealObj = (t.blocked_by && t.blocked_by.length > 0)
-            ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)[0] : null;
-          const antec = antecRealObj || (i > 0 ? chain[i-1] : null);
-          if (!antec || (i === 0 && !(t.blocked_by && t.blocked_by.length > 0))) return '';
-          const diasR = diasHabilesJS(antec.start_iso, antec.completed);
+          const antecesoras = (t.blocked_by||[]).map(b => findTask(b, t.project)).filter(Boolean);
+          if (!antecesoras.length) return '';
+          const info = antecesoras.map(a => {
+            const diasR = diasHabilesJS(a.start_iso, a.completed);
+            return `<b>${a.name}</b> · 👤 ${a.assignee} · terminó en ${diasR !== null ? diasR+'d reales' : 'sin completar'} (previsto ${a.duracion_prevista}d)`;
+          }).join('<br>📌 ');
           return `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
-            📌 Antecesora: <b>${antec.name}</b> · 👤 ${antec.assignee} · terminó en ${diasR !== null ? diasR+'d reales' : 'sin completar'} (previsto ${antec.duracion_prevista}d)
+            📌 Antecesora${antecesoras.length > 1 ? 's' : ''}: ${info}
           </div>`;
         })()} 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
