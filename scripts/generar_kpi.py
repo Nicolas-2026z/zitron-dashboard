@@ -717,10 +717,38 @@ function renderCascada() {
     const raiz = findRaiz(t);
     const raizKey = (raiz.project||'') + '||' + raiz.name;
     if (!visitadas.has(raizKey)) {
+      visitadas.add(raizKey);
+      // construir árbol desde la raíz
+      const arbol = { task: raiz, hijos: [] };
+      const visitadasArbol = new Set([raizKey]);
+
+      function buildTree(nodo) {
+        const t = nodo.task;
+        (t.blocking||[]).forEach(nextName => {
+          const next = findTask(nextName, t.project);
+          if (!next) return;
+          const nextKey = (next.project||'') + '||' + next.name;
+          if (visitadasArbol.has(nextKey)) return;
+          visitadasArbol.add(nextKey);
+          const hijo = { task: next, hijos: [] };
+          nodo.hijos.push(hijo);
+          buildTree(hijo);
+        });
+        // ordenar hijos por fecha
+        nodo.hijos.sort((a,b) => (a.task.start_iso||a.task.due_iso||'9999').localeCompare(b.task.start_iso||b.task.due_iso||'9999'));
+      }
+
+      buildTree(arbol);
+
+      // aplanar el árbol en orden de profundidad (BFS) para mostrar
       const chain = [];
-      buildChain(raiz, chain);
-      const chainValida = chain.filter(c => c.name && c.name.trim())
-        .sort((a,b) => (a.start_iso||a.due_iso||'9999').localeCompare(b.start_iso||b.due_iso||'9999'));
+      function flatten(nodo) {
+        chain.push(nodo.task);
+        nodo.hijos.forEach(flatten);
+      }
+      flatten(arbol);
+
+      const chainValida = chain.filter(c => c.name && c.name.trim());
       if (chainValida.length > 1) cadenas.push(chainValida);
     }
   });
