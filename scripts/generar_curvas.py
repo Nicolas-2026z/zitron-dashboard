@@ -145,6 +145,7 @@ def process_file(path):
         return row[idx]
 
     tareas = []
+    tareas_logistica_raw = []  # incluye nivel 1 y nivel 2 de Logística
     kickoff_date = None
     contractual_date = None
 
@@ -164,6 +165,7 @@ def process_file(path):
         ini = to_date(ini_raw)
         fin = to_date(fin_raw)
         av  = parse_av(av_raw, completado)
+        sec = str(section).strip()
 
         if kickoff_date is None and parent and "kick off" in str(parent).lower() and ini:
             kickoff_date = ini
@@ -178,6 +180,12 @@ def process_file(path):
                 except:
                     pass
 
+        # Recolectar tareas de Logística en TODOS los niveles (con o sin parent)
+        # para detectar despachado correctamente
+        if es_seccion_logistica(sec):
+            tareas_logistica_raw.append({"name": name, "av": av, "section": sec})
+
+        # Para la curva S solo usamos nivel 2 (con parent) y con fechas
         if not parent or not ini or not fin:
             continue
 
@@ -185,7 +193,7 @@ def process_file(path):
 
         tareas.append({
             "name": name,
-            "section": str(section).strip(),
+            "section": sec,
             "parent": str(parent).strip(),
             "ini": ini,
             "fin": fin,
@@ -195,6 +203,7 @@ def process_file(path):
 
     return {
         "tareas": tareas,
+        "tareas_logistica_raw": tareas_logistica_raw,
         "kickoff_date": kickoff_date,
         "contractual_date": contractual_date,
     }
@@ -317,6 +326,7 @@ def process_all(data_dir):
             continue
 
         tareas = result["tareas"]
+        tareas_logistica_raw = result["tareas_logistica_raw"]
         kickoff = result["kickoff_date"]
         contractual = result["contractual_date"]
 
@@ -383,7 +393,9 @@ def process_all(data_dir):
                 prob = min(prob, 15)
 
         # ── DESPACHADO: todas las tareas de Logística al 100% ────────────────
-        tareas_logistica = [
+        # tareas_logistica_raw incluye nivel 1 Y nivel 2 (con o sin parent)
+        # así no se pierden las tareas madre de la sección Logística
+        tareas_logistica = tareas_logistica_raw if tareas_logistica_raw else [
             t for t in tareas if es_seccion_logistica(t["section"])
         ]
 
@@ -393,9 +405,8 @@ def process_all(data_dir):
             all_done = all(t["av"] >= 1.0 for t in tareas_logistica)
             print(f"    Logística: {len(tareas_logistica)} tareas, avances={avs} → despachado={all_done}")
         else:
-            # Mostrar secciones únicas para diagnóstico
             secciones = sorted(set(t["section"] for t in tareas))
-            print(f"    ⚠ Sin sección Logística. Secciones encontradas: {secciones}")
+            print(f"    ⚠ Sin sección Logística. Secciones: {secciones}")
 
         despachado = len(tareas_logistica) > 0 and all(t["av"] >= 1.0 for t in tareas_logistica)
 
@@ -487,7 +498,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1
 .proj-card.estado-Atrasado{{border-left-color:var(--amarillo)}}
 .proj-card.estado-Vencido{{border-left-color:var(--rojo)}}
 .proj-card.estado-Terminado{{border-left-color:var(--purple)}}
-.proj-card.despachado-true{{border-left-color:var(--purple)!important}}
+.proj-card.despachado-true{{border-left-color:var(--purple)!important;background:#faf5ff}}
 .proj-card .pname{{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}}
 .proj-card .pmeta{{font-size:10px;color:var(--muted);font-family:var(--mono)}}
 .proj-card .pbadge{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:6px}}
@@ -681,8 +692,8 @@ function renderResumen() {{
     const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
 
     const despBadge = p.despachado
-      ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px;font-size:10px">🚢 Despachado</span>`
-      : '';
+      ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;border:1.5px solid #c4b5fd;font-size:11px;padding:4px 12px;font-weight:700">🚢 Despachado</span>`
+      : `<span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>`;
 
     card.innerHTML = `
       <div class="pname">${{p.nombre}}</div>
@@ -693,7 +704,6 @@ function renderResumen() {{
         📆 EAC: ${{eac}} &nbsp;·&nbsp; Prob: ${{p.prob}}%
       </div>
       <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
-      <span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>
       ${{despBadge}}
     `;
     card.onclick = () => abrirDash(idx, card);
