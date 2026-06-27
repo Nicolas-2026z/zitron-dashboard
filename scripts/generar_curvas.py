@@ -427,9 +427,8 @@ def process_all(data_dir):
 
 
 def generar_html(proyectos, output_path):
-    from datetime import datetime
-    import pytz
-    tz_chile = pytz.timezone('America/Santiago')
+    from datetime import datetime, timezone, timedelta
+    tz_chile = timezone(timedelta(hours=-4))
     now_chile = datetime.now(tz_chile)
     today_str = now_chile.strftime("%d/%m/%Y %H:%M hrs (Chile)")
     data_json = json.dumps(proyectos, ensure_ascii=False)
