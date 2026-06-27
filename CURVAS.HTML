@@ -20,7 +20,6 @@
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}
 
-/* LOGIN */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 50%,#0f2240 100%)}
 .login-card{background:#fff;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .logo{width:52px;height:52px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}
@@ -32,14 +31,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .lbtn:hover{background:#1e3a62}
 .lerr{color:var(--rojo);font-size:11px;margin-top:8px}
 
-/* MAIN */
 .main{display:none;min-height:100vh}
 .topbar{background:var(--navy);padding:12px 28px;display:flex;align-items:center;justify-content:space-between}
 .topbar .brand{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:1px}
 .topbar .meta{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)}
 .body{max-width:1400px;margin:0 auto;padding:20px 24px}
 
-/* RESUMEN */
 .resumen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
 .proj-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;border-left:4px solid transparent}
 .proj-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}
@@ -48,6 +45,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .proj-card.estado-Atrasado{border-left-color:var(--amarillo)}
 .proj-card.estado-Vencido{border-left-color:var(--rojo)}
 .proj-card.estado-Terminado{border-left-color:var(--purple)}
+.proj-card.despachado-true{border-left-color:var(--purple)!important}
 .proj-card .pname{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}
 .proj-card .pmeta{font-size:10px;color:var(--muted);font-family:var(--mono)}
 .proj-card .pbadge{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:6px}
@@ -58,13 +56,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .proj-card .pbar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
 .proj-card .pbarf{height:4px;border-radius:2px}
 
-/* FILTROS */
 .filtros-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .filtro-btn{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
 .filtro-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
 .search-box{flex:1;min-width:200px;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;outline:none;background:var(--card)}
 
-/* DASHBOARD PROYECTO */
 .dash{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;display:none}
 .dash.open{display:block}
 .dash-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px}
@@ -86,7 +82,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .lgl{width:20px;height:2px;border-radius:1px}
 .lgd{width:20px;height:0;border-top:2px dashed}
 
-/* TABLA SEMANAL */
 .tbl-wrap{overflow-x:auto;margin-top:14px}
 table{width:100%;border-collapse:collapse;font-size:11px}
 th{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted2);padding:7px 10px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}
@@ -98,16 +93,18 @@ tr:hover td{background:#f8fafc}
 .c-ok{background:#dcfce7;color:#15803d} .c-bad{background:#fee2e2;color:#b91c1c}
 .c-warn{background:#fef3c7;color:#b45309} .c-gray{background:#f1f5f9;color:#64748b}
 
-/* DETALLE TAREAS */
 .fase-header{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);background:var(--bg);padding:5px 10px;border-bottom:1px solid var(--border)}
 .av-bar{display:flex;align-items:center;gap:6px}
 .av-track{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
 .av-fill{height:4px;border-radius:2px}
+
+.desp-banner{display:flex;align-items:center;gap:10px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;padding:10px 16px;margin-top:8px}
+.desp-banner span.icon{font-size:22px}
+.desp-banner span.txt{font-family:var(--mono);font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:.5px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
     <div class="logo">Z</div>
@@ -119,15 +116,13 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · 43 PROYECTOS</div>
-    <div class="meta">Última actualización: 27/06/2026 18:59 hrs (Chile) · Días hábiles Chile</div>
+    <div class="meta">Última actualización: 27/06/2026 19:28 hrs (Chile) · Días hábiles Chile</div>
   </div>
   <div class="body">
 
-    <!-- FILTROS -->
     <div class="filtros-bar">
       <input class="search-box" type="text" id="searchBox" placeholder="Buscar proyecto..." oninput="filtrar()">
       <button class="filtro-btn active" onclick="setFiltro('Todos',this)">Todos</button>
@@ -135,12 +130,11 @@ tr:hover td{background:#f8fafc}
       <button class="filtro-btn" onclick="setFiltro('Atrasado',this)">⚠️ Atrasado</button>
       <button class="filtro-btn" onclick="setFiltro('Vencido',this)">🔴 Vencido</button>
       <button class="filtro-btn" onclick="setFiltro('Terminado',this)">✓ Terminado</button>
+      <button class="filtro-btn" onclick="setFiltro('Despachado',this)">🚢 Despachados</button>
     </div>
 
-    <!-- TARJETAS RESUMEN -->
     <div class="resumen-grid" id="resumenGrid"></div>
 
-    <!-- DASHBOARD DETALLE -->
     <div class="dash" id="dashPanel">
       <div class="dash-header">
         <div>
@@ -213,8 +207,12 @@ function filtrar() {
   document.querySelectorAll('.proj-card').forEach(card => {
     const nombre = card.dataset.nombre.toLowerCase();
     const estado = card.dataset.estado;
+    const despachado = card.dataset.despachado === 'true';
     const matchQ = !q || nombre.includes(q);
-    const matchE = filtroEstado === 'Todos' || estado === filtroEstado;
+    let matchE = false;
+    if (filtroEstado === 'Todos') matchE = true;
+    else if (filtroEstado === 'Despachado') matchE = despachado;
+    else matchE = estado === filtroEstado;
     card.style.display = (matchQ && matchE) ? '' : 'none';
   });
 }
@@ -229,15 +227,20 @@ function renderResumen() {
   grid.innerHTML = '';
   DATA.forEach((p, idx) => {
     const card = document.createElement('div');
-    card.className = `proj-card estado-${p.estado}`;
+    card.className = `proj-card estado-${p.estado} despachado-${p.despachado}`;
     card.dataset.nombre = p.nombre;
     card.dataset.estado = p.estado;
+    card.dataset.despachado = p.despachado;
     card.dataset.idx = idx;
 
     const spit = p.spit === 99 ? '∞' : p.spit.toFixed(2);
     const svt = (p.svt >= 0 ? '+' : '') + p.svt.toFixed(1) + 'w';
     const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—';
     const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
+
+    const despBadge = p.despachado
+      ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px;font-size:10px">🚢 Despachado</span>`
+      : '';
 
     card.innerHTML = `
       <div class="pname">${p.nombre}</div>
@@ -249,7 +252,7 @@ function renderResumen() {
       </div>
       <div class="pbar"><div class="pbarf" style="width:${p.pct_ev}%;background:${p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}"></div></div>
       <span class="pbadge ${estadoBadge(p.estado)}">${p.estado}</span>
-      ${p.despachado ? '<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px">🚢 Despachado</span>' : ''}
+      ${despBadge}
     `;
     card.onclick = () => abrirDash(idx, card);
     grid.appendChild(card);
@@ -268,10 +271,9 @@ function abrirDash(idx, card) {
 
   document.getElementById('dashTitle').textContent = p.nombre;
   document.getElementById('dashDespachado').innerHTML = p.despachado
-    ? `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 14px;">
-        <span style="font-size:18px">🚢</span>
-        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:#7c3aed;">DESPACHADO</span>
-       </div>` : '';
+    ? `<div class="desp-banner"><span class="icon">🚢</span><span class="txt">DESPACHADO — Logística 100% completada</span></div>`
+    : '';
+
   document.getElementById('dashMeta').innerHTML = `
     📅 Kick Off: <b>${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}</b> &nbsp;·&nbsp;
     🏁 Contractual: <b>${p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}</b> &nbsp;·&nbsp;
@@ -321,21 +323,11 @@ function renderChart(p) {
   const todayIdx = todayRows.length - 1;
   const pctEVhoy = todayIdx >= 0 ? todayRows[todayIdx].pctEV : 0;
 
-  // índice de fecha contractual
   let dueIdx = rows.length - 1;
   if (p.contractual) {
     const dueD = new Date(p.contractual);
     for (let i = 0; i < rows.length; i++) {
       if (new Date(rows[i].ws) >= dueD) { dueIdx = i; break; }
-    }
-  }
-
-  // índice de fecha EXW
-  let exwIdx = -1;
-  if (p.exw) {
-    const exwD = new Date(p.exw);
-    for (let i = 0; i < rows.length; i++) {
-      if (new Date(rows[i].ws) >= exwD) { exwIdx = i; break; }
     }
   }
 
@@ -359,15 +351,6 @@ function renderChart(p) {
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
-        annotation: dueIdx >= 0 ? {
-          annotations: {
-            contractual: {
-              type:'line', xMin:dueIdx, xMax:dueIdx,
-              borderColor:'rgba(220,38,38,.6)', borderWidth:2, borderDash:[4,4],
-              label:{content:'Contractual', enabled:true, position:'start', font:{size:9}, color:'#dc2626', backgroundColor:'transparent'}
-            }
-          }
-        } : {},
         tooltip:{
           backgroundColor:'#0f172a', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
           titleColor:'#f8fafc', bodyColor:'#94a3b8',
@@ -447,7 +430,9 @@ function renderTareas(p) {
     if (t.section !== lastFase) {
       lastFase = t.section;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="6" class="fase-header">${t.section || 'Sin sección'}</td>`;
+      // Resaltar sección Logística
+      const esLog = t.section.toLowerCase().includes('logis') || t.section.toLowerCase().includes('despacho');
+      tr.innerHTML = `<td colspan="6" class="fase-header" style="${esLog?'background:#ede9fe;color:#7c3aed':''}">${t.section || 'Sin sección'}${esLog?' 🚢':''}</td>`;
       tbody.appendChild(tr);
     }
     const av = t.av;
