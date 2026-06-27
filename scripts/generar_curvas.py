@@ -31,54 +31,52 @@ FERIADOS = {
 HRS_TURNO = 8      # horas kick off total
 HRS_DIA   = 8.3   # 8.3 horas por día hábil
 
-# ── Fechas EXW por GID de proyecto (leídas desde el portfolio de Asana) ──────
-# Campo: due_on del proyecto en el portfolio 1213511928397658
-# Se puede regenerar corriendo: python scripts/fetch_exw.py > scripts/exw.json
+# ── Fechas EXW por GID de proyecto ──────────────────────────────────────────
 FECHAS_EXW_GID = {
-    "1215922055649550": "2026-08-04",  # 50001566 - XEMORTIZ
-    "1215727332551578": "2026-07-13",  # 50001563 - ZITRON COLOMBIA ANTIOQUIA
-    "1215504785832997": "2026-06-23",  # 50001559 - FERROVIAL
-    "1215137857526702": "2026-06-16",  # 50001558 - GESVIAL OT4342-4344
-    "1215137857526520": "2026-06-16",  # 50001557 - ATACAMA KOZAN OT4340
-    "1215139673478155": "2026-06-16",  # 50001557 - ATACAMA KOZAN OT4335-4337-4339
-    "1215118022011721": "2026-08-05",  # 50001554 - MAPIMI
-    "1214969047721199": "2026-07-18",  # 50001553 - ARIS OT4326
-    "1214969047720950": "2026-07-18",  # 50001553 - ARIS OT4327
-    "1214969284200793": "2026-07-18",  # 50001553 - ARIS OT4324-4325
-    "1214922603742599": "2026-08-03",  # 50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA
-    "1214892476594825": "2026-08-15",  # 50001544 - DMC MINING SERVICES
-    "1214787972061369": "2026-07-01",  # 50001547 - XEMORTIZ AMERICAS GOLD
-    "1214739697907723": "2026-06-26",  # 50001546 - XEMORTIZ
-    "1214563704105168": "2026-06-26",  # 50001545 - XEMORTIZ MINERA FRISCO
-    "1214508463084754": "2026-06-16",  # 50001543 - ZITRON COLOMBIA EGM
-    "1213832650589314": "2026-07-16",  # 50001525 - ZITRON PERU METRO LIMA E07
-    "1213881596172396": "2026-08-03",  # 50001534 - ZITRON PERU METRO LIMA E04-05-06-R4
-    "1214137717389412": "2026-06-22",  # 50001541 - XEMORTIZ MINERA FRISCO
-    "1213963037596622": "2026-04-22",  # 50001532 - XEMORTIZ AMERICAS GOLD
-    "1213997266064436": "2026-05-25",  # 50001466 - ZITRON PERU PODEROSA
-    "1213377149548665": "2026-04-21",  # 50001485 - CALABRESSE METRO STO DOMINGO
-    "1213377149548798": "2026-05-07",  # 50001498 - CALABRESSE POZOS
-    "1213377149548590": "2026-04-10",  # 50001477 - TRITON MINERA
-    "1213377149548731": "2026-04-20",  # 50001490 - ZITRON PERU PV04-PV05
-    "1213400421980747": "2026-04-14",  # 50001504 - ZITRON PERU CODESTABLE A
-    "1213377149548924": "2026-04-14",  # 50001504 - ZITRON PERU CODESTABLE B
-    "1213391072478428": "2026-03-16",  # 50001415 - ZITRON PERU METRO LIMA E05
-    "1213244147627519": "2026-04-10",  # 50001506 - ZCO EPM FRIO AIRE
-    "1213377149548388": "2026-05-26",  # 50001309 - BUGA (excluido pero por si acaso)
-    "1213391072478496": "2026-03-02",  # 50001451 - ZITRON COLOMBIA
-    "1213234368822465": "2026-02-14",  # 50001500 - EQ MIN LA HACIENDA
-    "1213193352022841": "2026-06-15",  # 50001497 - XEMORTIZ IMMSA STA BBR
-    "1213244147627934": "2026-05-10",  # 50001499 - EQ CHAPARRAL
-    "1213362937195444": "2026-02-16",  # 50001508 - XEMORTIZ STOCK
-    "1213377149548525": "2026-02-04",  # 50001473 - MAPIMI
-    "1213377149548860": "2026-02-14",  # 50001501 - EQ MIN LA HACIENDA B
-    "1213377149548988": "2026-04-21",  # 50001446 - MINERA FRESNILLO
-    "1213396195711984": "2026-03-13",  # 50001520 - XEMORTIZ DDG
-    "1213458785834993": "2026-08-13",  # 50001518 - EQ CHAPARRAL B
-    "1213955236952392": "2026-05-04",  # 50001533 - GESVIAL
-    "1213458788103499": "2026-04-08",  # 50001524 - ATACAMA KOZAN
-    "1213185599076077": "2026-03-05",  # 50001514 - CLIENTE POR DEFINIR A
-    "1213234368821945": "2026-03-05",  # 50001515 - CLIENTE POR DEFINIR B
+    "1215922055649550": "2026-08-04",
+    "1215727332551578": "2026-07-13",
+    "1215504785832997": "2026-06-23",
+    "1215137857526702": "2026-06-16",
+    "1215137857526520": "2026-06-16",
+    "1215139673478155": "2026-06-16",
+    "1215118022011721": "2026-08-05",
+    "1214969047721199": "2026-07-18",
+    "1214969047720950": "2026-07-18",
+    "1214969284200793": "2026-07-18",
+    "1214922603742599": "2026-08-03",
+    "1214892476594825": "2026-08-15",
+    "1214787972061369": "2026-07-01",
+    "1214739697907723": "2026-06-26",
+    "1214563704105168": "2026-06-26",
+    "1214508463084754": "2026-06-16",
+    "1213832650589314": "2026-07-16",
+    "1213881596172396": "2026-08-03",
+    "1214137717389412": "2026-06-22",
+    "1213963037596622": "2026-04-22",
+    "1213997266064436": "2026-05-25",
+    "1213377149548665": "2026-04-21",
+    "1213377149548798": "2026-05-07",
+    "1213377149548590": "2026-04-10",
+    "1213377149548731": "2026-04-20",
+    "1213400421980747": "2026-04-14",
+    "1213377149548924": "2026-04-14",
+    "1213391072478428": "2026-03-16",
+    "1213244147627519": "2026-04-10",
+    "1213377149548388": "2026-05-26",
+    "1213391072478496": "2026-03-02",
+    "1213234368822465": "2026-02-14",
+    "1213193352022841": "2026-06-15",
+    "1213244147627934": "2026-05-10",
+    "1213362937195444": "2026-02-16",
+    "1213377149548525": "2026-02-04",
+    "1213377149548860": "2026-02-14",
+    "1213377149548988": "2026-04-21",
+    "1213396195711984": "2026-03-13",
+    "1213458785834993": "2026-08-13",
+    "1213955236952392": "2026-05-04",
+    "1213458788103499": "2026-04-08",
+    "1213185599076077": "2026-03-05",
+    "1213234368821945": "2026-03-05",
 }
 
 def to_date(val):
@@ -92,7 +90,6 @@ def to_date(val):
     return None
 
 def dias_habiles(d1, d2):
-    """Días hábiles entre d1 y d2 inclusive"""
     if not d1 or not d2: return 0
     if d1 > d2: d1, d2 = d2, d1
     count = 0
@@ -104,17 +101,35 @@ def dias_habiles(d1, d2):
     return max(count, 1)
 
 def dias_habiles_en_semana(ini, fin, ws, we):
-    """Días hábiles de una tarea que caen dentro de la semana ws..we (inclusive)"""
     a = max(ini, ws)
     b = min(fin, we)
     if a > b: return 0
     return dias_habiles(a, b)
 
+def parse_av(av_raw, completado):
+    """Convierte el campo Avance Tarea a float 0.0-1.0 de forma robusta."""
+    # Si tiene Completed At con fecha → siempre 100%
+    if completado:
+        return 1.0
+    if av_raw is None:
+        return 0.0
+    # Puede venir como número (0, 1, 0.5) o texto ("1", "0.75", "Alta", etc.)
+    try:
+        v = float(av_raw)
+        return min(max(v, 0.0), 1.0)
+    except (ValueError, TypeError):
+        # Texto no numérico (ej: "Tarea Terminada", "Alta") → ignorar
+        return 0.0
+
+def es_seccion_logistica(section_name):
+    """Detecta si una sección es Logística."""
+    s = section_name.lower().strip()
+    return any(x in s for x in ["logis", "logís", "despacho"])
+
 def process_file(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws_sheet = wb.active
 
-    # Detectar fila de encabezados (fila 3 normalmente)
     hdr = None
     for i, row in enumerate(ws_sheet.iter_rows(min_row=1, max_row=5, values_only=True)):
         if row and "Name" in row:
@@ -138,24 +153,21 @@ def process_file(path):
         if not name: continue
         name = str(name).strip()
 
-        parent = g(row, "Parent task") or ""
-        section = g(row, "Section/Column") or ""
-        ini_raw     = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
-        fin_raw     = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
-        av_raw      = g(row, "Avance Tarea")
-        completado  = g(row, "Completed At")
-        notas       = g(row, "Notes") or ""
+        parent     = g(row, "Parent task") or ""
+        section    = g(row, "Section/Column") or ""
+        ini_raw    = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
+        fin_raw    = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
+        av_raw     = g(row, "Avance Tarea")
+        completado = g(row, "Completed At")
+        notas      = g(row, "Notes") or ""
 
         ini = to_date(ini_raw)
         fin = to_date(fin_raw)
-        # si tiene Completed At → tarea terminada = 100% automático
-        av  = 1.0 if completado else (float(av_raw) if av_raw is not None else 0.0)
+        av  = parse_av(av_raw, completado)
 
-        # Detectar Kick Off date (primera subtarea del kick off con fecha)
         if kickoff_date is None and parent and "kick off" in str(parent).lower() and ini:
             kickoff_date = ini
 
-        # Detectar fecha contractual desde Notes de "Plazo Contractual"
         if "plazo contractual" in name.lower() and notas:
             m = re.search(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2,4})', notas)
             if m:
@@ -166,7 +178,6 @@ def process_file(path):
                 except:
                     pass
 
-        # Solo nivel 2 (con parent) y que tenga fechas
         if not parent or not ini or not fin:
             continue
 
@@ -189,15 +200,12 @@ def process_file(path):
     }
 
 def calcular_curva(tareas, kickoff_date, fin_real_date):
-    """Calcula semanas con PV y EV"""
     if not kickoff_date or not fin_real_date:
         return [], 0
 
-    # contar subtareas kickoff para distribuir HRS_TURNO
     n_kick = sum(1 for t in tareas if t["kickoff"]) or 1
     hrs_kick = HRS_TURNO / n_kick
 
-    # asignar horas a cada tarea
     for t in tareas:
         dl = dias_habiles(t["ini"], t["fin"])
         t["_hrs"] = hrs_kick if t["kickoff"] else dl * HRS_DIA
@@ -206,7 +214,6 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
     if total_pv == 0:
         return [], 0
 
-    # generar semanas desde kickoff hasta fin_real + buffer
     semanas = []
     ws = kickoff_date
     fin_ext = fin_real_date + timedelta(days=14)
@@ -244,7 +251,6 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
             "ev": round(ev_sem, 1),
         })
 
-    # calcular acumulados y porcentajes
     pa, ea = 0.0, 0.0
     for r in rows:
         pa += r["pv"]
@@ -264,11 +270,9 @@ def process_all(data_dir):
         nombre = xlsx.stem.replace("_", " ")
         print(f"  Procesando: {nombre}")
 
-        # extraer número de pedido del nombre
         m = re.search(r'(5000\d{4})', nombre)
         pedido = m.group(1) if m else None
 
-        # mapeo pedido → GID (del portfolio de Asana)
         PEDIDO_GID = {
             "50001566": "1215922055649550", "50001563": "1215727332551578",
             "50001559": "1215504785832997", "50001558": "1215137857526702",
@@ -289,7 +293,7 @@ def process_all(data_dir):
             "50001533": "1213955236952392", "50001524": "1213458788103499",
             "50001514": "1213185599076077", "50001515": "1213234368821945",
         }
-        # para proyectos con múltiples OTs, usar el nombre del archivo para distinguir
+
         gid = None
         if "OT4326" in nombre or "OT4326" in xlsx.stem:
             gid = "1214969047721199"
@@ -316,18 +320,15 @@ def process_all(data_dir):
         kickoff = result["kickoff_date"]
         contractual = result["contractual_date"]
 
-        # fin real = fecha más tardía entre todas las tareas
         fin_real = max((t["fin"] for t in tareas), default=None)
 
         if not kickoff:
-            # fallback: fecha más temprana de inicio
             kickoff = min((t["ini"] for t in tareas if t["ini"]), default=None)
         if not fin_real:
             continue
 
         rows, total_pv = calcular_curva(tareas, kickoff, fin_real)
 
-        # calcular % avance actual (EV acum hasta hoy / total PV)
         today = date.today()
         ev_hoy = 0.0
         pv_hoy = 0.0
@@ -339,10 +340,8 @@ def process_all(data_dir):
         pct_ev = round(ev_hoy / total_pv * 100, 1) if total_pv else 0
         pct_pv = round(pv_hoy / total_pv * 100, 1) if total_pv else 0
 
-        # calcular AT (semanas reales desde kickoff)
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
 
-        # calcular ES (earned schedule)
         es_weeks = 0.0
         for i, r in enumerate(rows):
             if r["pctPV"] >= pct_ev:
@@ -361,7 +360,6 @@ def process_all(data_dir):
         eac_weeks = total_weeks / spit if 0 < spit < 90 else total_weeks
         eac_date = (kickoff + timedelta(weeks=eac_weeks)).isoformat() if kickoff else None
 
-        # estado
         if pct_ev >= 100:
             estado = "Terminado"
         elif contractual and contractual < today and pct_ev < 100:
@@ -371,7 +369,6 @@ def process_all(data_dir):
         else:
             estado = "Atrasado"
 
-        # probabilidad simple
         if pct_ev >= 100:
             prob = 100
         elif spit <= 0:
@@ -385,11 +382,21 @@ def process_all(data_dir):
             if contractual and contractual < today and pct_ev < 100:
                 prob = min(prob, 15)
 
-        # despachado = todas las tareas de la sección Logística completadas
+        # ── DESPACHADO: todas las tareas de Logística al 100% ────────────────
         tareas_logistica = [
-            t for t in tareas
-            if "logis" in t["section"].lower() or "logíst" in t["section"].lower()
+            t for t in tareas if es_seccion_logistica(t["section"])
         ]
+
+        # DEBUG: muestra qué encontró en Logística
+        if tareas_logistica:
+            avs = [round(t["av"]*100) for t in tareas_logistica]
+            all_done = all(t["av"] >= 1.0 for t in tareas_logistica)
+            print(f"    Logística: {len(tareas_logistica)} tareas, avances={avs} → despachado={all_done}")
+        else:
+            # Mostrar secciones únicas para diagnóstico
+            secciones = sorted(set(t["section"] for t in tareas))
+            print(f"    ⚠ Sin sección Logística. Secciones encontradas: {secciones}")
+
         despachado = len(tareas_logistica) > 0 and all(t["av"] >= 1.0 for t in tareas_logistica)
 
         proyectos.append({
@@ -455,7 +462,6 @@ def generar_html(proyectos, output_path):
 }}
 body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}}
 
-/* LOGIN */
 .login-wrap{{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 50%,#0f2240 100%)}}
 .login-card{{background:#fff;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}}
 .logo{{width:52px;height:52px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}}
@@ -467,14 +473,12 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1
 .lbtn:hover{{background:#1e3a62}}
 .lerr{{color:var(--rojo);font-size:11px;margin-top:8px}}
 
-/* MAIN */
 .main{{display:none;min-height:100vh}}
 .topbar{{background:var(--navy);padding:12px 28px;display:flex;align-items:center;justify-content:space-between}}
 .topbar .brand{{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:1px}}
 .topbar .meta{{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)}}
 .body{{max-width:1400px;margin:0 auto;padding:20px 24px}}
 
-/* RESUMEN */
 .resumen-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}}
 .proj-card{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;border-left:4px solid transparent}}
 .proj-card:hover{{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}}
@@ -483,6 +487,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1
 .proj-card.estado-Atrasado{{border-left-color:var(--amarillo)}}
 .proj-card.estado-Vencido{{border-left-color:var(--rojo)}}
 .proj-card.estado-Terminado{{border-left-color:var(--purple)}}
+.proj-card.despachado-true{{border-left-color:var(--purple)!important}}
 .proj-card .pname{{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}}
 .proj-card .pmeta{{font-size:10px;color:var(--muted);font-family:var(--mono)}}
 .proj-card .pbadge{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:6px}}
@@ -493,13 +498,11 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1
 .proj-card .pbar{{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}}
 .proj-card .pbarf{{height:4px;border-radius:2px}}
 
-/* FILTROS */
 .filtros-bar{{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}}
 .filtro-btn{{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}}
 .filtro-btn.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
 .search-box{{flex:1;min-width:200px;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;outline:none;background:var(--card)}}
 
-/* DASHBOARD PROYECTO */
 .dash{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;display:none}}
 .dash.open{{display:block}}
 .dash-header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px}}
@@ -521,7 +524,6 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1
 .lgl{{width:20px;height:2px;border-radius:1px}}
 .lgd{{width:20px;height:0;border-top:2px dashed}}
 
-/* TABLA SEMANAL */
 .tbl-wrap{{overflow-x:auto;margin-top:14px}}
 table{{width:100%;border-collapse:collapse;font-size:11px}}
 th{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted2);padding:7px 10px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}}
@@ -533,16 +535,18 @@ tr:hover td{{background:#f8fafc}}
 .c-ok{{background:#dcfce7;color:#15803d}} .c-bad{{background:#fee2e2;color:#b91c1c}}
 .c-warn{{background:#fef3c7;color:#b45309}} .c-gray{{background:#f1f5f9;color:#64748b}}
 
-/* DETALLE TAREAS */
 .fase-header{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);background:var(--bg);padding:5px 10px;border-bottom:1px solid var(--border)}}
 .av-bar{{display:flex;align-items:center;gap:6px}}
 .av-track{{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}}
 .av-fill{{height:4px;border-radius:2px}}
+
+.desp-banner{{display:flex;align-items:center;gap:10px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;padding:10px 16px;margin-top:8px}}
+.desp-banner span.icon{{font-size:22px}}
+.desp-banner span.txt{{font-family:var(--mono);font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:.5px}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
     <div class="logo">Z</div>
@@ -554,7 +558,6 @@ tr:hover td{{background:#f8fafc}}
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · {len(proyectos)} PROYECTOS</div>
@@ -562,7 +565,6 @@ tr:hover td{{background:#f8fafc}}
   </div>
   <div class="body">
 
-    <!-- FILTROS -->
     <div class="filtros-bar">
       <input class="search-box" type="text" id="searchBox" placeholder="Buscar proyecto..." oninput="filtrar()">
       <button class="filtro-btn active" onclick="setFiltro('Todos',this)">Todos</button>
@@ -570,12 +572,11 @@ tr:hover td{{background:#f8fafc}}
       <button class="filtro-btn" onclick="setFiltro('Atrasado',this)">⚠️ Atrasado</button>
       <button class="filtro-btn" onclick="setFiltro('Vencido',this)">🔴 Vencido</button>
       <button class="filtro-btn" onclick="setFiltro('Terminado',this)">✓ Terminado</button>
+      <button class="filtro-btn" onclick="setFiltro('Despachado',this)">🚢 Despachados</button>
     </div>
 
-    <!-- TARJETAS RESUMEN -->
     <div class="resumen-grid" id="resumenGrid"></div>
 
-    <!-- DASHBOARD DETALLE -->
     <div class="dash" id="dashPanel">
       <div class="dash-header">
         <div>
@@ -648,8 +649,12 @@ function filtrar() {{
   document.querySelectorAll('.proj-card').forEach(card => {{
     const nombre = card.dataset.nombre.toLowerCase();
     const estado = card.dataset.estado;
+    const despachado = card.dataset.despachado === 'true';
     const matchQ = !q || nombre.includes(q);
-    const matchE = filtroEstado === 'Todos' || estado === filtroEstado;
+    let matchE = false;
+    if (filtroEstado === 'Todos') matchE = true;
+    else if (filtroEstado === 'Despachado') matchE = despachado;
+    else matchE = estado === filtroEstado;
     card.style.display = (matchQ && matchE) ? '' : 'none';
   }});
 }}
@@ -664,15 +669,20 @@ function renderResumen() {{
   grid.innerHTML = '';
   DATA.forEach((p, idx) => {{
     const card = document.createElement('div');
-    card.className = `proj-card estado-${{p.estado}}`;
+    card.className = `proj-card estado-${{p.estado}} despachado-${{p.despachado}}`;
     card.dataset.nombre = p.nombre;
     card.dataset.estado = p.estado;
+    card.dataset.despachado = p.despachado;
     card.dataset.idx = idx;
 
     const spit = p.spit === 99 ? '∞' : p.spit.toFixed(2);
     const svt = (p.svt >= 0 ? '+' : '') + p.svt.toFixed(1) + 'w';
     const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—';
     const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
+
+    const despBadge = p.despachado
+      ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px;font-size:10px">🚢 Despachado</span>`
+      : '';
 
     card.innerHTML = `
       <div class="pname">${{p.nombre}}</div>
@@ -684,7 +694,7 @@ function renderResumen() {{
       </div>
       <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
       <span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>
-      ${{p.despachado ? '<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px">🚢 Despachado</span>' : ''}}
+      ${{despBadge}}
     `;
     card.onclick = () => abrirDash(idx, card);
     grid.appendChild(card);
@@ -703,10 +713,9 @@ function abrirDash(idx, card) {{
 
   document.getElementById('dashTitle').textContent = p.nombre;
   document.getElementById('dashDespachado').innerHTML = p.despachado
-    ? `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 14px;">
-        <span style="font-size:18px">🚢</span>
-        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:#7c3aed;">DESPACHADO</span>
-       </div>` : '';
+    ? `<div class="desp-banner"><span class="icon">🚢</span><span class="txt">DESPACHADO — Logística 100% completada</span></div>`
+    : '';
+
   document.getElementById('dashMeta').innerHTML = `
     📅 Kick Off: <b>${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
     🏁 Contractual: <b>${{p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
@@ -756,21 +765,11 @@ function renderChart(p) {{
   const todayIdx = todayRows.length - 1;
   const pctEVhoy = todayIdx >= 0 ? todayRows[todayIdx].pctEV : 0;
 
-  // índice de fecha contractual
   let dueIdx = rows.length - 1;
   if (p.contractual) {{
     const dueD = new Date(p.contractual);
     for (let i = 0; i < rows.length; i++) {{
       if (new Date(rows[i].ws) >= dueD) {{ dueIdx = i; break; }}
-    }}
-  }}
-
-  // índice de fecha EXW
-  let exwIdx = -1;
-  if (p.exw) {{
-    const exwD = new Date(p.exw);
-    for (let i = 0; i < rows.length; i++) {{
-      if (new Date(rows[i].ws) >= exwD) {{ exwIdx = i; break; }}
     }}
   }}
 
@@ -794,15 +793,6 @@ function renderChart(p) {{
       interaction:{{mode:'index',intersect:false}},
       plugins:{{
         legend:{{display:false}},
-        annotation: dueIdx >= 0 ? {{
-          annotations: {{
-            contractual: {{
-              type:'line', xMin:dueIdx, xMax:dueIdx,
-              borderColor:'rgba(220,38,38,.6)', borderWidth:2, borderDash:[4,4],
-              label:{{content:'Contractual', enabled:true, position:'start', font:{{size:9}}, color:'#dc2626', backgroundColor:'transparent'}}
-            }}
-          }}
-        }} : {{}},
         tooltip:{{
           backgroundColor:'#0f172a', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
           titleColor:'#f8fafc', bodyColor:'#94a3b8',
@@ -882,7 +872,9 @@ function renderTareas(p) {{
     if (t.section !== lastFase) {{
       lastFase = t.section;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="6" class="fase-header">${{t.section || 'Sin sección'}}</td>`;
+      // Resaltar sección Logística
+      const esLog = t.section.toLowerCase().includes('logis') || t.section.toLowerCase().includes('despacho');
+      tr.innerHTML = `<td colspan="6" class="fase-header" style="${{esLog?'background:#ede9fe;color:#7c3aed':''}}">${{t.section || 'Sin sección'}}${{esLog?' 🚢':''}}</td>`;
       tbody.appendChild(tr);
     }}
     const av = t.av;
@@ -913,6 +905,8 @@ function renderTareas(p) {{
     Path(output_path).write_text(html, encoding="utf-8")
     print(f"\n✓ CURVAS.HTML generado: {output_path}")
     print(f"  {len(proyectos)} proyectos incluidos")
+    desp = sum(1 for p in proyectos if p['despachado'])
+    print(f"  {desp} proyectos despachados")
 
 
 def main():
