@@ -1,30 +1,71 @@
-name: Generar Curva S
+name: Exportar Asana cada hora
+
 on:
   schedule:
-    - cron: "*/30 11-20 * * 1-5"
+    - cron: "*/30 11-20 * * 1-5"  # cada 30 min entre 07:00-16:00 Chile (UTC-4), lunes a viernes
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
-  curva_s:
+  exportar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Instalar dependencias
-        run: pip install openpyxl
-      - name: Generar Curva S
-        run: python scripts/generar_curvaS.py data curva-s-buscador.html curva-s-buscador.html
-      - name: Commit y push
+        run: |
+          pip install playwright openpyxl
+          playwright install chromium --with-deps
+
+      - name: Restaurar sesion de Asana
+        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
+
+      - name: Limpiar carpeta data (evitar archivos huerfanos)
+        run: rm -f data/*.xlsx data/*.csv
+
+      - name: Exportar proyectos
+        run: python scripts/asana_export.py
+
+      - name: Subir diagnostico (si hubo fallos)
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: debug
+          path: debug/
+          if-no-files-found: ignore
+
+      - name: Borrar sesion (no dejar rastro en el runner)
+        if: always()
+        run: rm -f auth.json
+
+      # <-- NUEVO: genera el dashboard KPI.HTML a partir de los xlsx en data/
+      - name: Generar KPI.HTML
+        run: python scripts/generar_kpi.py data KPI.HTML
+
+      # <-- NUEVO: genera el dashboard CURVAS.HTML con Curva S por proyecto
+      - name: Generar CURVAS.HTML
+        run: python scripts/generar_curvas.py data CURVAS.HTML
+
+      - name: Commit y push de los CSV actualizados
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add curva-s-buscador.html
+          git add data/ KPI.HTML CURVAS.HTML
           git diff --staged --quiet && echo "Sin cambios" && exit 0
-          git commit -m "Curva S actualizada $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git fetch origin main
+          git reset --soft origin/main
+          git add data/ KPI.HTML CURVAS.HTML
+          git diff --staged --quiet && echo "Sin cambios tras fetch" && exit 0
+          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
