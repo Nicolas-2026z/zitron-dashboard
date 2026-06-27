@@ -1,370 +1,918 @@
-#!/usr/bin/env python3
 """
-generar_curvaS.py
-Genera o actualiza el bloque DEMO del portafolio HTML
-leyendo todos los Excel de la carpeta data/.
-
-Uso:
-    python generar_curvaS.py <carpeta_data> <portafolio_template.html> <output.html>
-    python generar_curvaS.py data portafolio.html portafolio.html   # sobreescribe
-
-El script:
-1. Lee cada .xlsx en <carpeta_data>
-2. Detecta el GID del proyecto desde el nombre del archivo o columna Projects
-3. Construye el bloque JS DEMO={...} con fases/subtareas/avances reales
-4. Inyecta el DEMO en el HTML reemplazando el bloque existente
-5. Actualiza TODAY en el JS con la fecha actual
+generar_curvas.py
+Lee los Excel de Asana en data/ y genera CURVAS.HTML con Curva S por proyecto.
 """
-
-import os
 import sys
-import json
 import re
-from datetime import datetime, date
-from openpyxl import load_workbook
+import json
+from pathlib import Path
+from datetime import date, datetime, timedelta
 
-# ─── CATÁLOGO GID ────────────────────────────────────────────────────────────
-# Mapea número de pedido → GID (igual que en el HTML)
-CATALOGO_MAP = {
-    '50001566': '1215922055649550',
-    '50001563': '1215727332551578',
-    '50001559': '1215504785832997',
-    '50001558': '1215137857526702',
-    '50001557': '1215139673478155',
-    '50001557b': '1215137857526520',
-    '50001555': '1214922603742599',
-    '50001554': '1215118022011721',
-    '50001553': '1214969047721199',
-    '50001553-OT4326': '1214969047721199',
-    '50001553-OT4327': '1214969047720950',
-    '50001553-OT4324': '1214969284200793',
-    '50001553-OT4325': '1214969284200793',
-    '50001547': '1214787972061369',
-    '50001546': '1214739697907723',
-    '50001545': '1214563704105168',
-    '50001544': '1214892476594825',
-    '50001543': '1214508463084754',
-    '50001541': '1214137717389412',
-    '50001534': '1213881596172396',
-    '50001533': '1213955236952392',
-    '50001532': '1213963037596622',
-    '50001525': '1213832650589314',
-    '50001524': '1213458788103499',
-    '50001520': '1213396195711984',
-    '50001518': '1213458785834993',
-    '50001516': '1213391174146526',
-    '50001515': '1213234368821945',
-    '50001514': '1213185599076077',
-    '50001508': '1213362937195444',
-    '50001506': '1213244147627519',
-    '50001504': '1213400421980747',
-    '50001504-A': '1213400421980747',
-    '50001504-B': '1213377149548924',
-    '50001501': '1213377149548860',
-    '50001500': '1213234368822465',
-    '50001499': '1213244147627934',
-    '50001498': '1213377149548798',
-    '50001497': '1213193352022841',
-    '50001490': '1213377149548731',
-    '50001485': '1213377149548665',
-    '50001477': '1213377149548590',
-    '50001473': '1213377149548525',
-    '50001466': '1213997266064436',
-    '50001451': '1213391072478496',
-    '50001446': '1213377149548988',
-    '50001415': '1213391072478428',
-    '50001309': '1213377149548388',
+try:
+    import openpyxl
+except ImportError:
+    print("Instalando openpyxl...")
+    import subprocess
+    subprocess.run([sys.executable, "-m", "pip", "install", "openpyxl", "--break-system-packages"], check=True)
+    import openpyxl
+
+# ── Feriados Chile 2025-2026 ──────────────────────────────────────────────────
+FERIADOS = {
+    date(2025,4,18), date(2025,4,19), date(2025,5,1), date(2025,5,21),
+    date(2025,6,20), date(2025,6,29), date(2025,7,16), date(2025,8,15),
+    date(2025,9,18), date(2025,9,19), date(2025,10,12), date(2025,10,31),
+    date(2025,11,1), date(2025,12,8), date(2025,12,25),
+    date(2026,1,1), date(2026,4,3), date(2026,4,4), date(2026,5,1),
+    date(2026,5,21), date(2026,6,20), date(2026,6,29), date(2026,7,16),
+    date(2026,8,15), date(2026,9,18), date(2026,9,19), date(2026,10,12),
+    date(2026,10,31), date(2026,11,1), date(2026,12,8), date(2026,12,25),
 }
 
-KICKOFF_TASKS = {
-    'apertura pedido', 'alcance del proyecto',
-    'definición técnica', 'definicion tecnica',
-    'plazo contractual', 'definición jefe', 'definicion jefe'
+HRS_TURNO = 8      # horas kick off total
+HRS_DIA   = 8.3   # 8.3 horas por día hábil
+
+# ── Fechas EXW por GID de proyecto (leídas desde el portfolio de Asana) ──────
+# Campo: due_on del proyecto en el portfolio 1213511928397658
+# Se puede regenerar corriendo: python scripts/fetch_exw.py > scripts/exw.json
+FECHAS_EXW_GID = {
+    "1215922055649550": "2026-08-04",  # 50001566 - XEMORTIZ
+    "1215727332551578": "2026-07-13",  # 50001563 - ZITRON COLOMBIA ANTIOQUIA
+    "1215504785832997": "2026-06-23",  # 50001559 - FERROVIAL
+    "1215137857526702": "2026-06-16",  # 50001558 - GESVIAL OT4342-4344
+    "1215137857526520": "2026-06-16",  # 50001557 - ATACAMA KOZAN OT4340
+    "1215139673478155": "2026-06-16",  # 50001557 - ATACAMA KOZAN OT4335-4337-4339
+    "1215118022011721": "2026-08-05",  # 50001554 - MAPIMI
+    "1214969047721199": "2026-07-18",  # 50001553 - ARIS OT4326
+    "1214969047720950": "2026-07-18",  # 50001553 - ARIS OT4327
+    "1214969284200793": "2026-07-18",  # 50001553 - ARIS OT4324-4325
+    "1214922603742599": "2026-08-03",  # 50001555 - ZITRON COLOMBIA ARIS MINING SEGOVIA
+    "1214892476594825": "2026-08-15",  # 50001544 - DMC MINING SERVICES
+    "1214787972061369": "2026-07-01",  # 50001547 - XEMORTIZ AMERICAS GOLD
+    "1214739697907723": "2026-06-26",  # 50001546 - XEMORTIZ
+    "1214563704105168": "2026-06-26",  # 50001545 - XEMORTIZ MINERA FRISCO
+    "1214508463084754": "2026-06-16",  # 50001543 - ZITRON COLOMBIA EGM
+    "1213832650589314": "2026-07-16",  # 50001525 - ZITRON PERU METRO LIMA E07
+    "1213881596172396": "2026-08-03",  # 50001534 - ZITRON PERU METRO LIMA E04-05-06-R4
+    "1214137717389412": "2026-06-22",  # 50001541 - XEMORTIZ MINERA FRISCO
+    "1213963037596622": "2026-04-22",  # 50001532 - XEMORTIZ AMERICAS GOLD
+    "1213997266064436": "2026-05-25",  # 50001466 - ZITRON PERU PODEROSA
+    "1213377149548665": "2026-04-21",  # 50001485 - CALABRESSE METRO STO DOMINGO
+    "1213377149548798": "2026-05-07",  # 50001498 - CALABRESSE POZOS
+    "1213377149548590": "2026-04-10",  # 50001477 - TRITON MINERA
+    "1213377149548731": "2026-04-20",  # 50001490 - ZITRON PERU PV04-PV05
+    "1213400421980747": "2026-04-14",  # 50001504 - ZITRON PERU CODESTABLE A
+    "1213377149548924": "2026-04-14",  # 50001504 - ZITRON PERU CODESTABLE B
+    "1213391072478428": "2026-03-16",  # 50001415 - ZITRON PERU METRO LIMA E05
+    "1213244147627519": "2026-04-10",  # 50001506 - ZCO EPM FRIO AIRE
+    "1213377149548388": "2026-05-26",  # 50001309 - BUGA (excluido pero por si acaso)
+    "1213391072478496": "2026-03-02",  # 50001451 - ZITRON COLOMBIA
+    "1213234368822465": "2026-02-14",  # 50001500 - EQ MIN LA HACIENDA
+    "1213193352022841": "2026-06-15",  # 50001497 - XEMORTIZ IMMSA STA BBR
+    "1213244147627934": "2026-05-10",  # 50001499 - EQ CHAPARRAL
+    "1213362937195444": "2026-02-16",  # 50001508 - XEMORTIZ STOCK
+    "1213377149548525": "2026-02-04",  # 50001473 - MAPIMI
+    "1213377149548860": "2026-02-14",  # 50001501 - EQ MIN LA HACIENDA B
+    "1213377149548988": "2026-04-21",  # 50001446 - MINERA FRESNILLO
+    "1213396195711984": "2026-03-13",  # 50001520 - XEMORTIZ DDG
+    "1213458785834993": "2026-08-13",  # 50001518 - EQ CHAPARRAL B
+    "1213955236952392": "2026-05-04",  # 50001533 - GESVIAL
+    "1213458788103499": "2026-04-08",  # 50001524 - ATACAMA KOZAN
+    "1213185599076077": "2026-03-05",  # 50001514 - CLIENTE POR DEFINIR A
+    "1213234368821945": "2026-03-05",  # 50001515 - CLIENTE POR DEFINIR B
 }
 
+def to_date(val):
+    if val is None: return None
+    if isinstance(val, (date, datetime)):
+        return val.date() if isinstance(val, datetime) else val
+    if isinstance(val, str):
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try: return datetime.strptime(val.strip(), fmt).date()
+            except: pass
+    return None
 
-def es_kickoff(nombre):
-    n = nombre.lower()
-    return any(kw in n for kw in KICKOFF_TASKS)
+def dias_habiles(d1, d2):
+    """Días hábiles entre d1 y d2 inclusive"""
+    if not d1 or not d2: return 0
+    if d1 > d2: d1, d2 = d2, d1
+    count = 0
+    cur = d1
+    while cur <= d2:
+        if cur.weekday() < 5 and cur not in FERIADOS:
+            count += 1
+        cur += timedelta(days=1)
+    return max(count, 1)
 
+def dias_habiles_en_semana(ini, fin, ws, we):
+    """Días hábiles de una tarea que caen dentro de la semana ws..we (inclusive)"""
+    a = max(ini, ws)
+    b = min(fin, we)
+    if a > b: return 0
+    return dias_habiles(a, b)
 
-def fmt_date(d):
-    if isinstance(d, (datetime, date)):
-        return d.strftime('%Y-%m-%d')
-    return str(d or '')
+def process_file(path):
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws_sheet = wb.active
 
+    # Detectar fila de encabezados (fila 3 normalmente)
+    hdr = None
+    for i, row in enumerate(ws_sheet.iter_rows(min_row=1, max_row=5, values_only=True)):
+        if row and "Name" in row:
+            hdr = {str(v).strip(): j for j, v in enumerate(row) if v is not None}
+            header_row = i + 1
+            break
+    if not hdr:
+        return None
 
-def leer_excel(path):
-    """Lee un Excel de Asana y retorna lista de fases con subtareas."""
-    wb = load_workbook(path, read_only=True)
-    ws = wb.active
+    def g(row, col_name):
+        idx = hdr.get(col_name)
+        if idx is None: return None
+        return row[idx]
 
-    # Leer header row (fila 3)
-    headers = {}
-    for row in ws.iter_rows(min_row=3, max_row=3, values_only=True):
-        for i, v in enumerate(row):
-            if v:
-                headers[str(v).strip()] = i
-        break
+    tareas = []
+    kickoff_date = None
+    contractual_date = None
 
-    col = {
-        'name': headers.get('Name', 4),
-        'parent': headers.get('Parent task', 13),
-        'ini': headers.get('inicio ', 16),
-        'fin': headers.get('Entrega ', 17),
-        'av': (headers.get('Avance Tarea') or
-               headers.get('% Avance proyecto') or
-               headers.get('Avance') or 19),
-        'estatus': headers.get('Estatus', 20),
-        'projects': headers.get('Projects', 12),
+    for row in ws_sheet.iter_rows(min_row=header_row + 1, values_only=True):
+        name = g(row, "Name")
+        if not name: continue
+        name = str(name).strip()
+
+        parent = g(row, "Parent task") or ""
+        section = g(row, "Section/Column") or ""
+        ini_raw = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
+        fin_raw = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
+        av_raw  = g(row, "Avance Tarea")
+        notas   = g(row, "Notes") or ""
+
+        ini = to_date(ini_raw)
+        fin = to_date(fin_raw)
+        av  = float(av_raw) if av_raw is not None else 0.0
+
+        # Detectar Kick Off date (primera subtarea del kick off con fecha)
+        if kickoff_date is None and parent and "kick off" in str(parent).lower() and ini:
+            kickoff_date = ini
+
+        # Detectar fecha contractual desde Notes de "Plazo Contractual"
+        if "plazo contractual" in name.lower() and notas:
+            m = re.search(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2,4})', notas)
+            if m:
+                d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                if y < 100: y += 2000
+                try:
+                    contractual_date = date(y, mo, d)
+                except:
+                    pass
+
+        # Solo nivel 2 (con parent) y que tenga fechas
+        if not parent or not ini or not fin:
+            continue
+
+        es_kickoff = "kick off" in str(parent).lower() or "kick off" in name.lower()
+
+        tareas.append({
+            "name": name,
+            "section": str(section).strip(),
+            "parent": str(parent).strip(),
+            "ini": ini,
+            "fin": fin,
+            "av": min(max(av, 0.0), 1.0),
+            "kickoff": es_kickoff,
+        })
+
+    return {
+        "tareas": tareas,
+        "kickoff_date": kickoff_date,
+        "contractual_date": contractual_date,
     }
 
-    # Detectar nombre del proyecto (fila 1, col 0)
-    proyecto_nombre = ''
-    for row in ws.iter_rows(min_row=1, max_row=1, values_only=True):
-        proyecto_nombre = str(row[0] or '').strip()
-        break
+def calcular_curva(tareas, kickoff_date, fin_real_date):
+    """Calcula semanas con PV y EV"""
+    if not kickoff_date or not fin_real_date:
+        return [], 0
 
-    # Leer todas las filas desde fila 4
-    fases = {}       # nombre_fase -> list of subtasks
-    fase_order = []  # para mantener orden
-    subtask_parents = {}  # nombre_tarea -> nombre_fase
+    # contar subtareas kickoff para distribuir HRS_TURNO
+    n_kick = sum(1 for t in tareas if t["kickoff"]) or 1
+    hrs_kick = HRS_TURNO / n_kick
 
-    for row in ws.iter_rows(min_row=4, values_only=True):
-        name = str(row[col['name']] or '').strip()
-        if not name:
-            continue
+    # asignar horas a cada tarea
+    for t in tareas:
+        dl = dias_habiles(t["ini"], t["fin"])
+        t["_hrs"] = hrs_kick if t["kickoff"] else dl * HRS_DIA
 
-        parent = str(row[col['parent']] or '').strip()
-        ini_raw = row[col['ini']]
-        fin_raw = row[col['fin']]
-        av_raw = row[col['av']]
+    total_pv = sum(t["_hrs"] for t in tareas)
+    if total_pv == 0:
+        return [], 0
 
-        ini = fmt_date(ini_raw) if ini_raw else ''
-        fin = fmt_date(fin_raw) if fin_raw else ini
-        # Leer avance de forma robusta — puede ser float, int o string
-        try:
-            av = float(av_raw) if av_raw is not None else 0.0
-        except (ValueError, TypeError):
-            # Si es texto como 'Tarea Terminada', 'Alta', etc → ignorar
-            av = 0.0
+    # generar semanas desde kickoff hasta fin_real + buffer
+    semanas = []
+    ws = kickoff_date
+    fin_ext = fin_real_date + timedelta(days=14)
+    while ws <= fin_ext:
+        semanas.append(ws)
+        ws = ws + timedelta(days=7)
 
-        # Si no tiene parent → es una fase (sección)
-        if not parent:
-            fase_clean = name.rstrip(':').strip()
-            if fase_clean not in fases:
-                fases[fase_clean] = []
-                fase_order.append(fase_clean)
-            continue
+    rows = []
+    for i, ws in enumerate(semanas):
+        we = ws + timedelta(days=6)
+        pv_sem = 0.0
+        ev_sem = 0.0
+        n_tareas = 0
 
-        # Si tiene parent pero ese parent también tiene parent → sub-subtarea, ignorar
-        # (solo tomamos nivel 1 de subtareas)
-        # Verificamos si el parent es una fase conocida o una subtarea
-        parent_clean = parent.rstrip(':').strip()
+        for t in tareas:
+            if t["kickoff"]:
+                if t["ini"] >= ws and t["ini"] <= we:
+                    pv_sem += t["_hrs"]
+                    ev_sem += t["_hrs"] * t["av"]
+                    n_tareas += 1
+            else:
+                dl = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
+                if dl == 0: continue
+                hrs = dl * HRS_DIA
+                pv_sem += hrs
+                ev_sem += hrs * t["av"]
+                n_tareas += 1
 
-        # Construir subtarea solo si ini/fin están disponibles
-        if not ini:
-            continue
+        rows.append({
+            "idx": i + 1,
+            "ws": ws.isoformat(),
+            "we": we.isoformat(),
+            "n": n_tareas,
+            "pv": round(pv_sem, 1),
+            "ev": round(ev_sem, 1),
+        })
 
-        subtask = {
-            'name': name,
-            'ini': ini,
-            'fin': fin if fin else ini,
-            'av': round(min(max(av, 0.0), 1.0), 2),
+    # calcular acumulados y porcentajes
+    pa, ea = 0.0, 0.0
+    for r in rows:
+        pa += r["pv"]
+        ea += r["ev"]
+        r["pvA"] = round(pa, 1)
+        r["evA"] = round(ea, 1)
+        r["pctPV"] = round(pa / total_pv * 100, 1) if total_pv else 0
+        r["pctEV"] = round(ea / total_pv * 100, 1) if total_pv else 0
+
+    return rows, round(total_pv, 1)
+
+def process_all(data_dir):
+    data_path = Path(data_dir)
+    proyectos = []
+
+    for xlsx in sorted(data_path.glob("*.xlsx")):
+        nombre = xlsx.stem.replace("_", " ")
+        print(f"  Procesando: {nombre}")
+
+        # extraer número de pedido del nombre
+        m = re.search(r'(5000\d{4})', nombre)
+        pedido = m.group(1) if m else None
+
+        # mapeo pedido → GID (del portfolio de Asana)
+        PEDIDO_GID = {
+            "50001566": "1215922055649550", "50001563": "1215727332551578",
+            "50001559": "1215504785832997", "50001558": "1215137857526702",
+            "50001554": "1215118022011721", "50001555": "1214922603742599",
+            "50001544": "1214892476594825", "50001547": "1214787972061369",
+            "50001546": "1214739697907723", "50001545": "1214563704105168",
+            "50001543": "1214508463084754", "50001525": "1213832650589314",
+            "50001534": "1213881596172396", "50001541": "1214137717389412",
+            "50001532": "1213963037596622", "50001466": "1213997266064436",
+            "50001485": "1213377149548665", "50001498": "1213377149548798",
+            "50001477": "1213377149548590", "50001490": "1213377149548731",
+            "50001415": "1213391072478428", "50001506": "1213244147627519",
+            "50001451": "1213391072478496", "50001500": "1213234368822465",
+            "50001497": "1213193352022841", "50001499": "1213244147627934",
+            "50001508": "1213362937195444", "50001473": "1213377149548525",
+            "50001501": "1213377149548860", "50001446": "1213377149548988",
+            "50001520": "1213396195711984", "50001518": "1213458785834993",
+            "50001533": "1213955236952392", "50001524": "1213458788103499",
+            "50001514": "1213185599076077", "50001515": "1213234368821945",
         }
-        if es_kickoff(name):
-            subtask['kickoff'] = True
+        # para proyectos con múltiples OTs, usar el nombre del archivo para distinguir
+        gid = None
+        if "OT4326" in nombre or "OT4326" in xlsx.stem:
+            gid = "1214969047721199"
+        elif "OT4327" in nombre or "OT4327" in xlsx.stem:
+            gid = "1214969047720950"
+        elif "OT4324" in nombre or "OT4324" in xlsx.stem:
+            gid = "1214969284200793"
+        elif "OT4340" in nombre or "OT4340" in xlsx.stem:
+            gid = "1215137857526520"
+        elif "OT4335" in nombre or "OT4335" in xlsx.stem:
+            gid = "1215139673478155"
+        elif pedido:
+            gid = PEDIDO_GID.get(pedido)
 
-        # Asociar al parent correcto
-        if parent_clean in fases:
-            fases[parent_clean].append(subtask)
+        exw_str = FECHAS_EXW_GID.get(gid) if gid else None
+        exw_date = date.fromisoformat(exw_str) if exw_str else None
+
+        result = process_file(xlsx)
+        if not result or not result["tareas"]:
+            print(f"    ⚠ Sin tareas: {nombre}")
+            continue
+
+        tareas = result["tareas"]
+        kickoff = result["kickoff_date"]
+        contractual = result["contractual_date"]
+
+        # fin real = fecha más tardía entre todas las tareas
+        fin_real = max((t["fin"] for t in tareas), default=None)
+
+        if not kickoff:
+            # fallback: fecha más temprana de inicio
+            kickoff = min((t["ini"] for t in tareas if t["ini"]), default=None)
+        if not fin_real:
+            continue
+
+        rows, total_pv = calcular_curva(tareas, kickoff, fin_real)
+
+        # calcular % avance actual (EV acum hasta hoy / total PV)
+        today = date.today()
+        ev_hoy = 0.0
+        pv_hoy = 0.0
+        for r in rows:
+            if date.fromisoformat(r["ws"]) <= today:
+                ev_hoy = r["evA"]
+                pv_hoy = r["pvA"]
+
+        pct_ev = round(ev_hoy / total_pv * 100, 1) if total_pv else 0
+        pct_pv = round(pv_hoy / total_pv * 100, 1) if total_pv else 0
+
+        # calcular AT (semanas reales desde kickoff)
+        at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
+
+        # calcular ES (earned schedule)
+        es_weeks = 0.0
+        for i, r in enumerate(rows):
+            if r["pctPV"] >= pct_ev:
+                if i == 0:
+                    es_weeks = pct_ev / max(r["pctPV"], 0.001)
+                else:
+                    prev = rows[i-1]
+                    f = (pct_ev - prev["pctPV"]) / max(r["pctPV"] - prev["pctPV"], 0.001)
+                    es_weeks = (i - 1) + f
+                break
+            es_weeks = len(rows)
+
+        spit = round(es_weeks / at_weeks, 2) if at_weeks > 0 else (99 if pct_ev > 0 else 0)
+        svt  = round(es_weeks - at_weeks, 2)
+        total_weeks = len(rows)
+        eac_weeks = total_weeks / spit if 0 < spit < 90 else total_weeks
+        eac_date = (kickoff + timedelta(weeks=eac_weeks)).isoformat() if kickoff else None
+
+        # estado
+        if pct_ev >= 100:
+            estado = "Terminado"
+        elif contractual and contractual < today and pct_ev < 100:
+            estado = "Vencido"
+        elif svt >= 0:
+            estado = "Adelantado"
         else:
-            # El parent puede ser una subtarea nivel 2 — intentar asociar a su abuelo
-            # Buscar fase del parent
-            if parent_clean in subtask_parents:
-                abuelo = subtask_parents[parent_clean]
-                if abuelo in fases:
-                    # Agregar como si fuera subtarea de la fase con nombre compuesto
-                    subtask['name'] = f"{parent_clean} / {name}"
-                    fases[abuelo].append(subtask)
-            # else ignorar
+            estado = "Atrasado"
 
-        subtask_parents[name] = parent_clean
-
-    # Construir lista de fases para JS
-    fases_js = []
-    for fase_name in fase_order:
-        subs = fases.get(fase_name, [])
-        if subs:
-            fases_js.append({
-                'fase': fase_name,
-                'subtasks': subs
-            })
-
-    return proyecto_nombre, fases_js
-
-
-def extraer_gid_de_nombre(filename, proyecto_nombre):
-    """Intenta extraer el GID del nombre del archivo o del nombre del proyecto."""
-    fn = filename.upper()
-
-    # Buscar número de pedido en el nombre del archivo
-    m = re.search(r'5\d{7}', filename)
-    pedido = m.group(0) if m else ''
-
-    if not pedido:
-        m = re.search(r'5\d{7}', proyecto_nombre)
-        pedido = m.group(0) if m else ''
-
-    # Casos especiales con variantes en el nombre del archivo
-    if pedido == '50001504':
-        if 'CODESTABLE B' in fn or ' B.' in fn:
-            return pedido, CATALOGO_MAP['50001504-B']
-        return pedido, CATALOGO_MAP['50001504-A']
-
-    if pedido == '50001557':
-        if 'OT4340' in fn:
-            return pedido, CATALOGO_MAP['50001557']
-        return pedido, CATALOGO_MAP['50001557b']
-
-    if pedido == '50001553':
-        if 'OT4327' in fn:
-            return pedido, CATALOGO_MAP['50001553-OT4327']
-        if 'OT4324' in fn or 'OT4325' in fn:
-            return pedido, CATALOGO_MAP['50001553-OT4324']
-        return pedido, CATALOGO_MAP['50001553-OT4326']
-
-    if pedido in CATALOGO_MAP:
-        val = CATALOGO_MAP[pedido]
-        if isinstance(val, str):
-            return pedido, val
-        return pedido, list(val.values())[0]
-
-    return pedido, None
-
-
-def fases_to_js(fases_list, indent=4):
-    """Convierte lista de fases a string JS compatible con el HTML."""
-    lines = []
-    pad = ' ' * indent
-    lines.append('[')
-    for fi, fase in enumerate(fases_list):
-        coma_fase = ',' if fi < len(fases_list) - 1 else ''
-        lines.append(f"{pad}{{fase:{json.dumps(fase['fase'], ensure_ascii=False)},subtasks:[")
-        subs = fase['subtasks']
-        for si, s in enumerate(subs):
-            coma_sub = ',' if si < len(subs) - 1 else ''
-            kv = f"{{name:{json.dumps(s['name'], ensure_ascii=False)},ini:{json.dumps(s['ini'])},fin:{json.dumps(s['fin'])},av:{s['av']}"
-            if s.get('kickoff'):
-                kv += ',kickoff:true'
-            kv += f"}}{coma_sub}"
-            lines.append(f"{pad}  {kv}")
-        lines.append(f"{pad}]}}{coma_fase}")
-    lines.append('  ]')
-    return '\n'.join(lines)
-
-
-def procesar_carpeta(carpeta_data):
-    """Lee todos los .xlsx y retorna dict gid → fases."""
-    resultado = {}
-    archivos = [f for f in os.listdir(carpeta_data) if f.endswith('.xlsx')]
-
-    if not archivos:
-        print(f"[WARN] No se encontraron .xlsx en {carpeta_data}")
-        return resultado
-
-    for archivo in sorted(archivos):
-        path = os.path.join(carpeta_data, archivo)
-        print(f"[INFO] Procesando: {archivo}")
-        try:
-            proyecto_nombre, fases = leer_excel(path)
-            pedido, gid = extraer_gid_de_nombre(archivo, proyecto_nombre)
-
-            if not gid:
-                print(f"  [WARN] No se encontró GID para pedido={pedido}, archivo={archivo}")
-                continue
-
-            if not fases:
-                print(f"  [WARN] Sin fases/subtareas extraíbles en {archivo}")
-                continue
-
-            resultado[gid] = fases
-            total_subs = sum(len(f['subtasks']) for f in fases)
-            print(f"  → GID {gid} | {len(fases)} fases | {total_subs} subtareas")
-
-        except Exception as e:
-            print(f"  [ERROR] {archivo}: {e}")
-            import traceback; traceback.print_exc()
-
-    return resultado
-
-
-def actualizar_html(template_path, output_path, demo_data):
-    """Inyecta el nuevo DEMO y actualiza TODAY en el HTML."""
-    with open(template_path, 'r', encoding='utf-8') as f:
-        html = f.read()
-
-    # ── Construir nuevo bloque DEMO ──────────────────────────────────────────
-    partes = []
-    for gid, fases in demo_data.items():
-        fases_str = fases_to_js(fases, indent=4)
-        partes.append(f"  '{gid}':{{fases:{fases_str}}}")
-
-    nuevo_demo = 'const DEMO={\n' + ',\n'.join(partes) + '\n};'
-
-    # Reemplazar bloque DEMO existente (desde "const DEMO={" hasta el cierre "};")
-    # Buscar y reemplazar el bloque DEMO — termina en \n};\n
-    idx_start = html.find('const DEMO={')
-    if idx_start >= 0:
-        idx_end = html.find('\n};', idx_start)
-        if idx_end >= 0:
-            html = html[:idx_start] + nuevo_demo + html[idx_end+3:]
-            print("[OK] Bloque DEMO reemplazado")
+        # probabilidad simple
+        if pct_ev >= 100:
+            prob = 100
+        elif spit <= 0:
+            prob = 15
         else:
-            print("[WARN] No se encontró cierre del DEMO")
-    else:
-        # No hay DEMO — insertar antes del CATALOGO
-        html = html.replace('const CATALOGO=', nuevo_demo + '\n\nconst CATALOGO=', 1)
-        print("[OK] Bloque DEMO insertado")
+            dias_left = max((contractual - today).days, 0) if contractual else 0
+            dur = max((fin_real - kickoff).days, 1) if kickoff else 1
+            base = min(max((spit - 0.3) / 1.7 * 100, 5), 95)
+            tBonus = min(dias_left / dur * 20, 20)
+            prob = min(int(base + tBonus), 99)
+            if contractual and contractual < today and pct_ev < 100:
+                prob = min(prob, 15)
 
-    # ── Actualizar TODAY ────────────────────────────────────────────────────
-    hoy = datetime.today().strftime('%Y-%m-%d')
-    html = re.sub(
-        r"const TODAY=new Date\('[^']+'\)",
-        f"const TODAY=new Date('{hoy}')",
-        html
-    )
-    print(f"[OK] TODAY actualizado a {hoy}")
+        proyectos.append({
+            "nombre": nombre,
+            "kickoff": kickoff.isoformat() if kickoff else None,
+            "contractual": contractual.isoformat() if contractual else None,
+            "exw": exw_date.isoformat() if exw_date else None,
+            "fin_real": fin_real.isoformat() if fin_real else None,
+            "eac_date": eac_date,
+            "total_pv": total_pv,
+            "pct_ev": pct_ev,
+            "pct_pv": pct_pv,
+            "at_weeks": round(at_weeks, 1),
+            "es_weeks": round(es_weeks, 2),
+            "spit": spit,
+            "svt": svt,
+            "prob": prob,
+            "estado": estado,
+            "rows": rows,
+            "tareas": [
+                {
+                    "name": t["name"],
+                    "section": t["section"],
+                    "ini": t["ini"].isoformat(),
+                    "fin": t["fin"].isoformat(),
+                    "av": t["av"],
+                    "kickoff": t["kickoff"],
+                }
+                for t in tareas
+            ],
+        })
 
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(html)
-
-    print(f"[OK] HTML guardado en: {output_path}")
+    return proyectos
 
 
-# ─── MAIN ────────────────────────────────────────────────────────────────────
-if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        print("Uso: python generar_curvaS.py <carpeta_data> <template.html> <output.html>")
-        print("Ejemplo: python generar_curvaS.py data portafolio.html portafolio.html")
+def generar_html(proyectos, output_path):
+    today_str = date.today().strftime("%A %d/%m/%Y")
+    data_json = json.dumps(proyectos, ensure_ascii=False)
+
+    html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curva S — Portafolio Zitron</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+:root{{
+  --navy:#0f2240;--navy2:#162d4f;--blue:#2563eb;--blue3:#3b82f6;
+  --bg:#f0f4f8;--card:#fff;--text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --verde:#16a34a;--verde-bg:#dcfce7;
+  --rojo:#dc2626;--rojo-bg:#fee2e2;
+  --amarillo:#d97706;--amarillo-bg:#fef3c7;
+  --purple:#7c3aed;
+  --font:"IBM Plex Sans",sans-serif;--mono:"IBM Plex Mono",monospace;
+}}
+body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}}
+
+/* LOGIN */
+.login-wrap{{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 50%,#0f2240 100%)}}
+.login-card{{background:#fff;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}}
+.logo{{width:52px;height:52px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}}
+.lt{{font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px}}
+.ls{{font-size:12px;color:var(--muted);margin-bottom:28px}}
+.linput{{width:100%;border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;letter-spacing:2px;text-align:center;transition:border-color .15s;margin-bottom:12px}}
+.linput:focus{{border-color:var(--blue)}}
+.lbtn{{width:100%;background:var(--navy);border:none;color:#fff;font-size:14px;font-weight:600;padding:12px;border-radius:8px;cursor:pointer}}
+.lbtn:hover{{background:#1e3a62}}
+.lerr{{color:var(--rojo);font-size:11px;margin-top:8px}}
+
+/* MAIN */
+.main{{display:none;min-height:100vh}}
+.topbar{{background:var(--navy);padding:12px 28px;display:flex;align-items:center;justify-content:space-between}}
+.topbar .brand{{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:1px}}
+.topbar .meta{{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)}}
+.body{{max-width:1400px;margin:0 auto;padding:20px 24px}}
+
+/* RESUMEN */
+.resumen-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}}
+.proj-card{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;border-left:4px solid transparent}}
+.proj-card:hover{{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}}
+.proj-card.sel{{border-left-color:var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.15)}}
+.proj-card.estado-Adelantado{{border-left-color:var(--verde)}}
+.proj-card.estado-Atrasado{{border-left-color:var(--amarillo)}}
+.proj-card.estado-Vencido{{border-left-color:var(--rojo)}}
+.proj-card.estado-Terminado{{border-left-color:var(--purple)}}
+.proj-card .pname{{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}}
+.proj-card .pmeta{{font-size:10px;color:var(--muted);font-family:var(--mono)}}
+.proj-card .pbadge{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:6px}}
+.b-verde{{background:var(--verde-bg);color:var(--verde)}}
+.b-rojo{{background:var(--rojo-bg);color:var(--rojo)}}
+.b-amarillo{{background:var(--amarillo-bg);color:var(--amarillo)}}
+.b-purple{{background:#f3e8ff;color:var(--purple)}}
+.proj-card .pbar{{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}}
+.proj-card .pbarf{{height:4px;border-radius:2px}}
+
+/* FILTROS */
+.filtros-bar{{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}}
+.filtro-btn{{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}}
+.filtro-btn.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
+.search-box{{flex:1;min-width:200px;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;outline:none;background:var(--card)}}
+
+/* DASHBOARD PROYECTO */
+.dash{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;display:none}}
+.dash.open{{display:block}}
+.dash-header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px}}
+.dash-title{{font-size:16px;font-weight:600;color:var(--navy)}}
+.dash-meta{{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px;line-height:1.8}}
+.dash-close{{font-size:11px;color:var(--muted);cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:6px}}
+.dash-close:hover{{color:var(--text)}}
+
+.kpi-row{{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px}}
+.kpi{{background:var(--bg);border-radius:8px;padding:10px 12px;position:relative;overflow:hidden}}
+.kpi::before{{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--blue))}}
+.kl{{font-family:var(--mono);font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}}
+.kv{{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--c,var(--text));line-height:1}}
+.ks{{font-size:10px;color:var(--muted);margin-top:2px}}
+
+.chart-wrap{{position:relative;height:280px;margin-bottom:12px}}
+.chart-legend{{display:flex;flex-wrap:wrap;gap:8px 16px;padding-top:8px;border-top:1px solid var(--border)}}
+.lgi{{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}}
+.lgl{{width:20px;height:2px;border-radius:1px}}
+.lgd{{width:20px;height:0;border-top:2px dashed}}
+
+/* TABLA SEMANAL */
+.tbl-wrap{{overflow-x:auto;margin-top:14px}}
+table{{width:100%;border-collapse:collapse;font-size:11px}}
+th{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted2);padding:7px 10px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}}
+td{{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}}
+tr:last-child td{{border-bottom:none}}
+tr:hover td{{background:#f8fafc}}
+.mono{{font-family:var(--mono)}}
+.chip{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600}}
+.c-ok{{background:#dcfce7;color:#15803d}} .c-bad{{background:#fee2e2;color:#b91c1c}}
+.c-warn{{background:#fef3c7;color:#b45309}} .c-gray{{background:#f1f5f9;color:#64748b}}
+
+/* DETALLE TAREAS */
+.fase-header{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);background:var(--bg);padding:5px 10px;border-bottom:1px solid var(--border)}}
+.av-bar{{display:flex;align-items:center;gap:6px}}
+.av-track{{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}}
+.av-fill{{height:4px;border-radius:2px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">Z</div>
+    <div class="lt">Portafolio — Curva S</div>
+    <div class="ls">Zitron · Acceso privado</div>
+    <input class="linput" type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Ingresar</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <div class="topbar">
+    <div class="brand">// CURVA S · PORTAFOLIO ZITRON · {len(proyectos)} PROYECTOS</div>
+    <div class="meta">Última actualización: {today_str} · Días hábiles Chile</div>
+  </div>
+  <div class="body">
+
+    <!-- FILTROS -->
+    <div class="filtros-bar">
+      <input class="search-box" type="text" id="searchBox" placeholder="Buscar proyecto..." oninput="filtrar()">
+      <button class="filtro-btn active" onclick="setFiltro('Todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="setFiltro('Adelantado',this)">✅ Adelantado</button>
+      <button class="filtro-btn" onclick="setFiltro('Atrasado',this)">⚠️ Atrasado</button>
+      <button class="filtro-btn" onclick="setFiltro('Vencido',this)">🔴 Vencido</button>
+      <button class="filtro-btn" onclick="setFiltro('Terminado',this)">✓ Terminado</button>
+    </div>
+
+    <!-- TARJETAS RESUMEN -->
+    <div class="resumen-grid" id="resumenGrid"></div>
+
+    <!-- DASHBOARD DETALLE -->
+    <div class="dash" id="dashPanel">
+      <div class="dash-header">
+        <div>
+          <div class="dash-title" id="dashTitle"></div>
+          <div class="dash-meta" id="dashMeta"></div>
+        </div>
+        <div class="dash-close" onclick="cerrarDash()">✕ Cerrar</div>
+      </div>
+      <div class="kpi-row" id="dashKpis"></div>
+      <div class="chart-wrap"><canvas id="chartS"></canvas></div>
+      <div class="chart-legend">
+        <div class="lgi"><span class="lgd" style="border-color:#2563eb"></span>PV — % planificado</div>
+        <div class="lgi"><span class="lgl" style="background:#16a34a"></span>EV — % ganado real</div>
+        <div class="lgi"><span class="lgl" style="background:#d97706"></span>ES — semana equivalente</div>
+        <div class="lgi"><span class="lgd" style="border-color:#dc2626;border-style:dotted"></span>Fecha contractual</div>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>Sem</th><th>Fecha</th><th>Tareas</th>
+          <th>PV sem</th><th>EV sem</th>
+          <th>PV acum</th><th>EV acum</th>
+          <th>% PV</th><th>% EV</th>
+          <th>ES</th><th>AT</th>
+          <th>SV(t)</th><th>SPI(t)</th><th>Estado</th>
+        </tr></thead><tbody id="dashTbl"></tbody></table>
+      </div>
+      <div style="margin-top:20px">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Detalle de tareas</div>
+        <div style="overflow-x:auto">
+          <table><thead><tr>
+            <th>Fase</th><th>Tarea</th><th>Inicio</th><th>Entrega</th><th>Avance</th><th>Estado</th>
+          </tr></thead><tbody id="dashTareas"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PWD = 'zitron2026!';
+const DATA = {data_json};
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+let filtroEstado = 'Todos';
+let chartInst = null;
+let selCard = null;
+
+function login() {{
+  if (document.getElementById('pwd').value === PWD) {{
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    renderResumen();
+  }} else {{
+    document.getElementById('lerr').textContent = 'Contraseña incorrecta';
+  }}
+}}
+document.getElementById('pwd').addEventListener('keydown', e => {{ if(e.key==='Enter') login(); }});
+
+function setFiltro(estado, btn) {{
+  filtroEstado = estado;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filtrar();
+}}
+
+function filtrar() {{
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('.proj-card').forEach(card => {{
+    const nombre = card.dataset.nombre.toLowerCase();
+    const estado = card.dataset.estado;
+    const matchQ = !q || nombre.includes(q);
+    const matchE = filtroEstado === 'Todos' || estado === filtroEstado;
+    card.style.display = (matchQ && matchE) ? '' : 'none';
+  }});
+}}
+
+function estadoBadge(estado) {{
+  const map = {{'Adelantado':'b-verde','Atrasado':'b-amarillo','Vencido':'b-rojo','Terminado':'b-purple'}};
+  return map[estado] || 'c-gray';
+}}
+
+function renderResumen() {{
+  const grid = document.getElementById('resumenGrid');
+  grid.innerHTML = '';
+  DATA.forEach((p, idx) => {{
+    const card = document.createElement('div');
+    card.className = `proj-card estado-${{p.estado}}`;
+    card.dataset.nombre = p.nombre;
+    card.dataset.estado = p.estado;
+    card.dataset.idx = idx;
+
+    const spit = p.spit === 99 ? '∞' : p.spit.toFixed(2);
+    const svt = (p.svt >= 0 ? '+' : '') + p.svt.toFixed(1) + 'w';
+    const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—';
+    const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
+
+    card.innerHTML = `
+      <div class="pname">${{p.nombre}}</div>
+      <div class="pmeta">
+        📅 KO: ${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}} &nbsp;·&nbsp;
+        🏁 Contractual: ${{due}}<br>
+        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{spit}} &nbsp;·&nbsp; SV: ${{svt}}<br>
+        📆 EAC: ${{eac}} &nbsp;·&nbsp; Prob: ${{p.prob}}%
+      </div>
+      <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
+      <span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>
+    `;
+    card.onclick = () => abrirDash(idx, card);
+    grid.appendChild(card);
+  }});
+}}
+
+function abrirDash(idx, card) {{
+  if (selCard) selCard.classList.remove('sel');
+  selCard = card;
+  card.classList.add('sel');
+
+  const p = DATA[idx];
+  const dash = document.getElementById('dashPanel');
+  dash.classList.add('open');
+  dash.scrollIntoView({{behavior:'smooth', block:'start'}});
+
+  document.getElementById('dashTitle').textContent = p.nombre;
+  document.getElementById('dashMeta').innerHTML = `
+    📅 Kick Off: <b>${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🏁 Contractual: <b>${{p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🚚 EXW: <b style="color:${{p.exw ? '#d97706' : 'var(--muted)'}}">${{p.exw ? new Date(p.exw).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🔚 Fin real: <b>${{p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}}</b><br>
+    📋 PV total: <b>${{p.total_pv.toFixed(0)}} hrs</b> &nbsp;·&nbsp;
+    ⏱ AT: <b>S${{p.at_weeks.toFixed(1)}}</b> &nbsp;·&nbsp;
+    📊 ES: <b>S${{p.es_weeks.toFixed(2)}}</b>
+  `;
+
+  const svtColor = p.svt >= 0 ? 'var(--verde)' : 'var(--rojo)';
+  const spitColor = p.spit >= 1 ? 'var(--verde)' : p.spit >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
+  const probColor = p.prob >= 70 ? 'var(--verde)' : p.prob >= 40 ? 'var(--amarillo)' : 'var(--rojo)';
+
+  document.getElementById('dashKpis').innerHTML = `
+    <div class="kpi" style="--c:var(--verde)"><div class="kl">EV %</div><div class="kv">${{p.pct_ev}}%</div><div class="ks">avance real</div></div>
+    <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{p.pct_pv}}%</div><div class="ks">planificado</div></div>
+    <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV(t)</div><div class="kv">${{(p.svt>=0?'+':'')+p.svt.toFixed(2)}}w</div><div class="ks">${{p.svt>=0?'adelantado':'atrasado'}}</div></div>
+    <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI(t)</div><div class="kv">${{p.spit===99?'∞':p.spit.toFixed(2)}}</div><div class="ks">${{p.spit>=1?'eficiente':p.spit>=0.7?'moderado':'bajo'}}</div></div>
+    <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_weeks.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
+    <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
+    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{p.at_weeks.toFixed(1)}}</div><div class="ks">semanas reales</div></div>
+    <div class="kpi" style="--c:${{p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${{p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}}</div><div class="ks">estimado cierre</div></div>
+    ${{p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${{new Date(p.exw).toLocaleDateString('es-CL')}}</div><div class="ks">entrega prevista</div></div>` : ''}}
+  `;
+
+  renderChart(p);
+  renderTabla(p);
+  renderTareas(p);
+}}
+
+function cerrarDash() {{
+  document.getElementById('dashPanel').classList.remove('open');
+  if (selCard) selCard.classList.remove('sel');
+  selCard = null;
+}}
+
+function fmts(isoStr) {{
+  const d = new Date(isoStr);
+  return `${{d.getDate().toString().padStart(2,'0')}}/${{(d.getMonth()+1).toString().padStart(2,'0')}}`;
+}}
+
+function renderChart(p) {{
+  if (chartInst) {{ chartInst.destroy(); chartInst = null; }}
+  const rows = p.rows;
+  const todayRows = rows.filter(r => new Date(r.ws) <= TODAY);
+  const todayIdx = todayRows.length - 1;
+  const pctEVhoy = todayIdx >= 0 ? todayRows[todayIdx].pctEV : 0;
+
+  // índice de fecha contractual
+  let dueIdx = rows.length - 1;
+  if (p.contractual) {{
+    const dueD = new Date(p.contractual);
+    for (let i = 0; i < rows.length; i++) {{
+      if (new Date(rows[i].ws) >= dueD) {{ dueIdx = i; break; }}
+    }}
+  }}
+
+  // índice de fecha EXW
+  let exwIdx = -1;
+  if (p.exw) {{
+    const exwD = new Date(p.exw);
+    for (let i = 0; i < rows.length; i++) {{
+      if (new Date(rows[i].ws) >= exwD) {{ exwIdx = i; break; }}
+    }}
+  }}
+
+  const labels = rows.map(r => `S${{r.idx}} ${{fmts(r.ws)}}`);
+  const pvData = rows.map(r => r.pctPV);
+  const evData = rows.map((r, i) => new Date(r.ws) <= TODAY ? r.pctEV : null);
+  const esData = rows.map((r, i) => i <= todayIdx ? pctEVhoy : null);
+
+  chartInst = new Chart(document.getElementById('chartS'), {{
+    type: 'line',
+    data: {{
+      labels,
+      datasets: [
+        {{label:'PV', data:pvData, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.06)', borderWidth:2, borderDash:[6,4], tension:0.3, pointRadius:2, fill:true}},
+        {{label:'EV', data:evData, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.06)', borderWidth:2.5, tension:0.2, pointRadius:2, fill:true, spanGaps:false}},
+        {{label:'ES', data:esData, borderColor:'#d97706', backgroundColor:'transparent', borderWidth:2, borderDash:[3,3], tension:0, pointRadius:0, spanGaps:false}},
+      ]
+    }},
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{{mode:'index',intersect:false}},
+      plugins:{{
+        legend:{{display:false}},
+        annotation: dueIdx >= 0 ? {{
+          annotations: {{
+            contractual: {{
+              type:'line', xMin:dueIdx, xMax:dueIdx,
+              borderColor:'rgba(220,38,38,.6)', borderWidth:2, borderDash:[4,4],
+              label:{{content:'Contractual', enabled:true, position:'start', font:{{size:9}}, color:'#dc2626', backgroundColor:'transparent'}}
+            }}
+          }}
+        }} : {{}},
+        tooltip:{{
+          backgroundColor:'#0f172a', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+          titleColor:'#f8fafc', bodyColor:'#94a3b8',
+          titleFont:{{family:'IBM Plex Mono',size:10}}, bodyFont:{{family:'IBM Plex Mono',size:10}},
+          callbacks:{{
+            label: ctx => {{
+              if (ctx.parsed.y === null) return null;
+              const r = rows[ctx.dataIndex];
+              if (ctx.datasetIndex===0) return `PV: ${{ctx.parsed.y}}% (${{r.pvA.toFixed(0)}}h acum)`;
+              if (ctx.datasetIndex===1) return `EV: ${{ctx.parsed.y}}% (${{r.evA.toFixed(1)}}h acum)`;
+              return `ES: S${{p.es_weeks.toFixed(1)}}`;
+            }}
+          }}
+        }}
+      }},
+      scales:{{
+        x:{{ticks:{{color:'#94a3b8',font:{{size:8,family:'IBM Plex Mono'}},maxRotation:45,autoSkip:true,maxTicksLimit:18}},grid:{{color:'rgba(0,0,0,.03)'}}}},
+        y:{{min:0,max:100,ticks:{{color:'#94a3b8',font:{{size:9,family:'IBM Plex Mono'}},callback:v=>v+'%'}},grid:{{color:'rgba(0,0,0,.03)'}}}}
+      }}
+    }}
+  }});
+}}
+
+function renderTabla(p) {{
+  const rows = p.rows.filter(r => new Date(r.ws) <= TODAY);
+  const tbody = document.getElementById('dashTbl');
+  tbody.innerHTML = '';
+  const kickoff = p.kickoff ? new Date(p.kickoff) : null;
+
+  rows.forEach(r => {{
+    const atW = kickoff ? ((new Date(r.ws) - kickoff) / 604800000).toFixed(1) : '—';
+    const esW = calcES(p.rows, r.evA, p.total_pv);
+    const svW = (esW - parseFloat(atW)).toFixed(2);
+    const spiW = parseFloat(atW) > 0 ? (esW / parseFloat(atW)).toFixed(2) : '—';
+    const svF = parseFloat(svW);
+    const spiF = parseFloat(spiW);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">S${{r.idx}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{new Date(r.ws).toLocaleDateString('es-CL')}}</td>
+      <td class="mono">${{r.n}}</td>
+      <td class="mono" style="color:#2563eb">${{r.pv.toFixed(1)}}h</td>
+      <td class="mono" style="color:#16a34a">${{r.ev.toFixed(1)}}h</td>
+      <td class="mono" style="color:#2563eb">${{r.pvA.toFixed(0)}}h</td>
+      <td class="mono" style="color:#16a34a">${{r.evA.toFixed(1)}}h</td>
+      <td class="mono" style="color:#2563eb">${{r.pctPV}}%</td>
+      <td class="mono" style="color:#16a34a">${{r.pctEV}}%</td>
+      <td class="mono" style="color:#d97706">${{esW.toFixed(2)}}</td>
+      <td class="mono" style="color:var(--muted)">${{atW}}</td>
+      <td><span class="chip ${{svF>=0?'c-ok':'c-bad'}}">${{svF>=0?'+':''}}${{svW}}w</span></td>
+      <td><span class="chip ${{spiF>=1?'c-ok':spiF>=0.7?'c-warn':'c-bad'}}">${{spiW}}</span></td>
+      <td><span class="chip ${{svF>=0?'c-ok':'c-warn'}}">${{svF>=0?'Adelantado':'Atrasado'}}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }});
+}}
+
+function calcES(rows, evAcum, totalPV) {{
+  const pctEV = totalPV > 0 ? evAcum / totalPV * 100 : 0;
+  if (pctEV <= 0) return 0;
+  if (pctEV >= 100) return rows.length;
+  for (let i = 1; i < rows.length; i++) {{
+    if (rows[i].pctPV >= pctEV) {{
+      const prev = rows[i-1], cur = rows[i];
+      const f = (pctEV - prev.pctPV) / Math.max(cur.pctPV - prev.pctPV, 0.001);
+      return (i - 1) + f;
+    }}
+  }}
+  return rows.length;
+}}
+
+function renderTareas(p) {{
+  const tbody = document.getElementById('dashTareas');
+  tbody.innerHTML = '';
+  let lastFase = null;
+  p.tareas.forEach(t => {{
+    if (t.section !== lastFase) {{
+      lastFase = t.section;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="6" class="fase-header">${{t.section || 'Sin sección'}}</td>`;
+      tbody.appendChild(tr);
+    }}
+    const av = t.av;
+    const avColor = av >= 1 ? 'var(--verde)' : av > 0 ? 'var(--amarillo)' : 'var(--muted2)';
+    const stTxt = av >= 1 ? 'Terminada' : av > 0 ? 'En curso' : 'Sin iniciar';
+    const stCls = av >= 1 ? 'c-ok' : av > 0 ? 'c-warn' : 'c-gray';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:10px">${{t.section}}${{t.kickoff?' ⚡':''}}</td>
+      <td>${{t.name}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{t.ini}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{t.fin}}</td>
+      <td>
+        <div class="av-bar">
+          <div class="av-track"><div class="av-fill" style="width:${{av*100}}%;background:${{avColor}}"></div></div>
+          <span class="mono" style="font-size:10px;color:${{avColor}}">${{Math.round(av*100)}}%</span>
+        </div>
+      </td>
+      <td><span class="chip ${{stCls}}">${{stTxt}}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }});
+}}
+</script>
+</body>
+</html>"""
+
+    Path(output_path).write_text(html, encoding="utf-8")
+    print(f"\n✓ CURVAS.HTML generado: {output_path}")
+    print(f"  {len(proyectos)} proyectos incluidos")
+
+
+def main():
+    if len(sys.argv) < 3:
+        print("Uso: python generar_curvas.py <carpeta_data> <output.html>")
         sys.exit(1)
 
-    carpeta_data = sys.argv[1]
-    template_path = sys.argv[2]
-    output_path = sys.argv[3]
+    data_dir    = sys.argv[1]
+    output_path = sys.argv[2]
 
-    print(f"\n{'='*60}")
-    print(f"  generar_curvaS.py")
-    print(f"  Data:     {carpeta_data}")
-    print(f"  Template: {template_path}")
-    print(f"  Output:   {output_path}")
-    print(f"{'='*60}\n")
+    print("=" * 60)
+    print("  GENERADOR CURVA S — PORTAFOLIO ZITRON")
+    print(f"  Leyendo Excel desde: {data_dir}")
+    print("=" * 60)
 
-    demo_data = procesar_carpeta(carpeta_data)
+    proyectos = process_all(data_dir)
+    generar_html(proyectos, output_path)
 
-    if not demo_data:
-        print("[ERROR] No se generó ningún dato. Verifica los .xlsx y el CATALOGO_MAP.")
-        sys.exit(1)
+    print("=" * 60)
 
-    actualizar_html(template_path, output_path, demo_data)
-    print(f"\n✅ Listo. {len(demo_data)} proyectos actualizados en el HTML.")
+
+if __name__ == "__main__":
+    main()
