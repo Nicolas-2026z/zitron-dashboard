@@ -385,6 +385,14 @@ def process_all(data_dir):
             if contractual and contractual < today and pct_ev < 100:
                 prob = min(prob, 15)
 
+        # detectar si el proyecto fue despachado (tarea Despacho completada)
+        despachado = any(
+            t["name"].strip().lower() in ("despacho", "packing list", "embalaje")
+            and t["av"] >= 1.0
+            for t in tareas
+            if "logistic" in t["section"].lower() or "logística" in t["section"].lower()
+        )
+
         proyectos.append({
             "nombre": nombre,
             "kickoff": kickoff.isoformat() if kickoff else None,
@@ -401,6 +409,7 @@ def process_all(data_dir):
             "svt": svt,
             "prob": prob,
             "estado": estado,
+            "despachado": despachado,
             "rows": rows,
             "tareas": [
                 {
@@ -570,6 +579,7 @@ tr:hover td{{background:#f8fafc}}
         <div>
           <div class="dash-title" id="dashTitle"></div>
           <div class="dash-meta" id="dashMeta"></div>
+          <div id="dashDespachado"></div>
         </div>
         <div class="dash-close" onclick="cerrarDash()">✕ Cerrar</div>
       </div>
@@ -672,6 +682,7 @@ function renderResumen() {{
       </div>
       <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
       <span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>
+      ${{p.despachado ? '<span class="pbadge" style="background:#ede9fe;color:#7c3aed;margin-left:4px">🚢 Despachado</span>' : ''}}
     `;
     card.onclick = () => abrirDash(idx, card);
     grid.appendChild(card);
@@ -689,6 +700,11 @@ function abrirDash(idx, card) {{
   dash.scrollIntoView({{behavior:'smooth', block:'start'}});
 
   document.getElementById('dashTitle').textContent = p.nombre;
+  document.getElementById('dashDespachado').innerHTML = p.despachado
+    ? `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 14px;">
+        <span style="font-size:18px">🚢</span>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:#7c3aed;">DESPACHADO</span>
+       </div>` : '';
   document.getElementById('dashMeta').innerHTML = `
     📅 Kick Off: <b>${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
     🏁 Contractual: <b>${{p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
