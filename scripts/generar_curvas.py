@@ -140,14 +140,16 @@ def process_file(path):
 
         parent = g(row, "Parent task") or ""
         section = g(row, "Section/Column") or ""
-        ini_raw = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
-        fin_raw = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
-        av_raw  = g(row, "Avance Tarea")
-        notas   = g(row, "Notes") or ""
+        ini_raw     = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
+        fin_raw     = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
+        av_raw      = g(row, "Avance Tarea")
+        completado  = g(row, "Completed At")
+        notas       = g(row, "Notes") or ""
 
         ini = to_date(ini_raw)
         fin = to_date(fin_raw)
-        av  = float(av_raw) if av_raw is not None else 0.0
+        # si tiene Completed At → tarea terminada = 100% automático
+        av  = 1.0 if completado else (float(av_raw) if av_raw is not None else 0.0)
 
         # Detectar Kick Off date (primera subtarea del kick off con fecha)
         if kickoff_date is None and parent and "kick off" in str(parent).lower() and ini:
