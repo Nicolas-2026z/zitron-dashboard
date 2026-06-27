@@ -385,13 +385,12 @@ def process_all(data_dir):
             if contractual and contractual < today and pct_ev < 100:
                 prob = min(prob, 15)
 
-        # detectar si el proyecto fue despachado (tarea Despacho completada)
-        despachado = any(
-            t["name"].strip().lower() in ("despacho", "packing list", "embalaje")
-            and t["av"] >= 1.0
-            for t in tareas
-            if "logistic" in t["section"].lower() or "logística" in t["section"].lower()
-        )
+        # despachado = todas las tareas de la sección Logística completadas
+        tareas_logistica = [
+            t for t in tareas
+            if "logis" in t["section"].lower() or "logíst" in t["section"].lower()
+        ]
+        despachado = len(tareas_logistica) > 0 and all(t["av"] >= 1.0 for t in tareas_logistica)
 
         proyectos.append({
             "nombre": nombre,
@@ -428,7 +427,11 @@ def process_all(data_dir):
 
 
 def generar_html(proyectos, output_path):
-    today_str = date.today().strftime("%A %d/%m/%Y")
+    from datetime import datetime
+    import pytz
+    tz_chile = pytz.timezone('America/Santiago')
+    now_chile = datetime.now(tz_chile)
+    today_str = now_chile.strftime("%d/%m/%Y %H:%M hrs (Chile)")
     data_json = json.dumps(proyectos, ensure_ascii=False)
 
     html = f"""<!DOCTYPE html>
