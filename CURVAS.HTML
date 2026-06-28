@@ -119,7 +119,7 @@ tr:hover td{background:#f8fafc}
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · 32 PROYECTOS</div>
-    <div class="meta">Última actualización: 28/06/2026 11:56 hrs (Chile) · Días hábiles Chile</div>
+    <div class="meta">Última actualización: 28/06/2026 12:11 hrs (Chile) · Días hábiles Chile</div>
   </div>
   <div class="body">
 
@@ -407,7 +407,7 @@ function renderTabla(p) {
 
   rows.forEach(r => {
     const atW = kickoff ? ((new Date(r.ws) - kickoff) / 604800000).toFixed(1) : '—';
-    const esW = calcES(p.rows, r.evA, p.total_pv);
+    const esW = calcES(p.rows, r.evA, p.total_pv, p.kickoff);
     const svW = (esW - parseFloat(atW)).toFixed(2);
     const spiW = parseFloat(atW) > 0 ? (esW / parseFloat(atW)).toFixed(2) : '—';
     const svF = parseFloat(svW);
@@ -433,18 +433,20 @@ function renderTabla(p) {
   });
 }
 
-function calcES(rows, evAcum, totalPV) {
+function calcES(rows, evAcum, totalPV, kickoff) {
   const pctEV = totalPV > 0 ? evAcum / totalPV * 100 : 0;
   if (pctEV <= 0) return 0;
-  if (pctEV >= 100) return rows.length;
+  const ko = kickoff ? new Date(kickoff) : new Date(rows[0].ws);
+  const weeksFrom = ws => (new Date(ws) - ko) / 604800000;
+  if (pctEV >= 100) return weeksFrom(rows[rows.length-1].ws);
   for (let i = 1; i < rows.length; i++) {
     if (rows[i].pctPV >= pctEV) {
       const prev = rows[i-1], cur = rows[i];
       const f = (pctEV - prev.pctPV) / Math.max(cur.pctPV - prev.pctPV, 0.001);
-      return (i - 1) + f;
+      return weeksFrom(prev.ws) + f * (weeksFrom(cur.ws) - weeksFrom(prev.ws));
     }
   }
-  return rows.length;
+  return weeksFrom(rows[rows.length-1].ws);
 }
 
 function renderTareas(p) {
