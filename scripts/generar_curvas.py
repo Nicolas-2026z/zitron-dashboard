@@ -322,9 +322,13 @@ def process_all(data_dir):
         exw_str = FECHAS_EXW_GID.get(gid) if gid else None
         exw_date = date.fromisoformat(exw_str) if exw_str else None
 
-        # Excluir proyectos ya despachados por GID
-        if gid and gid in GIDS_DESPACHADOS:
-            print(f"    🚢 GID {gid} en lista despachados → excluido")
+        # Excluir proyectos ya despachados por GID o por número de pedido
+        PEDIDOS_DESPACHADOS = {
+            "50001466","50001477","50001504","50001415","50001451",
+            "50001500","50001501","50001524","50001514","50001515",
+        }
+        if (gid and gid in GIDS_DESPACHADOS) or (pedido and pedido in PEDIDOS_DESPACHADOS):
+            print(f"    🚢 Proyecto despachado → excluido ({pedido or gid})")
             continue
 
         result = process_file(xlsx)
