@@ -365,14 +365,20 @@ def process_all(data_dir):
             pct_pv = 100.0
 
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
-        # AT en semana ISO del calendario contando desde kickoff (cruza año)
+        # AT: usar la última semana con datos EV como referencia
+        # Si el EV no avanza más (proyecto terminado o detenido), no seguir contando
+        last_ev_date = None
+        for r in reversed(rows):
+            if r["evA"] > 0:
+                last_ev_date = date.fromisoformat(r["ws"])
+                break
+        at_ref = min(last_ev_date, today) if last_ev_date else today
         if kickoff:
             iso_kickoff = kickoff.isocalendar()[1]
-            iso_today   = today.isocalendar()[1]
+            iso_at_ref  = at_ref.isocalendar()[1]
             year_ko     = kickoff.isocalendar()[0]
-            year_today  = today.isocalendar()[0]
-            # sumar 52 por cada año completo cruzado
-            at_iso = iso_today + (year_today - year_ko) * 52 - iso_kickoff
+            year_at_ref = at_ref.isocalendar()[0]
+            at_iso = iso_at_ref + (year_at_ref - year_ko) * 52 - iso_kickoff
         else:
             at_iso = at_weeks
 
@@ -399,8 +405,10 @@ def process_all(data_dir):
             es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
             es_iso   = (date.fromisoformat(rows[-1]["ws"]) - timedelta(days=1)).isocalendar()[1]
 
-        spit = round(es_iso / at_iso, 2) if at_iso > 0 else (99 if pct_ev > 0 else 0)
-        svt  = round(es_iso - at_iso, 2)
+        # SPI y SV usan semanas desde kickoff (es_weeks y at_weeks) — sistema consistente
+        at_ref_weeks = (at_ref - kickoff).days / 7 if kickoff else at_weeks
+        spit = round(es_weeks / at_ref_weeks, 2) if at_ref_weeks > 0 else (99 if pct_ev > 0 else 0)
+        svt  = round(es_weeks - at_ref_weeks, 2)
         # EAC: duración total del proyecto en semanas reales / SPI → fecha estimada de cierre
         total_dur_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
         eac_dur_weeks = total_dur_weeks / spit if 0 < spit < 90 else total_dur_weeks
@@ -741,7 +749,7 @@ function renderResumen() {{
       <div class="pmeta">
         📅 KO: ${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}} &nbsp;·&nbsp;
         🏁 Contractual: ${{due}}<br>
-        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{(p.es_iso/calcAT(p.kickoff)).toFixed(2)}} &nbsp;·&nbsp; SV: ${{(p.es_iso-calcAT(p.kickoff)).toFixed(1)}}w<br>
+        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{p.spit.toFixed(2)}} &nbsp;·&nbsp; SV: ${{(p.svt>=0?'+':'')+p.svt.toFixed(1)}}w<br>
         📆 EAC: ${{eac}} &nbsp;·&nbsp; Prob: ${{p.prob}}%
       </div>
       <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
@@ -773,15 +781,30 @@ function abrirDash(idx, card) {{
     🚚 EXW: <b style="color:${{p.exw ? '#d97706' : 'var(--muted)'}}">${{p.exw ? new Date(p.exw).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
     🔚 Fin real: <b>${{p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}}</b><br>
     📋 PV total: <b>${{p.total_pv.toFixed(0)}} hrs</b> &nbsp;·&nbsp;
-    ⏱ AT: <b>S${{calcAT(p.kickoff).toFixed(1)}}</b> &nbsp;·&nbsp;
+    ⏱ AT: <b>S${{calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}}</b> &nbsp;·&nbsp;
     📊 ES: <b>S${{p.es_iso.toFixed(1)}}</b>
   `;
 
-  // Recalcular SPI y SV en vivo con AT actual
-  const atLive  = calcAT(p.kickoff);
-  const esLive  = p.es_iso;
-  const svtLive = esLive - atLive;
-  const spitLive = atLive > 0 ? esLive / atLive : 0;
+  // ── Cálculo definitivo SPI / SV ──────────────────────────────
+  // Todo en SEMANAS DESDE KICKOFF — sistema único y consistente
+  const ko = p.kickoff ? new Date(p.kickoff) : null;
+
+  // AT: semanas desde kickoff hasta la última semana con EV real
+  let lastEvDate = new Date();
+  if (ko && p.rows) {{
+    for (let i = p.rows.length - 1; i >= 0; i--) {{
+      if (p.rows[i].evA > 0) {{ lastEvDate = new Date(p.rows[i].ws); break; }}
+    }}
+    if (lastEvDate > new Date()) lastEvDate = new Date();
+  }}
+  const atKoLive = ko ? (lastEvDate - ko) / 604800000 : 0;
+
+  // ES: semanas desde kickoff (viene del Python como p.es_weeks)
+  const esLive = p.es_weeks;
+
+  // SPI y SV
+  const svtLive  = esLive - atKoLive;
+  const spitLive = atKoLive > 0 ? Math.min(esLive / atKoLive, 9.99) : 0;
 
   const svtColor = svtLive >= 0 ? 'var(--verde)' : 'var(--rojo)';
   const spitColor = spitLive >= 1 ? 'var(--verde)' : spitLive >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
@@ -794,7 +817,7 @@ function abrirDash(idx, card) {{
     <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI(t)</div><div class="kv">${{spitLive===99?'∞':spitLive.toFixed(2)}}</div><div class="ks">${{spitLive>=1?'eficiente':spitLive>=0.7?'moderado':'bajo'}}</div></div>
     <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_iso.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
     <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
-    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{calcAT(p.kickoff).toFixed(1)}}</div><div class="ks">semanas reales</div></div>
+    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}}</div><div class="ks">semanas reales</div></div>
     <div class="kpi" style="--c:${{p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${{p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}}</div><div class="ks">estimado cierre</div></div>
     ${{p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${{new Date(p.exw).toLocaleDateString('es-CL')}}</div><div class="ks">entrega prevista</div></div>` : ''}}
   `;
@@ -936,7 +959,7 @@ function renderTabla(p) {{
   }});
 }}
 
-function calcAT(kickoffStr) {{
+function calcAT(kickoffStr, finRealStr, rows) {{
   if (!kickoffStr) return 0;
   const ko = new Date(kickoffStr);
   const getISOWeek = d => {{
@@ -946,9 +969,18 @@ function calcAT(kickoffStr) {{
     const w1 = new Date(tmp.getFullYear(), 0, 4);
     return [tmp.getFullYear(), 1 + Math.round(((tmp-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7)];
   }};
+  // Usar la última semana con EV > 0 como referencia
+  let lastEvDate = null;
+  if (rows) {{
+    for (let i = rows.length - 1; i >= 0; i--) {{
+      if (rows[i].evA > 0) {{ lastEvDate = new Date(rows[i].ws); break; }}
+    }}
+  }}
+  const today = new Date();
+  const ref = lastEvDate && lastEvDate < today ? lastEvDate : today;
   const [yrKo, wkKo] = getISOWeek(ko);
-  const [yrNow, wkNow] = getISOWeek(new Date());
-  return wkNow + (yrNow - yrKo) * 52 - wkKo;
+  const [yrRef, wkRef] = getISOWeek(ref);
+  return wkRef + (yrRef - yrKo) * 52 - wkKo;
 }}
 
 function calcES(rows, evAcum, totalPV, kickoff) {{
