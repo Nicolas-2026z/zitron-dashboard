@@ -365,6 +365,16 @@ def process_all(data_dir):
             pct_pv = 100.0
 
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
+        # AT en semana ISO del calendario contando desde kickoff (cruza año)
+        if kickoff:
+            iso_kickoff = kickoff.isocalendar()[1]
+            iso_today   = today.isocalendar()[1]
+            year_ko     = kickoff.isocalendar()[0]
+            year_today  = today.isocalendar()[0]
+            # sumar 52 por cada año completo cruzado
+            at_iso = iso_today + (year_today - year_ko) * 52 - iso_kickoff
+        else:
+            at_iso = at_weeks
 
         es_weeks = 0.0
         es_iso   = 0.0
@@ -393,11 +403,12 @@ def process_all(data_dir):
             es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
             es_iso   = date.fromisoformat(rows[-1]["ws"]).isocalendar()[1] - 1
 
-        spit = round(es_weeks / at_weeks, 2) if at_weeks > 0 else (99 if pct_ev > 0 else 0)
-        svt  = round(es_weeks - at_weeks, 2)
-        total_weeks = len(rows)
-        eac_weeks = total_weeks / spit if 0 < spit < 90 else total_weeks
-        eac_date = (kickoff + timedelta(weeks=eac_weeks)).isoformat() if kickoff else None
+        spit = round(es_iso / at_iso, 2) if at_iso > 0 else (99 if pct_ev > 0 else 0)
+        svt  = round(es_iso - at_iso, 2)
+        # EAC: duración total del proyecto en semanas reales / SPI → fecha estimada de cierre
+        total_dur_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
+        eac_dur_weeks = total_dur_weeks / spit if 0 < spit < 90 else total_dur_weeks
+        eac_date = (kickoff + timedelta(weeks=eac_dur_weeks)).isoformat() if kickoff else None
 
         if pct_ev >= 100:
             estado = "Terminado"
@@ -453,7 +464,7 @@ def process_all(data_dir):
             "total_pv": total_pv,
             "pct_ev": pct_ev,
             "pct_pv": pct_pv,
-            "at_weeks": round(at_weeks, 1),
+            "at_weeks": round(at_iso, 1),
             "es_weeks": round(es_weeks, 2),
             "es_iso": round(es_iso, 1),
             "spit": spit,
@@ -837,8 +848,11 @@ function renderChart(p) {{
   const labels = rows.map(r => `S${{isoWeek(r.ws)}} ${{fmts(r.ws)}}`);
   // PV: forzar que la última semana con PV > 0 llegue a 100%
   const pvRaw = rows.map(r => r.pctPV);
-  const lastPvIdx = pvRaw.reduce((acc, v, i) => v > 0 ? i : acc, -1);
-  const pvData = pvRaw.map((v, i) => i === lastPvIdx ? 100 : v);
+  // Encontrar primer índice donde PV alcanza su máximo (fin del proyecto)
+  const pvMax = Math.max(...pvRaw);
+  const firstMaxIdx = pvRaw.findIndex(v => v >= pvMax);
+  // Desde ese punto en adelante, PV = 100%
+  const pvData = pvRaw.map((v, i) => i >= firstMaxIdx ? 100 : v);
   const evData = rows.map((r, i) => new Date(r.ws) <= TODAY ? r.pctEV : null);
   const esData = rows.map((r, i) => i <= todayIdx ? pctEVhoy : null);
 
