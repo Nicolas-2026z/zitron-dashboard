@@ -777,7 +777,7 @@ function abrirDash(idx, card) {{
     🚚 EXW: <b style="color:${{p.exw ? '#d97706' : 'var(--muted)'}}">${{p.exw ? new Date(p.exw).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
     🔚 Fin real: <b>${{p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}}</b><br>
     📋 PV total: <b>${{p.total_pv.toFixed(0)}} hrs</b> &nbsp;·&nbsp;
-    ⏱ AT: <b>S${{p.at_weeks.toFixed(1)}}</b> &nbsp;·&nbsp;
+    ⏱ AT: <b>S${{calcAT(p.kickoff).toFixed(1)}}</b> &nbsp;·&nbsp;
     📊 ES: <b>S${{p.es_iso.toFixed(1)}}</b>
   `;
 
@@ -792,7 +792,7 @@ function abrirDash(idx, card) {{
     <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI(t)</div><div class="kv">${{p.spit===99?'∞':p.spit.toFixed(2)}}</div><div class="ks">${{p.spit>=1?'eficiente':p.spit>=0.7?'moderado':'bajo'}}</div></div>
     <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_iso.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
     <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
-    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{p.at_weeks.toFixed(1)}}</div><div class="ks">semanas reales</div></div>
+    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{calcAT(p.kickoff).toFixed(1)}}</div><div class="ks">semanas reales</div></div>
     <div class="kpi" style="--c:${{p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${{p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}}</div><div class="ks">estimado cierre</div></div>
     ${{p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${{new Date(p.exw).toLocaleDateString('es-CL')}}</div><div class="ks">entrega prevista</div></div>` : ''}}
   `;
@@ -932,6 +932,21 @@ function renderTabla(p) {{
     `;
     tbody.appendChild(tr);
   }});
+}}
+
+function calcAT(kickoffStr) {{
+  if (!kickoffStr) return 0;
+  const ko = new Date(kickoffStr);
+  const getISOWeek = d => {{
+    const tmp = new Date(d);
+    tmp.setHours(0,0,0,0);
+    tmp.setDate(tmp.getDate() + 3 - (tmp.getDay()+6)%7);
+    const w1 = new Date(tmp.getFullYear(), 0, 4);
+    return [tmp.getFullYear(), 1 + Math.round(((tmp-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7)];
+  }};
+  const [yrKo, wkKo] = getISOWeek(ko);
+  const [yrNow, wkNow] = getISOWeek(new Date());
+  return wkNow + (yrNow - yrKo) * 52 - wkKo;
 }}
 
 function calcES(rows, evAcum, totalPV, kickoff) {{
