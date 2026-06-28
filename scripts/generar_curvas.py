@@ -274,8 +274,8 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
         ea += r["ev"]
         r["pvA"] = round(pa, 1)
         r["evA"] = round(ea, 1)
-        r["pctPV"] = round(pa / total_pv * 100, 1) if total_pv else 0
-        r["pctEV"] = round(ea / total_pv * 100, 1) if total_pv else 0
+        r["pctPV"] = round(min(pa / total_pv * 100, 100.0), 1) if total_pv else 0
+        r["pctEV"] = round(min(ea / total_pv * 100, 100.0), 1) if total_pv else 0
 
     return rows, round(total_pv, 1)
 
@@ -358,8 +358,8 @@ def process_all(data_dir):
                 ev_hoy = r["evA"]
                 pv_hoy = r["pvA"]
 
-        pct_ev = round(ev_hoy / total_pv * 100, 1) if total_pv else 0
-        pct_pv = round(pv_hoy / total_pv * 100, 1) if total_pv else 0
+        pct_ev = round(min(ev_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
+        pct_pv = round(min(pv_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
 
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
 
