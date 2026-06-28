@@ -191,6 +191,8 @@ def process_file(path):
 
         es_kickoff = "kick off" in str(parent).lower() or "kick off" in name.lower()
 
+        completed_at_date = to_date(completado) if completado else None
+
         tareas.append({
             "name": name,
             "section": sec,
@@ -199,6 +201,7 @@ def process_file(path):
             "fin": fin,
             "av": min(max(av, 0.0), 1.0),
             "kickoff": es_kickoff,
+            "completed_at": completed_at_date,  # fecha real de completado desde Asana
         })
 
     return {
@@ -249,14 +252,24 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
                 # PV: siempre según fechas planificadas
                 dl_pv = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
 
-                # EV: si la tarea está completada anticipadamente (av=1, fin > hoy),
-                # usar hoy como fecha de fin efectiva para el EV.
-                # Así las horas de armado/montaje marcadas 100% se reflejan ya.
-                if t["av"] >= 1.0 and t["fin"] > today:
-                    fin_ev = today
+                # EV: usar fecha real de completado (Completed At de Asana) si existe,
+                # o today si está al 100% pero no tiene fecha real.
+                # Esto refleja correctamente proyectos adelantados donde las tareas
+                # se completaron antes de sus fechas planificadas.
+                if t["av"] >= 1.0:
+                    # Determinar cuándo se completó realmente
+                    completed = t.get("completed_at") or today
+                    # fin_ev es el mínimo entre fecha real completado y fin planificado
+                    fin_ev = min(completed, t["fin"])
+                    # ini_ev: si la tarea se completó antes de su inicio planificado,
+                    # usar la fecha de completado como único punto
+                    ini_ev = min(t["ini"], fin_ev)
+                    dl_ev = dias_habiles_en_semana(ini_ev, fin_ev, ws, we)
+                    # Si completado antes del ini planificado, poner el EV en esa semana
+                    if dl_ev == 0 and ini_ev >= ws and ini_ev <= we:
+                        dl_ev = 1
                 else:
-                    fin_ev = t["fin"]
-                dl_ev = dias_habiles_en_semana(t["ini"], fin_ev, ws, we)
+                    dl_ev = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
 
                 if dl_pv == 0 and dl_ev == 0:
                     continue
