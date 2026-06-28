@@ -119,7 +119,7 @@ tr:hover td{background:#f8fafc}
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · 32 PROYECTOS</div>
-    <div class="meta">Última actualización: 28/06/2026 11:31 hrs (Chile) · Días hábiles Chile</div>
+    <div class="meta">Última actualización: 28/06/2026 11:56 hrs (Chile) · Días hábiles Chile</div>
   </div>
   <div class="body">
 
@@ -361,7 +361,13 @@ function renderChart(p) {
       labels,
       datasets: [
         {label:'PV', data:pvData, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.06)', borderWidth:2, borderDash:[6,4], tension:0.3, pointRadius:2, fill:true},
-        {label:'EV', data:evData, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.06)', borderWidth:2.5, tension:0.2, pointRadius:2, fill:true, spanGaps:false},
+        {label:'EV', data:evData, borderColor:'#16a34a', borderWidth:2.5, tension:0.2, pointRadius:2, spanGaps:false,
+          fill:{
+            target:'-1',
+            above:'rgba(22,163,74,0.15)',   // EV sobre PV → verde (adelantado)
+            below:'rgba(220,38,38,0.10)'    // EV bajo PV  → rojo  (atrasado)
+          }
+        },
         {label:'ES', data:esData, borderColor:'#d97706', backgroundColor:'transparent', borderWidth:2, borderDash:[3,3], tension:0, pointRadius:0, spanGaps:false},
       ]
     },
