@@ -367,10 +367,12 @@ def process_all(data_dir):
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
 
         es_weeks = 0.0
+        es_iso   = 0.0
         for i, r in enumerate(rows):
             if r["pctPV"] >= pct_ev:
                 if i == 0:
                     es_weeks = pct_ev / max(r["pctPV"], 0.001)
+                    es_iso   = es_weeks
                 else:
                     prev = rows[i-1]
                     f = (pct_ev - prev["pctPV"]) / max(r["pctPV"] - prev["pctPV"], 0.001)
@@ -378,8 +380,18 @@ def process_all(data_dir):
                     ws_prev = (date.fromisoformat(prev["ws"]) - kickoff).days / 7
                     ws_cur  = (date.fromisoformat(r["ws"])  - kickoff).days / 7
                     es_weeks = ws_prev + f * (ws_cur - ws_prev)
+                    # ES en semana ISO del calendario
+                    # El ws es lunes (inicio semana N), el gráfico muestra domingo (fin semana N-1)
+                    # Por eso usamos N-1 para coincidir con el eje X del gráfico
+                    iso_prev = date.fromisoformat(prev["ws"]).isocalendar()[1] - 1
+                    iso_cur  = date.fromisoformat(r["ws"]).isocalendar()[1] - 1
+                    # si cruza año (ej S52→S1) mantener continuidad
+                    if iso_cur < iso_prev:
+                        iso_cur += 52
+                    es_iso = iso_prev + f * (iso_cur - iso_prev)
                 break
             es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
+            es_iso   = date.fromisoformat(rows[-1]["ws"]).isocalendar()[1] - 1
 
         spit = round(es_weeks / at_weeks, 2) if at_weeks > 0 else (99 if pct_ev > 0 else 0)
         svt  = round(es_weeks - at_weeks, 2)
@@ -443,6 +455,7 @@ def process_all(data_dir):
             "pct_pv": pct_pv,
             "at_weeks": round(at_weeks, 1),
             "es_weeks": round(es_weeks, 2),
+            "es_iso": round(es_iso, 1),
             "spit": spit,
             "svt": svt,
             "prob": prob,
@@ -754,7 +767,7 @@ function abrirDash(idx, card) {{
     🔚 Fin real: <b>${{p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}}</b><br>
     📋 PV total: <b>${{p.total_pv.toFixed(0)}} hrs</b> &nbsp;·&nbsp;
     ⏱ AT: <b>S${{p.at_weeks.toFixed(1)}}</b> &nbsp;·&nbsp;
-    📊 ES: <b>S${{p.es_weeks.toFixed(2)}}</b>
+    📊 ES: <b>S${{p.es_iso.toFixed(1)}}</b>
   `;
 
   const svtColor = p.svt >= 0 ? 'var(--verde)' : 'var(--rojo)';
@@ -766,7 +779,7 @@ function abrirDash(idx, card) {{
     <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{p.pct_pv}}%</div><div class="ks">planificado</div></div>
     <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV(t)</div><div class="kv">${{(p.svt>=0?'+':'')+p.svt.toFixed(2)}}w</div><div class="ks">${{p.svt>=0?'adelantado':'atrasado'}}</div></div>
     <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI(t)</div><div class="kv">${{p.spit===99?'∞':p.spit.toFixed(2)}}</div><div class="ks">${{p.spit>=1?'eficiente':p.spit>=0.7?'moderado':'bajo'}}</div></div>
-    <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_weeks.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
+    <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_iso.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
     <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
     <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{p.at_weeks.toFixed(1)}}</div><div class="ks">semanas reales</div></div>
     <div class="kpi" style="--c:${{p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${{p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}}</div><div class="ks">estimado cierre</div></div>
@@ -860,7 +873,7 @@ function renderChart(p) {{
               const r = rows[ctx.dataIndex];
               if (ctx.datasetIndex===0) return `PV: ${{ctx.parsed.y}}% (${{r.pvA.toFixed(0)}}h acum)`;
               if (ctx.datasetIndex===1) return `EV: ${{ctx.parsed.y}}% (${{r.evA.toFixed(1)}}h acum)`;
-              return `ES: S${{p.es_weeks.toFixed(1)}}`;
+              return `ES: S${{p.es_iso.toFixed(1)}}`;
             }}
           }}
         }}
