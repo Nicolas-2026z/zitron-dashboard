@@ -374,9 +374,12 @@ def process_all(data_dir):
                 else:
                     prev = rows[i-1]
                     f = (pct_ev - prev["pctPV"]) / max(r["pctPV"] - prev["pctPV"], 0.001)
-                    es_weeks = (i - 1) + f
+                    # ES en semanas reales desde kickoff
+                    ws_prev = (date.fromisoformat(prev["ws"]) - kickoff).days / 7
+                    ws_cur  = (date.fromisoformat(r["ws"])  - kickoff).days / 7
+                    es_weeks = ws_prev + f * (ws_cur - ws_prev)
                 break
-            es_weeks = len(rows)
+            es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
 
         spit = round(es_weeks / at_weeks, 2) if at_weeks > 0 else (99 if pct_ev > 0 else 0)
         svt  = round(es_weeks - at_weeks, 2)
@@ -832,7 +835,13 @@ function renderChart(p) {{
       labels,
       datasets: [
         {{label:'PV', data:pvData, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.06)', borderWidth:2, borderDash:[6,4], tension:0.3, pointRadius:2, fill:true}},
-        {{label:'EV', data:evData, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.06)', borderWidth:2.5, tension:0.2, pointRadius:2, fill:true, spanGaps:false}},
+        {{label:'EV', data:evData, borderColor:'#16a34a', borderWidth:2.5, tension:0.2, pointRadius:2, spanGaps:false,
+          fill:{{
+            target:'-1',
+            above:'rgba(22,163,74,0.15)',   // EV sobre PV → verde (adelantado)
+            below:'rgba(220,38,38,0.10)'    // EV bajo PV  → rojo  (atrasado)
+          }}
+        }},
         {{label:'ES', data:esData, borderColor:'#d97706', backgroundColor:'transparent', borderWidth:2, borderDash:[3,3], tension:0, pointRadius:0, spanGaps:false}},
       ]
     }},
