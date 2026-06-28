@@ -230,6 +230,8 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
         semanas.append(ws)
         ws = ws + timedelta(days=7)
 
+    today = date.today()
+
     rows = []
     for i, ws in enumerate(semanas):
         we = ws + timedelta(days=6)
@@ -244,11 +246,24 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
                     ev_sem += t["_hrs"] * t["av"]
                     n_tareas += 1
             else:
-                dl = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
-                if dl == 0: continue
-                hrs = dl * HRS_DIA
-                pv_sem += hrs
-                ev_sem += hrs * t["av"]
+                # PV: siempre según fechas planificadas
+                dl_pv = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
+
+                # EV: si la tarea está completada anticipadamente (av=1, fin > hoy),
+                # usar hoy como fecha de fin efectiva para el EV.
+                # Así las horas de armado/montaje marcadas 100% se reflejan ya.
+                if t["av"] >= 1.0 and t["fin"] > today:
+                    fin_ev = today
+                else:
+                    fin_ev = t["fin"]
+                dl_ev = dias_habiles_en_semana(t["ini"], fin_ev, ws, we)
+
+                if dl_pv == 0 and dl_ev == 0:
+                    continue
+                if dl_pv > 0:
+                    pv_sem += dl_pv * HRS_DIA
+                if dl_ev > 0:
+                    ev_sem += dl_ev * HRS_DIA * t["av"]
                 n_tareas += 1
 
         rows.append({
