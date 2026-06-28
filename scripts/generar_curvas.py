@@ -360,6 +360,9 @@ def process_all(data_dir):
 
         pct_ev = round(min(ev_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
         pct_pv = round(min(pv_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
+        # Si ya pasamos la fecha de fin del proyecto, PV debe ser 100%
+        if fin_real and today >= fin_real:
+            pct_pv = 100.0
 
         at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
 
@@ -816,7 +819,10 @@ function renderChart(p) {{
   }}
 
   const labels = rows.map(r => `S${{isoWeek(r.ws)}} ${{fmts(r.ws)}}`);
-  const pvData = rows.map(r => r.pctPV);
+  // PV: forzar que la última semana con PV > 0 llegue a 100%
+  const pvRaw = rows.map(r => r.pctPV);
+  const lastPvIdx = pvRaw.reduce((acc, v, i) => v > 0 ? i : acc, -1);
+  const pvData = pvRaw.map((v, i) => i === lastPvIdx ? 100 : v);
   const evData = rows.map((r, i) => new Date(r.ws) <= TODAY ? r.pctEV : null);
   const esData = rows.map((r, i) => i <= todayIdx ? pctEVhoy : null);
 
