@@ -53,7 +53,6 @@ FECHAS_EXW_GID = {
     "1213881596172396": "2026-08-03",
     "1214137717389412": "2026-06-22",
     "1213963037596622": "2026-04-22",
-    "1213997266064436": "2026-05-25",
     "1213377149548665": "2026-04-21",
     "1213377149548798": "2026-05-07",
     "1213377149548590": "2026-04-10",
@@ -191,7 +190,6 @@ def process_file(path):
 
         es_kickoff = "kick off" in str(parent).lower() or "kick off" in name.lower()
 
-        completed_at_date = to_date(completado) if completado else None
 
         tareas.append({
             "name": name,
@@ -201,7 +199,6 @@ def process_file(path):
             "fin": fin,
             "av": min(max(av, 0.0), 1.0),
             "kickoff": es_kickoff,
-            "completed_at": completed_at_date,  # fecha real de completado desde Asana
         })
 
     return {
@@ -249,34 +246,12 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
                     ev_sem += t["_hrs"] * t["av"]
                     n_tareas += 1
             else:
-                # PV: siempre según fechas planificadas
-                dl_pv = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
-
-                # EV: usar fecha real de completado (Completed At de Asana) si existe,
-                # o today si está al 100% pero no tiene fecha real.
-                # Esto refleja correctamente proyectos adelantados donde las tareas
-                # se completaron antes de sus fechas planificadas.
-                if t["av"] >= 1.0:
-                    # Determinar cuándo se completó realmente
-                    completed = t.get("completed_at") or today
-                    # fin_ev es el mínimo entre fecha real completado y fin planificado
-                    fin_ev = min(completed, t["fin"])
-                    # ini_ev: si la tarea se completó antes de su inicio planificado,
-                    # usar la fecha de completado como único punto
-                    ini_ev = min(t["ini"], fin_ev)
-                    dl_ev = dias_habiles_en_semana(ini_ev, fin_ev, ws, we)
-                    # Si completado antes del ini planificado, poner el EV en esa semana
-                    if dl_ev == 0 and ini_ev >= ws and ini_ev <= we:
-                        dl_ev = 1
-                else:
-                    dl_ev = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
-
-                if dl_pv == 0 and dl_ev == 0:
+                dl = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
+                if dl == 0:
                     continue
-                if dl_pv > 0:
-                    pv_sem += dl_pv * HRS_DIA
-                if dl_ev > 0:
-                    ev_sem += dl_ev * HRS_DIA * t["av"]
+                hrs = dl * HRS_DIA
+                pv_sem += hrs
+                ev_sem += hrs * t["av"]
                 n_tareas += 1
 
         rows.append({
@@ -318,7 +293,7 @@ def process_all(data_dir):
             "50001546": "1214739697907723", "50001545": "1214563704105168",
             "50001543": "1214508463084754", "50001525": "1213832650589314",
             "50001534": "1213881596172396", "50001541": "1214137717389412",
-            "50001532": "1213963037596622", "50001466": "1213997266064436",
+            "50001532": "1213963037596622",
             "50001485": "1213377149548665", "50001498": "1213377149548798",
             "50001477": "1213377149548590", "50001490": "1213377149548731",
             "50001415": "1213391072478428", "50001506": "1213244147627519",
@@ -796,6 +771,23 @@ function fmts(isoStr) {{
   return `${{d.getDate().toString().padStart(2,'0')}}/${{(d.getMonth()+1).toString().padStart(2,'0')}}`;
 }}
 
+function isoWeek(isoStr) {{
+  const d = new Date(isoStr);
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const startOfWeek1 = new Date(jan4);
+  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const diff = d - startOfWeek1;
+  const week = Math.floor(diff / 604800000) + 1;
+  if (week < 1) {{
+    const dec28 = new Date(d.getFullYear() - 1, 11, 28);
+    const jan4prev = new Date(d.getFullYear() - 1, 0, 4);
+    const startPrev = new Date(jan4prev);
+    startPrev.setDate(jan4prev.getDate() - ((jan4prev.getDay() + 6) % 7));
+    return Math.floor((dec28 - startPrev) / 604800000) + 1;
+  }}
+  return week;
+}}
+
 function renderChart(p) {{
   if (chartInst) {{ chartInst.destroy(); chartInst = null; }}
   const rows = p.rows;
@@ -811,7 +803,7 @@ function renderChart(p) {{
     }}
   }}
 
-  const labels = rows.map(r => `S${{r.idx}} ${{fmts(r.ws)}}`);
+  const labels = rows.map(r => `S${{isoWeek(r.ws)}} ${{fmts(r.ws)}}`);
   const pvData = rows.map(r => r.pctPV);
   const evData = rows.map((r, i) => new Date(r.ws) <= TODAY ? r.pctEV : null);
   const esData = rows.map((r, i) => i <= todayIdx ? pctEVhoy : null);
@@ -869,7 +861,7 @@ function renderTabla(p) {{
     const spiF = parseFloat(spiW);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="mono">S${{r.idx}}</td>
+      <td class="mono">S${{isoWeek(r.ws)}}</td>
       <td class="mono" style="color:var(--muted);font-size:10px">${{new Date(r.ws).toLocaleDateString('es-CL')}}</td>
       <td class="mono">${{r.n}}</td>
       <td class="mono" style="color:#2563eb">${{r.pv.toFixed(1)}}h</td>
