@@ -119,7 +119,7 @@ tr:hover td{background:#f8fafc}
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · 32 PROYECTOS</div>
-    <div class="meta">Última actualización: 28/06/2026 16:40 hrs (Chile) · Días hábiles Chile</div>
+    <div class="meta">Última actualización: 28/06/2026 17:01 hrs (Chile) · Días hábiles Chile</div>
   </div>
   <div class="body">
 
@@ -247,7 +247,7 @@ function renderResumen() {
       <div class="pmeta">
         📅 KO: ${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'} &nbsp;·&nbsp;
         🏁 Contractual: ${due}<br>
-        📊 EV: ${p.pct_ev}% &nbsp;·&nbsp; SPI: ${spit} &nbsp;·&nbsp; SV: ${svt}<br>
+        📊 EV: ${p.pct_ev}% &nbsp;·&nbsp; SPI: ${(p.es_iso/calcAT(p.kickoff)).toFixed(2)} &nbsp;·&nbsp; SV: ${(p.es_iso-calcAT(p.kickoff)).toFixed(1)}w<br>
         📆 EAC: ${eac} &nbsp;·&nbsp; Prob: ${p.prob}%
       </div>
       <div class="pbar"><div class="pbarf" style="width:${p.pct_ev}%;background:${p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}"></div></div>
@@ -283,15 +283,21 @@ function abrirDash(idx, card) {
     📊 ES: <b>S${p.es_iso.toFixed(1)}</b>
   `;
 
-  const svtColor = p.svt >= 0 ? 'var(--verde)' : 'var(--rojo)';
-  const spitColor = p.spit >= 1 ? 'var(--verde)' : p.spit >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
+  // Recalcular SPI y SV en vivo con AT actual
+  const atLive  = calcAT(p.kickoff);
+  const esLive  = p.es_iso;
+  const svtLive = esLive - atLive;
+  const spitLive = atLive > 0 ? esLive / atLive : 0;
+
+  const svtColor = svtLive >= 0 ? 'var(--verde)' : 'var(--rojo)';
+  const spitColor = spitLive >= 1 ? 'var(--verde)' : spitLive >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
   const probColor = p.prob >= 70 ? 'var(--verde)' : p.prob >= 40 ? 'var(--amarillo)' : 'var(--rojo)';
 
   document.getElementById('dashKpis').innerHTML = `
     <div class="kpi" style="--c:var(--verde)"><div class="kl">EV %</div><div class="kv">${p.pct_ev}%</div><div class="ks">avance real</div></div>
     <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${p.pct_pv}%</div><div class="ks">planificado</div></div>
-    <div class="kpi" style="--c:${svtColor}"><div class="kl">SV(t)</div><div class="kv">${(p.svt>=0?'+':'')+p.svt.toFixed(2)}w</div><div class="ks">${p.svt>=0?'adelantado':'atrasado'}</div></div>
-    <div class="kpi" style="--c:${spitColor}"><div class="kl">SPI(t)</div><div class="kv">${p.spit===99?'∞':p.spit.toFixed(2)}</div><div class="ks">${p.spit>=1?'eficiente':p.spit>=0.7?'moderado':'bajo'}</div></div>
+    <div class="kpi" style="--c:${svtColor}"><div class="kl">SV(t)</div><div class="kv">${(svtLive>=0?'+':'')+svtLive.toFixed(2)}w</div><div class="ks">${svtLive>=0?'adelantado':'atrasado'}</div></div>
+    <div class="kpi" style="--c:${spitColor}"><div class="kl">SPI(t)</div><div class="kv">${spitLive===99?'∞':spitLive.toFixed(2)}</div><div class="ks">${spitLive>=1?'eficiente':spitLive>=0.7?'moderado':'bajo'}</div></div>
     <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${p.es_iso.toFixed(1)}</div><div class="ks">sem. equiv.</div></div>
     <div class="kpi" style="--c:${probColor}"><div class="kl">Probabilidad</div><div class="kv">${p.prob}%</div><div class="ks">terminar a tiempo</div></div>
     <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${calcAT(p.kickoff).toFixed(1)}</div><div class="ks">semanas reales</div></div>
