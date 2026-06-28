@@ -110,6 +110,21 @@ def parse_av(av_raw, completado):
         # Texto no numérico (ej: "Tarea Terminada", "Alta") → ignorar
         return 0.0
 
+# GIDs de proyectos ya despachados — se excluyen SIEMPRE del dashboard
+GIDS_DESPACHADOS = {
+    "1213997266064436",  # 50001466 - ZITRON PERU PODEROSA
+    "1213377149548590",  # 50001477 - TRITON MINERA
+    "1213400421980747",  # 50001504 A - ZITRON PERU CODESTABLE
+    "1213377149548924",  # 50001504 B - ZITRON PERU CODESTABLE
+    "1213391072478428",  # 50001415 - ZITRON PERU METRO LIMA E05
+    "1213391072478496",  # 50001451 - ZITRON COLOMBIA
+    "1213234368822465",  # 50001500 - EQ MIN LA HACIENDA
+    "1213377149548860",  # 50001501 - EQ MIN LA HACIENDA B
+    "1213458788103499",  # 50001524 - ATACAMA KOZAN
+    "1213185599076077",  # 50001514 - CLIENTE POR DEFINIR A
+    "1213234368821945",  # 50001515 - CLIENTE POR DEFINIR B
+}
+
 def es_seccion_logistica(section_name):
     """Detecta si una sección es Logística."""
     s = section_name.lower().strip()
@@ -306,6 +321,11 @@ def process_all(data_dir):
 
         exw_str = FECHAS_EXW_GID.get(gid) if gid else None
         exw_date = date.fromisoformat(exw_str) if exw_str else None
+
+        # Excluir proyectos ya despachados por GID
+        if gid and gid in GIDS_DESPACHADOS:
+            print(f"    🚢 GID {gid} en lista despachados → excluido")
+            continue
 
         result = process_file(xlsx)
         if not result or not result["tareas"]:
