@@ -390,18 +390,14 @@ def process_all(data_dir):
                     ws_prev = (date.fromisoformat(prev["ws"]) - kickoff).days / 7
                     ws_cur  = (date.fromisoformat(r["ws"])  - kickoff).days / 7
                     es_weeks = ws_prev + f * (ws_cur - ws_prev)
-                    # ES en semana ISO del calendario
-                    # El ws es lunes (inicio semana N), el gráfico muestra domingo (fin semana N-1)
-                    # Por eso usamos N-1 para coincidir con el eje X del gráfico
-                    iso_prev = date.fromisoformat(prev["ws"]).isocalendar()[1] - 1
-                    iso_cur  = date.fromisoformat(r["ws"]).isocalendar()[1] - 1
-                    # si cruza año (ej S52→S1) mantener continuidad
-                    if iso_cur < iso_prev:
-                        iso_cur += 52
-                    es_iso = iso_prev + f * (iso_cur - iso_prev)
+                    # ES en semana ISO: interpolar la fecha exacta y leer su semana ISO
+                    # Restamos 1 día porque ws es el lunes (inicio S_n) y el gráfico 
+                    # etiqueta con el domingo anterior (fin S_n-1)
+                    es_date = date.fromisoformat(prev["ws"]) + timedelta(days=f * 7) - timedelta(days=1)
+                    es_iso  = es_date.isocalendar()[1] + (f * 7 % 7) / 7
                 break
             es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
-            es_iso   = date.fromisoformat(rows[-1]["ws"]).isocalendar()[1] - 1
+            es_iso   = (date.fromisoformat(rows[-1]["ws"]) - timedelta(days=1)).isocalendar()[1]
 
         spit = round(es_iso / at_iso, 2) if at_iso > 0 else (99 if pct_ev > 0 else 0)
         svt  = round(es_iso - at_iso, 2)
