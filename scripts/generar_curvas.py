@@ -281,11 +281,12 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
         r["pctEV"] = round(min(ea / total_pv * 100, 100.0), 1) if total_pv else 0
 
     # Forzar SOLO la última semana con PV > 0 al 100%
-    # Las semanas anteriores mantienen su valor real acumulado
     last_pv_idx = max((i for i, r in enumerate(rows) if r["pv"] > 0), default=-1)
     if last_pv_idx >= 0:
         rows[last_pv_idx]["pctPV"] = 100.0
         rows[last_pv_idx]["pvA"]   = round(total_pv, 1)
+        # Cortar filas después de la última semana con PV
+        rows = rows[:last_pv_idx + 1]
 
     return rows, round(total_pv, 1)
 
@@ -927,6 +928,8 @@ function renderTabla(p) {{
   tbody.innerHTML = '';
 
   rows.forEach(r => {{
+    // Saltar semanas sin tareas y sin PV (semanas vacías al final)
+    if (r.pv === 0 && r.n === 0) return;
     const esFutura = new Date(r.ws) > TODAY;
     const pctEV = r.pctEV || 0;
     const pctPV = r.pctPV || 0;
