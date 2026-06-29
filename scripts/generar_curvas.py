@@ -786,8 +786,9 @@ function abrirDash(idx, card) {{
   `;
 
   // ── SPI y SV — fórmula simple EV/PV (igual que Excel) ──────────
-  const spitLive = p.pct_pv > 0 ? Math.min(p.pct_ev / p.pct_pv, 9.99) : (p.pct_ev > 0 ? 99 : 0);
-  const svtLive  = p.pct_ev - p.pct_pv;
+  const pvLive   = (p.fin_real && new Date(p.fin_real) < new Date()) ? 100 : p.pct_pv;
+  const spitLive = pvLive > 0 ? Math.min(p.pct_ev / pvLive, 9.99) : (p.pct_ev > 0 ? 99 : 0);
+  const svtLive  = p.pct_ev - pvLive;
 
   const svtColor = svtLive >= 0 ? 'var(--verde)' : 'var(--rojo)';
   const spitColor = spitLive >= 1 ? 'var(--verde)' : spitLive >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
@@ -795,12 +796,14 @@ function abrirDash(idx, card) {{
 
   document.getElementById('dashKpis').innerHTML = `
     <div class="kpi" style="--c:var(--verde)"><div class="kl">EV %</div><div class="kv">${{p.pct_ev}}%</div><div class="ks">avance real</div></div>
-    <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{p.pct_pv}}%</div><div class="ks">planificado</div></div>
+    <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{(p.fin_real && new Date(p.fin_real) < new Date()) ? 100 : p.pct_pv}}%</div><div class="ks">planificado</div></div>
     <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV</div><div class="kv">${{(svtLive>=0?'+':'')+svtLive.toFixed(1)}}%</div><div class="ks">${{svtLive>=0?'adelantado':'atrasado'}}</div></div>
     <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI</div><div class="kv">${{spitLive===99?'∞':spitLive.toFixed(2)}}</div><div class="ks">${{spitLive>=1?'en tiempo':spitLive>=0.7?'moderado':'crítico'}}</div></div>
-    <div class="kpi" style="--c:${{svtLive<0?'var(--rojo)':'var(--verde)'}}"><div class="kl">Hrs atrasadas</div><div class="kv" style="font-size:16px">${{Math.abs(Math.round(svtLive/100*p.total_pv))}}h</div><div class="ks">${{svtLive<0?'de déficit':'de adelanto'}}</div></div>
-    <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
-    <div class="kpi" style="--c:${{p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${{p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}}</div><div class="ks">estimado cierre</div></div>
+    <div class="kpi" style="--c:${{svtLive<0?'var(--rojo)':'var(--verde)'}}">
+      <div class="kl">Hrs atrasadas</div>
+      <div class="kv" style="font-size:16px">${{Math.abs(Math.round(svtLive/100*p.total_pv))}}h</div>
+      <div class="ks" style="font-size:11px;font-weight:600">≈ ${{Math.abs(Math.round(svtLive/100*p.total_pv/8.3/5))}} sem ${{svtLive<0?'de déficit':'de adelanto'}}</div>
+    </div>
     ${{p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${{new Date(p.exw).toLocaleDateString('es-CL')}}</div><div class="ks">entrega prevista</div></div>` : ''}}
   `;
 
