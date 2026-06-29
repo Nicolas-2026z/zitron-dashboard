@@ -658,11 +658,10 @@ tr:hover td{{background:#f8fafc}}
       <div class="tbl-wrap">
         <table><thead><tr>
           <th>Sem</th><th>Fecha</th><th>Tareas</th>
-          <th>PV sem</th><th>EV sem</th>
-          <th>PV acum</th><th>EV acum</th>
+          <th>PV Sem</th><th>EV Sem</th>
+          <th>PV Acum</th><th>EV Acum</th>
           <th>% PV</th><th>% EV</th>
-          <th>ES</th><th>AT</th>
-          <th>SV(t)</th><th>SPI(t)</th><th>Estado</th>
+          <th>SPI</th><th>SV</th><th>Estado</th>
         </tr></thead><tbody id="dashTbl"></tbody></table>
       </div>
       <div style="margin-top:20px">
@@ -910,34 +909,44 @@ function renderChart(p) {{
 }}
 
 function renderTabla(p) {{
-  const rows = p.rows.filter(r => new Date(r.ws) <= TODAY);
+  // Mostrar TODAS las semanas — pasadas y futuras planificadas
+  const rows = p.rows;
   const tbody = document.getElementById('dashTbl');
   tbody.innerHTML = '';
-  const kickoff = p.kickoff ? new Date(p.kickoff) : null;
 
   rows.forEach(r => {{
-    const atW = kickoff ? ((new Date(r.ws) - kickoff) / 604800000).toFixed(1) : '—';
-    const esW = calcES(p.rows, r.evA, p.total_pv, p.kickoff);
-    const svW = (esW - parseFloat(atW)).toFixed(2);
-    const spiW = parseFloat(atW) > 0 ? (esW / parseFloat(atW)).toFixed(2) : '—';
-    const svF = parseFloat(svW);
-    const spiF = parseFloat(spiW);
+    const esFutura = new Date(r.ws) > TODAY;
+    const pctEV = r.pctEV || 0;
+    const pctPV = r.pctPV || 0;
+
+    // SPI y SV solo para semanas pasadas con datos reales
+    let spiTxt = '—', svTxt = '—', estadoTxt = '—';
+    let spiF = null, svF = null;
+    if (!esFutura && pctPV > 0) {{
+      spiF = pctEV / pctPV;
+      svF  = pctEV - pctPV;
+      spiTxt = spiF.toFixed(2);
+      svTxt  = (svF >= 0 ? '+' : '') + svF.toFixed(1) + '%';
+      estadoTxt = svF >= 0 ? 'Adelantado' : 'Atrasado';
+    }}
+
     const tr = document.createElement('tr');
+    // Filas futuras con fondo diferente
+    if (esFutura) tr.style.opacity = '0.5';
+
     tr.innerHTML = `
-      <td class="mono">S${{isoWeek(r.ws)}}</td>
+      <td class="mono">${{esFutura ? '→' : ''}} S${{isoWeek(r.ws)}}</td>
       <td class="mono" style="color:var(--muted);font-size:10px">${{new Date(r.ws).toLocaleDateString('es-CL')}}</td>
-      <td class="mono">${{r.n}}</td>
+      <td class="mono">${{r.n || '—'}}</td>
       <td class="mono" style="color:#2563eb">${{r.pv.toFixed(1)}}h</td>
-      <td class="mono" style="color:#16a34a">${{r.ev.toFixed(1)}}h</td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : r.ev.toFixed(1) + 'h'}}</td>
       <td class="mono" style="color:#2563eb">${{r.pvA.toFixed(0)}}h</td>
-      <td class="mono" style="color:#16a34a">${{r.evA.toFixed(1)}}h</td>
-      <td class="mono" style="color:#2563eb">${{r.pctPV}}%</td>
-      <td class="mono" style="color:#16a34a">${{r.pctEV}}%</td>
-      <td class="mono" style="color:#d97706">${{esW.toFixed(2)}}</td>
-      <td class="mono" style="color:var(--muted)">${{atW}}</td>
-      <td><span class="chip ${{svF>=0?'c-ok':'c-bad'}}">${{svF>=0?'+':''}}${{svW}}w</span></td>
-      <td><span class="chip ${{spiF>=1?'c-ok':spiF>=0.7?'c-warn':'c-bad'}}">${{spiW}}</span></td>
-      <td><span class="chip ${{svF>=0?'c-ok':'c-warn'}}">${{svF>=0?'Adelantado':'Atrasado'}}</span></td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : r.evA.toFixed(1) + 'h'}}</td>
+      <td class="mono" style="color:#2563eb">${{pctPV}}%</td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : pctEV + '%'}}</td>
+      <td><span class="chip ${{spiF===null?'':spiF>=1?'c-ok':spiF>=0.7?'c-warn':'c-bad'}}">${{spiTxt}}</span></td>
+      <td><span class="chip ${{svF===null?'':svF>=0?'c-ok':'c-bad'}}">${{svTxt}}</span></td>
+      <td><span class="chip ${{estadoTxt==='Adelantado'?'c-ok':estadoTxt==='Atrasado'?'c-warn':''}}">${{estadoTxt}}</span></td>
     `;
     tbody.appendChild(tr);
   }});
