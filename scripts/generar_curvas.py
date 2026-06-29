@@ -190,7 +190,10 @@ def process_file(path):
             tareas_logistica_raw.append({"name": name, "av": av, "section": sec})
 
         # Para la curva S solo usamos nivel 2 (con parent) y con fechas
+        # Excluir cabeceras — tareas sin fechas o cuyo nombre termina en ":"
         if not parent or not ini or not fin:
+            continue
+        if str(name).strip().endswith(":"):
             continue
 
         es_kickoff = "kick off" in str(parent).lower() or "kick off" in name.lower()
@@ -276,6 +279,13 @@ def calcular_curva(tareas, kickoff_date, fin_real_date):
         r["evA"] = round(ea, 1)
         r["pctPV"] = round(min(pa / total_pv * 100, 100.0), 1) if total_pv else 0
         r["pctEV"] = round(min(ea / total_pv * 100, 100.0), 1) if total_pv else 0
+
+    # Forzar SOLO la última semana con PV > 0 al 100%
+    # Las semanas anteriores mantienen su valor real acumulado
+    last_pv_idx = max((i for i, r in enumerate(rows) if r["pv"] > 0), default=-1)
+    if last_pv_idx >= 0:
+        rows[last_pv_idx]["pctPV"] = 100.0
+        rows[last_pv_idx]["pvA"]   = round(total_pv, 1)
 
     return rows, round(total_pv, 1)
 
