@@ -405,11 +405,12 @@ def process_all(data_dir):
             es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
             es_iso   = (date.fromisoformat(rows[-1]["ws"]) - timedelta(days=1)).isocalendar()[1]
 
-        # SPI y SV usan semanas desde kickoff (es_weeks y at_weeks) — sistema consistente
-        at_ref_weeks = (at_ref - kickoff).days / 7 if kickoff else at_weeks
-        spit = round(es_weeks / at_ref_weeks, 2) if at_ref_weeks > 0 else (99 if pct_ev > 0 else 0)
-        svt  = round(es_weeks - at_ref_weeks, 2)
-        # EAC: duración total del proyecto en semanas reales / SPI → fecha estimada de cierre
+        # ── SPI y SV — fórmula simple EV/PV ──────────────────────────
+        # SPI = EV% ÷ PV%  (igual que Excel original)
+        # SV  = EV% - PV%  (en puntos porcentuales)
+        spit = round(pct_ev / pct_pv, 2) if pct_pv > 0 else (99 if pct_ev > 0 else 0)
+        svt  = round(pct_ev - pct_pv, 1)
+        # EAC: duración planificada / SPI → fecha estimada de cierre
         total_dur_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
         eac_dur_weeks = total_dur_weeks / spit if 0 < spit < 90 else total_dur_weeks
         eac_date = (kickoff + timedelta(weeks=eac_dur_weeks)).isoformat() if kickoff else None
@@ -749,7 +750,7 @@ function renderResumen() {{
       <div class="pmeta">
         📅 KO: ${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}} &nbsp;·&nbsp;
         🏁 Contractual: ${{due}}<br>
-        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{p.spit.toFixed(2)}} &nbsp;·&nbsp; SV: ${{(p.svt>=0?'+':'')+p.svt.toFixed(1)}}w<br>
+        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{p.spit.toFixed(2)}} &nbsp;·&nbsp; SV: ${{(p.svt>=0?'+':'')+p.svt.toFixed(1)}}%<br>
         📆 EAC: ${{eac}} &nbsp;·&nbsp; Prob: ${{p.prob}}%
       </div>
       <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
@@ -785,26 +786,9 @@ function abrirDash(idx, card) {{
     📊 ES: <b>S${{p.es_iso.toFixed(1)}}</b>
   `;
 
-  // ── Cálculo definitivo SPI / SV ──────────────────────────────
-  // Todo en SEMANAS DESDE KICKOFF — sistema único y consistente
-  const ko = p.kickoff ? new Date(p.kickoff) : null;
-
-  // AT: semanas desde kickoff hasta la última semana con EV real
-  let lastEvDate = new Date();
-  if (ko && p.rows) {{
-    for (let i = p.rows.length - 1; i >= 0; i--) {{
-      if (p.rows[i].evA > 0) {{ lastEvDate = new Date(p.rows[i].ws); break; }}
-    }}
-    if (lastEvDate > new Date()) lastEvDate = new Date();
-  }}
-  const atKoLive = ko ? (lastEvDate - ko) / 604800000 : 0;
-
-  // ES: semanas desde kickoff (viene del Python como p.es_weeks)
-  const esLive = p.es_weeks;
-
-  // SPI y SV
-  const svtLive  = esLive - atKoLive;
-  const spitLive = atKoLive > 0 ? Math.min(esLive / atKoLive, 9.99) : 0;
+  // ── SPI y SV — fórmula simple EV/PV (igual que Excel) ──────────
+  const spitLive = p.pct_pv > 0 ? Math.min(p.pct_ev / p.pct_pv, 9.99) : (p.pct_ev > 0 ? 99 : 0);
+  const svtLive  = p.pct_ev - p.pct_pv;
 
   const svtColor = svtLive >= 0 ? 'var(--verde)' : 'var(--rojo)';
   const spitColor = spitLive >= 1 ? 'var(--verde)' : spitLive >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
@@ -813,8 +797,8 @@ function abrirDash(idx, card) {{
   document.getElementById('dashKpis').innerHTML = `
     <div class="kpi" style="--c:var(--verde)"><div class="kl">EV %</div><div class="kv">${{p.pct_ev}}%</div><div class="ks">avance real</div></div>
     <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{p.pct_pv}}%</div><div class="ks">planificado</div></div>
-    <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV(t)</div><div class="kv">${{(svtLive>=0?'+':'')+svtLive.toFixed(2)}}w</div><div class="ks">${{svtLive>=0?'adelantado':'atrasado'}}</div></div>
-    <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI(t)</div><div class="kv">${{spitLive===99?'∞':spitLive.toFixed(2)}}</div><div class="ks">${{spitLive>=1?'eficiente':spitLive>=0.7?'moderado':'bajo'}}</div></div>
+    <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV</div><div class="kv">${{(svtLive>=0?'+':'')+svtLive.toFixed(1)}}%</div><div class="ks">${{svtLive>=0?'adelantado':'atrasado'}}</div></div>
+    <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI</div><div class="kv">${{spitLive===99?'∞':spitLive.toFixed(2)}}</div><div class="ks">${{spitLive>=1?'en tiempo':spitLive>=0.7?'moderado':'crítico'}}</div></div>
     <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${{p.es_iso.toFixed(1)}}</div><div class="ks">sem. equiv.</div></div>
     <div class="kpi" style="--c:${{probColor}}"><div class="kl">Probabilidad</div><div class="kv">${{p.prob}}%</div><div class="ks">terminar a tiempo</div></div>
     <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${{calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}}</div><div class="ks">semanas reales</div></div>
