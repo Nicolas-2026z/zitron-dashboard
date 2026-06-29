@@ -119,7 +119,7 @@ tr:hover td{background:#f8fafc}
 <div class="main" id="main">
   <div class="topbar">
     <div class="brand">// CURVA S · PORTAFOLIO ZITRON · 32 PROYECTOS</div>
-    <div class="meta">Última actualización: 29/06/2026 17:47 hrs (Chile) · Días hábiles Chile</div>
+    <div class="meta">Última actualización: 29/06/2026 18:05 hrs (Chile) · Días hábiles Chile</div>
   </div>
   <div class="body">
 
@@ -279,7 +279,7 @@ function abrirDash(idx, card) {
     🔚 Fin real: <b>${p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}</b><br>
     📋 PV total: <b>${p.total_pv.toFixed(0)} hrs</b> &nbsp;·&nbsp;
     ⏱ AT: <b>S${calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}</b> &nbsp;·&nbsp;
-    📊 ES: <b>S${p.es_iso.toFixed(1)}</b>
+
   `;
 
   // ── SPI y SV — fórmula simple EV/PV (igual que Excel) ──────────
@@ -295,9 +295,8 @@ function abrirDash(idx, card) {
     <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${p.pct_pv}%</div><div class="ks">planificado</div></div>
     <div class="kpi" style="--c:${svtColor}"><div class="kl">SV</div><div class="kv">${(svtLive>=0?'+':'')+svtLive.toFixed(1)}%</div><div class="ks">${svtLive>=0?'adelantado':'atrasado'}</div></div>
     <div class="kpi" style="--c:${spitColor}"><div class="kl">SPI</div><div class="kv">${spitLive===99?'∞':spitLive.toFixed(2)}</div><div class="ks">${spitLive>=1?'en tiempo':spitLive>=0.7?'moderado':'crítico'}</div></div>
-    <div class="kpi" style="--c:var(--purple)"><div class="kl">ES</div><div class="kv">S${p.es_iso.toFixed(1)}</div><div class="ks">sem. equiv.</div></div>
+    <div class="kpi" style="--c:${svtLive<0?'var(--rojo)':'var(--verde)'}"><div class="kl">Hrs atrasadas</div><div class="kv" style="font-size:16px">${Math.abs(Math.round(svtLive/100*p.total_pv))}h</div><div class="ks">${svtLive<0?'de déficit':'de adelanto'}</div></div>
     <div class="kpi" style="--c:${probColor}"><div class="kl">Probabilidad</div><div class="kv">${p.prob}%</div><div class="ks">terminar a tiempo</div></div>
-    <div class="kpi" style="--c:var(--muted)"><div class="kl">AT</div><div class="kv">S${calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}</div><div class="ks">semanas reales</div></div>
     <div class="kpi" style="--c:${p.eac_date && new Date(p.eac_date) > new Date(p.contractual||'9999') ? 'var(--rojo)' : 'var(--verde)'}"><div class="kl">EAC</div><div class="kv" style="font-size:12px">${p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—'}</div><div class="ks">estimado cierre</div></div>
     ${p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${new Date(p.exw).toLocaleDateString('es-CL')}</div><div class="ks">entrega prevista</div></div>` : ''}
   `;
