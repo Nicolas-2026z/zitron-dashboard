@@ -278,6 +278,7 @@ def process_file(path, today):
             "bloqueada": bool(blocked_by and str(blocked_by).strip()),
             "asana_url": f"https://app.asana.com/0/0/{int(task_id)}/f" if task_id else None,
             "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
+            "dias_plazo": dias_habiles_entre(due, completed) if completed and due else None,
             "estado": estado,
             "estado_plazo": estado_plazo,
             "estado_general": estado_general,
@@ -519,7 +520,7 @@ TEMPLATE = r"""<!DOCTYPE html>
       <th>Tareas</th>
       <th>Compl.</th>
       <th>% Compl.</th>
-      <th>⏱ Prom. cierre</th>
+      <th>⏱ Prom. plazo</th>
       <th>Cerradas en tiempo</th>
       <th>Cerradas fuera de tiempo</th>
       <th>Abiertas en tiempo</th>
@@ -528,7 +529,7 @@ TEMPLATE = r"""<!DOCTYPE html>
     <tbody id="personaBody"></tbody>
   </table>
   <div style="margin-top:10px;font-size:11px;color:#9aa0a6;">
-    ⏱ Prom. cierre = promedio de días hábiles entre fecha de inicio y fecha de completado (solo tareas cerradas con fecha de inicio registrada)
+    ⏱ Prom. plazo = promedio de días hábiles entre fecha de vencimiento y fecha de completado. Verde = anticipado · Rojo = con atraso
   </div>
 </div>
 
@@ -708,19 +709,16 @@ function renderAreas(tasks) {
     if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
   });
 
-  // Calcular promedio por persona, luego promediar esos promedios por área (promedio de promedios).
+  // Promedio por persona usando dias_plazo (días entre vencimiento y completado, con signo).
+  // Negativo = antes del plazo, positivo = tarde. Promediamos esos valores por persona,
+  // luego promediamos los promedios de personas por área.
   const personas = {};
   tasks.forEach(t => {
     if (!t.assignee || t.assignee === '(sin asignar)') return;
+    if (t.estado_general !== 'Completada' || t.dias_plazo === null || t.dias_plazo === undefined) return;
     personas[t.assignee] = personas[t.assignee] || {area: t.area, dias_totales: 0, dias_count: 0};
-    const startRef = t.start_iso || t.due_iso; // si no hay inicio, usar fecha de vencimiento
-    if (t.estado_general === 'Completada' && startRef && t.completed) {
-      const d = diasHabilesJS(startRef, t.completed);
-      if (d !== null && d >= 0) {
-        personas[t.assignee].dias_totales += d;
-        personas[t.assignee].dias_count++;
-      }
-    }
+    personas[t.assignee].dias_totales += t.dias_plazo;
+    personas[t.assignee].dias_count++;
   });
 
   // Sumar los promedios individuales por área y dividir por cantidad de personas
@@ -763,8 +761,8 @@ function renderAreas(tasks) {
       </div>
       <div class="prom-box">
         <div>
-          <div class="prom-val">${promDias !== null ? promDias + 'd' : '—'}</div>
-          <div class="prom-lbl">prom. por persona<br>(${promPersonas} ${promPersonas === 1 ? 'persona' : 'personas'})</div>
+          <div class="prom-val" style="${promDias !== null ? (parseFloat(promDias) > 0 ? 'color:var(--rojo)' : parseFloat(promDias) < 0 ? 'color:var(--verde)' : '') : ''}">${promDias !== null ? (parseFloat(promDias) > 0 ? '+' : '') + promDias + 'd' : '—'}</div>
+          <div class="prom-lbl">${promDias !== null && parseFloat(promDias) > 0 ? 'prom. atraso' : promDias !== null && parseFloat(promDias) < 0 ? 'prom. anticipado' : 'prom. exacto'}<br>(${promPersonas} ${promPersonas === 1 ? 'persona' : 'personas'})</div>
         </div>
       </div>
     </div>`;
@@ -788,13 +786,10 @@ function renderPersonas(tasks) {
     personas[key].total++;
     if (t.estado_general === 'Completada') {
       personas[key].compl++;
-      const startRef = t.start_iso || t.due_iso; // si no hay inicio, usar fecha de vencimiento
-      if (startRef && t.completed) {
-        const d = diasHabilesJS(startRef, t.completed);
-        if (d !== null && d >= 0) {
-          personas[key].dias_totales += d;
-          personas[key].dias_count++;
-        }
+      // Usar dias_plazo (diferencia entre vencimiento y completado, con signo)
+      if (t.dias_plazo !== null && t.dias_plazo !== undefined) {
+        personas[key].dias_totales += t.dias_plazo;
+        personas[key].dias_count++;
       }
     }
     if (t.estado_general === 'En curso') personas[key].abierta_tiempo++;
@@ -817,7 +812,7 @@ function renderPersonas(tasks) {
       <td><span class="pill ${p>=80?'verde':(p>=50?'amarillo':'rojo')}">${p.toFixed(0)}%</span></td>
       <td class="prom-cierre-cell">
         ${promDias !== null
-          ? `${promDias}d <span>${d.dias_count} tareas</span>`
+          ? `<span style="color:${parseFloat(promDias) > 0 ? 'var(--rojo)' : parseFloat(promDias) < 0 ? 'var(--verde)' : 'var(--texto)'}">${parseFloat(promDias) > 0 ? '+' : ''}${promDias}d</span> <span>${d.dias_count} tareas</span>`
           : `<span style="color:#ccc;">—</span>`}
       </td>
       <td><span class="dot verde"></span>${d.cerrada_tiempo}</td>
