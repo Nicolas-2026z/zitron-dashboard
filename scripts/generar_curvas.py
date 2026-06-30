@@ -343,12 +343,17 @@ def actualizar_html(template_path, output_path, demo_data):
 
     # ── Actualizar TODAY ────────────────────────────────────────────────────
     hoy = datetime.today().strftime('%Y-%m-%d')
+    ahora = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     html = re.sub(
         r"const TODAY=new Date\('[^']+'\)",
         f"const TODAY=new Date('{hoy}')",
         html
     )
-    print(f"[OK] TODAY actualizado a {hoy}")
+    # Forzar cambio en el HTML para que git siempre haga commit
+    html = re.sub(r'<!-- updated:.*?-->', f'<!-- updated: {ahora} -->', html)
+    if f'<!-- updated: {ahora} -->' not in html:
+        html = html.replace('</head>', f'<!-- updated: {ahora} --></head>', 1)
+    print(f"[OK] TODAY actualizado a {hoy} ({ahora})")
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
