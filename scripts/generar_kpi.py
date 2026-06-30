@@ -213,6 +213,10 @@ def process_file(path, today):
         parent = row[col["Parent task"]]
         if parent in (None, ""):
             continue
+        # Excluir cabeceras de sección: el campo Parent task debe ser un ID numérico
+        # (cuando Asana exporta una sección como padre, pone el nombre en texto, no un ID)
+        if not str(parent).strip().lstrip("-").isdigit():
+            continue
 
         name = str(row[col["Name"]]).strip()
         section = row[col.get("Section/Column")] if "Section/Column" in col else ""
