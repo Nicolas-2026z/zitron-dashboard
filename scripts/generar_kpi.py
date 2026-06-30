@@ -713,8 +713,9 @@ function renderAreas(tasks) {
   tasks.forEach(t => {
     if (!t.assignee || t.assignee === '(sin asignar)') return;
     personas[t.assignee] = personas[t.assignee] || {area: t.area, dias_totales: 0, dias_count: 0};
-    if (t.estado_general === 'Completada' && t.start_iso && t.completed) {
-      const d = diasHabilesJS(t.start_iso, t.completed);
+    const startRef = t.start_iso || t.due_iso; // si no hay inicio, usar fecha de vencimiento
+    if (t.estado_general === 'Completada' && startRef && t.completed) {
+      const d = diasHabilesJS(startRef, t.completed);
       if (d !== null && d >= 0) {
         personas[t.assignee].dias_totales += d;
         personas[t.assignee].dias_count++;
@@ -787,8 +788,9 @@ function renderPersonas(tasks) {
     personas[key].total++;
     if (t.estado_general === 'Completada') {
       personas[key].compl++;
-      if (t.start_iso && t.completed) {
-        const d = diasHabilesJS(t.start_iso, t.completed);
+      const startRef = t.start_iso || t.due_iso; // si no hay inicio, usar fecha de vencimiento
+      if (startRef && t.completed) {
+        const d = diasHabilesJS(startRef, t.completed);
         if (d !== null && d >= 0) {
           personas[key].dias_totales += d;
           personas[key].dias_count++;
