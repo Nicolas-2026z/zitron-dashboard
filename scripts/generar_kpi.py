@@ -27,21 +27,6 @@ USO
 Por defecto:
   carpeta_con_excels  = /mnt/user-data/uploads
   archivo_salida_html = /mnt/user-data/outputs/KPI.html
-
-INTEGRACIÓN CON LA AUTOMATIZACIÓN DE GITHUB
---------------------------------------------
-Este script no "escucha" cambios por sí mismo. Se integra como un paso
-más del flujo que ya descarga los 41 Excel desde Asana:
-
-  1) (paso existente) descargar los .xlsx actualizados a /data/excels
-  2) python3 generar_kpi.py /data/excels /docs/KPI.html
-  3) git add /docs/KPI.html && git commit -m "Actualiza KPI" && git push
-
-Si esa automatización corre con GitHub Actions, basta agregar un
-"step" que ejecute este script después del step de descarga, y otro
-que haga commit/push del KPI.html (o publicarlo con GitHub Pages
-desde /docs). Así el dashboard queda "actualizado solo" cada vez que
-corre el workflow.
 """
 
 import sys
@@ -146,8 +131,6 @@ def es_habil(d: datetime.date) -> bool:
 
 
 def dias_habiles_entre(d1: datetime.date, d2: datetime.date) -> int:
-    """Días hábiles desde d1 (exclusive) hasta d2 (inclusive).
-    Positivo si d2 > d1, negativo si d2 < d1."""
     if d1 == d2:
         return 0
     a, b = (d1, d2) if d2 > d1 else (d2, d1)
@@ -200,7 +183,6 @@ def area_for(assignee, section):
         a_words = set(a_norm.split())
         for k, v in ASSIGNEE_AREA.items():
             k_norm = _norm(k)
-            # coincidencia exacta o por nombre+apellido contenidos en el nombre completo
             if k_norm == a_norm or k_norm in a_norm:
                 return v
             k_words = set(k_norm.split())
@@ -212,10 +194,6 @@ def area_for(assignee, section):
 def process_file(path, today):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.active
-    # El nombre de la hoja de Excel se trunca a 31 caracteres, lo que provoca
-    # colisiones entre proyectos con prefijos largos compartidos
-    # (ej. "...ARIS OT4326" / "...ARIS OT4327" / "...ARIS OT4324-4325").
-    # Por eso usamos el nombre del ARCHIVO (único) como nombre del proyecto.
     project_name = Path(path).stem.strip()
 
     header_row, headers = find_header_row(ws)
@@ -234,13 +212,12 @@ def process_file(path, today):
 
         parent = row[col["Parent task"]]
         if parent in (None, ""):
-            continue  # solo "nivel 2" = tiene tarea padre
+            continue
 
         name = str(row[col["Name"]]).strip()
         section = row[col.get("Section/Column")] if "Section/Column" in col else ""
         assignee = row[col.get("Assignee")] if "Assignee" in col else ""
 
-        # excluir tareas asignadas a "Nicolás" genérico (sin apellido, placeholder erróneo)
         if assignee and str(assignee).strip().lower() in ("nicolás", "nicolas"):
             continue
 
@@ -334,13 +311,6 @@ TEMPLATE = r"""<!DOCTYPE html>
   .subt { color: #5f6368; font-size: 14px; margin: 2px 0; }
   .subt2 { color: #9aa0a6; font-size: 12px; margin: 2px 0 18px 0; }
 
-  .selector {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
-    padding: 8px 14px; font-size: 14px; margin-bottom: 18px; cursor: pointer;
-  }
-  .selector select { border: none; background: transparent; font-size: 14px; font-weight: 600; }
-
   .cards-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px; }
   .card-g {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
@@ -358,7 +328,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .tabcontent { display: none; }
   .tabcontent.active { display: block; }
 
-  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
   .area-card {
     background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
     padding: 14px; width: auto;
@@ -368,7 +338,25 @@ TEMPLATE = r"""<!DOCTYPE html>
   .area-card .pct.verde { color: var(--verde); }
   .area-card .pct.rojo { color: var(--rojo); }
   .area-card .pct.amarillo { color: var(--amarillo); }
-  .area-card .meta { font-size: 12px; color: #5f6368; margin-top: 6px; line-height: 1.5; }
+  .area-card .meta { font-size: 12px; color: #5f6368; margin-top: 6px; line-height: 1.6; }
+  .area-card .prom-box {
+    margin-top: 10px;
+    border-top: 1px solid var(--borde);
+    padding-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .area-card .prom-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--texto);
+  }
+  .area-card .prom-lbl {
+    font-size: 11px;
+    color: #9aa0a6;
+    line-height: 1.3;
+  }
   .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 3px; }
   .dot.verde { background: var(--verde); } .dot.rojo { background: var(--rojo); } .dot.gris { background: var(--gris); }
 
@@ -463,6 +451,19 @@ TEMPLATE = r"""<!DOCTYPE html>
     margin-bottom: 4px; font-size: 12px;
   }
   .selector-multi .panel .acciones a { color: var(--azul); cursor: pointer; text-decoration: none; }
+
+  /* Columna prom cierre en tabla personas */
+  .prom-cierre-cell {
+    font-weight: 700;
+    color: var(--texto);
+    white-space: nowrap;
+  }
+  .prom-cierre-cell span {
+    font-size: 11px;
+    font-weight: 400;
+    color: #9aa0a6;
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -511,9 +512,24 @@ TEMPLATE = r"""<!DOCTYPE html>
 <div class="tabcontent" id="tab-persona">
   <div class="area-pills" id="areaPills"></div>
   <table>
-    <thead><tr><th></th><th>Persona</th><th>Área</th><th>Tareas</th><th>Compl.</th><th>% Compl.</th><th>Cerradas en tiempo</th><th>Cerradas fuera de tiempo</th><th>Abiertas en tiempo</th><th>Abiertas fuera de tiempo</th></tr></thead>
+    <thead><tr>
+      <th></th>
+      <th>Persona</th>
+      <th>Área</th>
+      <th>Tareas</th>
+      <th>Compl.</th>
+      <th>% Compl.</th>
+      <th>⏱ Prom. cierre</th>
+      <th>Cerradas en tiempo</th>
+      <th>Cerradas fuera de tiempo</th>
+      <th>Abiertas en tiempo</th>
+      <th>Abiertas fuera de tiempo</th>
+    </tr></thead>
     <tbody id="personaBody"></tbody>
   </table>
+  <div style="margin-top:10px;font-size:11px;color:#9aa0a6;">
+    ⏱ Prom. cierre = promedio de días hábiles entre fecha de inicio y fecha de completado (solo tareas cerradas con fecha de inicio registrada)
+  </div>
 </div>
 
 <div class="tabcontent" id="tab-tareas">
@@ -610,7 +626,6 @@ function toggleProyecto(p, checked) {
   refrescarSelector();
   areaFiltroPersona = "Todos";
   render();
-  // si la pestaña cascada está activa, refrescarla también
   if (document.getElementById('tab-cascada').classList.contains('active')) renderCascada();
 }
 
@@ -630,340 +645,26 @@ function tareasSeleccionadas() {
 
 function pct(verde, total) { return total ? (100 * verde / total) : 0; }
 
-function renderCascada() {
-  const tasks = tareasSeleccionadas();
-  const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
-
-  const byName = {};
-  tasks.forEach(t => {
-    // indexar por proyecto+nombre para evitar colisiones entre proyectos
-    const key = (t.project||'') + '||' + t.name.trim();
-    const keyClean = (t.project||'') + '||' + t.name.trim().replace(/:$/, '').trim();
-    byName[key] = t;
-    byName[keyClean] = t;
-    // también por nombre solo (fallback)
-    byName[t.name.trim()] = t;
-    byName[t.name.trim().replace(/:$/, '').trim()] = t;
-  });
-
-  function findTask(nombre, proyecto) {
-    const n = nombre.trim().replace(/:$/, '').trim();
-    // buscar primero dentro del mismo proyecto
-    if (proyecto) {
-      const keyP = proyecto + '||' + n;
-      if (byName[keyP]) return byName[keyP];
-    }
-    if (byName[n]) return byName[n];
-    const nl = n.toLowerCase();
-    // buscar dentro del mismo proyecto primero
-    const enProyecto = proyecto ? tasks.filter(t => t.project === proyecto) : tasks;
-    return enProyecto.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
-  }
-
-  function diasHabilesJS(d1str, d2str) {
-    if (!d1str || !d2str) return null;
-    const feriados = new Set([
-      '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
-      '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
-      '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
-      '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
-      '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
-    ]);
-    let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
-    const sign = d2 >= d1 ? 1 : -1;
-    if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
-    let count = 0, cur = new Date(d1);
+function diasHabilesJS(d1str, d2str) {
+  if (!d1str || !d2str) return null;
+  const feriados = new Set([
+    '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
+    '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
+    '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
+    '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
+    '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
+  ]);
+  let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
+  const sign = d2 >= d1 ? 1 : -1;
+  if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
+  let count = 0, cur = new Date(d1);
+  cur.setDate(cur.getDate()+1);
+  while (cur <= d2) {
+    const iso = cur.toISOString().slice(0,10);
+    if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
     cur.setDate(cur.getDate()+1);
-    while (cur <= d2) {
-      const iso = cur.toISOString().slice(0,10);
-      if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
-      cur.setDate(cur.getDate()+1);
-    }
-    return count * sign;
   }
-
-  const tieneBlockedBy = new Set();
-  tasks.forEach(t => { (t.blocked_by||[]).forEach(b => {
-    const found = findTask(b, t.project);
-    if (found) tieneBlockedBy.add(found.project + '||' + found.name);
-  }); });
-
-  const visitadas = new Set();
-  const cadenas = [];
-
-  function buildChain(task, chain) {
-    const key = (task.project||'') + '||' + task.name;
-    if (visitadas.has(key)) return;
-    visitadas.add(key);
-    chain.push(task);
-    (task.blocking||[]).forEach(nextName => {
-      const next = findTask(nextName, task.project);
-      if (next && !visitadas.has((next.project||'') + '||' + next.name)) buildChain(next, chain);
-    });
-  }
-
-  function findRaiz(task, seen) {
-    seen = seen || new Set();
-    const key = (task.project||'') + '||' + task.name;
-    if (seen.has(key)) return task;
-    seen.add(key);
-    const prevs = (task.blocked_by||[]).map(b => findTask(b, task.project)).filter(Boolean);
-    if (prevs.length === 0) return task;
-    return findRaiz(prevs[0], seen);
-  }
-
-  tasks.forEach(t => {
-    if (!t.name || !t.name.trim()) return;
-    const raiz = findRaiz(t);
-    const raizKey = (raiz.project||'') + '||' + raiz.name;
-    if (!visitadas.has(raizKey)) {
-      visitadas.add(raizKey);
-      // construir árbol desde la raíz
-      const arbol = { task: raiz, hijos: [] };
-      const visitadasArbol = new Set([raizKey]);
-
-      function buildTree(nodo) {
-        const t = nodo.task;
-        (t.blocking||[]).forEach(nextName => {
-          const next = findTask(nextName, t.project);
-          if (!next) return;
-          const nextKey = (next.project||'') + '||' + next.name;
-          if (visitadasArbol.has(nextKey)) return;
-          visitadasArbol.add(nextKey);
-          const hijo = { task: next, hijos: [] };
-          nodo.hijos.push(hijo);
-          buildTree(hijo);
-        });
-        // ordenar hijos por fecha
-        nodo.hijos.sort((a,b) => (a.task.start_iso||a.task.due_iso||'9999').localeCompare(b.task.start_iso||b.task.due_iso||'9999'));
-      }
-
-      buildTree(arbol);
-
-      // aplanar el árbol en orden de profundidad (BFS) para mostrar
-      const chain = [];
-      function flatten(nodo) {
-        chain.push(nodo.task);
-        nodo.hijos.forEach(flatten);
-      }
-      flatten(arbol);
-
-      const chainValida = chain.filter(c => c.name && c.name.trim());
-      if (chainValida.length > 1) cadenas.push(chainValida);
-    }
-  });
-
-  if (cadenas.length === 0) {
-    tasks.forEach(t => {
-      if (!t.name || !t.name.trim()) return;
-      const key = (t.project||'') + '||' + t.name;
-      if (!visitadas.has(key) && t.blocking && t.blocking.length > 0) {
-        const chain = [];
-        buildChain(t, chain);
-        const chainValida = chain.filter(c => c.name && c.name.trim())
-          .sort((a,b) => (a.start_iso||a.due_iso||'9999').localeCompare(b.start_iso||b.due_iso||'9999'));
-        if (chainValida.length > 1) cadenas.push(chainValida);
-      }
-    });
-  }
-
-  let filtradas = soloAtraso
-    ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
-    : cadenas;
-
-  if (filtradas.length === 0) {
-    if (cadenas.length === 0) {
-      document.getElementById('cascadaContainer').innerHTML =
-        '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias. Selecciona un proyecto individual para mejores resultados.</p>';
-    } else {
-      document.getElementById('cascadaContainer').innerHTML =
-        '<p style="color:#9aa0a6;padding:16px;">No hay cadenas que coincidan con los filtros aplicados.</p>';
-    }
-    return;
-  }
-
-  // colores por estado
-  const COLORS = {
-    rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
-    verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-    encurso: { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-  };
-
-  let html = '';
-  filtradas.forEach((chain, ci) => {
-    const proyecto = chain[0].project || '';
-    html += `<div style="margin-bottom:32px;">
-      <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
-        🔗 Cadena ${ci+1} — ${chain.length} tareas &nbsp;<span style="font-weight:400;">${proyecto}</span>
-      </div>
-      <div style="position:relative;">`;
-
-    chain.forEach((t, i) => {
-      const diasReales = (t.completed && t.start_iso)
-        ? diasHabilesJS(t.start_iso, t.completed) : null;
-
-      // antecesora real según blocked_by - usar la que terminó más tarde
-      const todasAntecesoras = (t.blocked_by && t.blocked_by.length > 0)
-        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)
-        : (i > 0 ? [chain[i-1]] : []);
-
-      // la que terminó más tarde es la que más impacta el atraso heredado
-      const antecReal = todasAntecesoras
-        .filter(a => a.completed)
-        .sort((a,b) => (b.completed||'').localeCompare(a.completed||''))[0]
-        || todasAntecesoras[0] || null;
-
-      let atrasoHeredado = null;
-      if (antecReal) {
-        if (antecReal.completed && t.start_iso) {
-          atrasoHeredado = diasHabilesJS(t.start_iso, antecReal.completed);
-        }
-      }
-
-      const enAtraso = t.atraso_dias > 0;
-      const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
-      const indent = 0; // sin escalonado, todos alineados
-      const estadoTxt = enAtraso
-        ? `⚠ ${t.atraso_dias}d de atraso`
-        : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
-
-      // flecha con atraso heredado entre bloques
-      if (i > 0) {
-        const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
-          ? `<div style="padding:6px 0;font-size:12px;color:#b3261e;font-weight:700;display:flex;align-items:center;gap:6px;">
-               <span style="font-size:20px;">↓</span>
-               <span>Recibe con <b>-${atrasoHeredado}d hábiles</b> menos para completar</span>
-             </div>`
-          : `<div style="padding:4px 0;font-size:20px;color:#9aa0a6;">↓</div>`;
-        html += heredadoHtml;
-      }
-
-      html += `
-      <div style="border-left:5px solid ${col.border};background:${col.bg};
-                  border-radius:10px;padding:14px 18px;color:${col.text};width:100%;box-sizing:border-box;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
-          <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
-          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${estadoTxt}</div>
-        </div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
-          <span>👤 ${t.assignee}</span>
-          <span>🏢 ${t.area}</span>
-        </div>
-        ${(() => {
-          const antecesoras = (t.blocked_by||[]).map(b => findTask(b, t.project)).filter(Boolean);
-          if (!antecesoras.length) return '';
-          const info = antecesoras.map(a => {
-            const diasR = diasHabilesJS(a.start_iso, a.completed);
-            return `<b>${a.name}</b> · 👤 ${a.assignee} · terminó en ${diasR !== null ? diasR+'d reales' : 'sin completar'} (previsto ${a.duracion_prevista}d)`;
-          }).join('<br>📌 ');
-          return `<div style="margin-top:6px;font-size:10px;opacity:0.7;background:rgba(0,0,0,0.12);border-radius:4px;padding:3px 8px;display:inline-block;">
-            📌 Antecesora${antecesoras.length > 1 ? 's' : ''}: ${info}
-          </div>`;
-        })()} 
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
-            <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
-          </div>
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
-            <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
-          </div>
-          ${t.atraso_dias > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
-            <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
-          </div>` : ''}
-          ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
-            <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
-          </div>` : ''}
-        </div>
-      </div>`;
-    });
-
-    html += `</div></div>`;
-  });
-
-  document.getElementById('cascadaContainer').innerHTML = html;
-}
-
-function calcularBloqueo(tasks) {
-  // agrupar tareas por proyecto+nombre (puede haber duplicados)
-  const gruposPorNombre = {};
-  tasks.forEach(t => {
-    const n = t.name.trim().replace(/:$/, '').trim();
-    const key = (t.project||'') + '||' + n;
-    gruposPorNombre[key] = gruposPorNombre[key] || [];
-    gruposPorNombre[key].push(t);
-  });
-
-  function buscarGrupo(nombre, proyecto) {
-    const n = nombre.trim().replace(/:$/, '').trim();
-    const key = (proyecto||'') + '||' + n;
-    if (gruposPorNombre[key]) return gruposPorNombre[key];
-    const nl = n.toLowerCase();
-    const candidatos = tasks.filter(t => t.project === proyecto &&
-      (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())));
-    return candidatos.length ? candidatos : null;
-  }
-
-  tasks.forEach(t => {
-    if (!t.blocked_by || t.blocked_by.length === 0) {
-      t.bloqueada_real = false;
-      t.bloqueada_por = null;
-      return;
-    }
-    let pendienteEncontrada = null;
-    for (const nombre of t.blocked_by) {
-      const grupo = buscarGrupo(nombre, t.project);
-      if (!grupo || grupo.length === 0) continue;
-
-      let candidato;
-      if (grupo.length === 1) {
-        candidato = grupo[0];
-      } else {
-        // Múltiples tareas con el mismo nombre: las dependencias en Asana suelen
-        // agruparse por "lote" compartiendo la misma fecha de vencimiento.
-        // Elegimos el sub-grupo cuya fecha de vencimiento sea más cercana a la
-        // fecha de inicio de la tarea actual (t), que es la señal más confiable
-        // disponible en el export de Excel.
-        const refDate = t.start_iso || t.due_iso;
-        if (refDate) {
-          let mejor = null, mejorDiff = Infinity;
-          grupo.forEach(g => {
-            if (!g.due_iso) return;
-            const diff = Math.abs(new Date(g.due_iso) - new Date(refDate));
-            if (diff < mejorDiff) { mejorDiff = diff; mejor = g; }
-          });
-          if (mejor) {
-            // tomar todo el sub-grupo que comparte la misma fecha que "mejor"
-            const subgrupo = grupo.filter(g => g.due_iso === mejor.due_iso);
-            candidato = subgrupo.every(g => g.estado_general !== 'Completada')
-              ? (subgrupo.find(g => g.estado_general !== 'Completada') || subgrupo[0])
-              : null;
-          }
-        }
-        // fallback: si no se pudo afinar, usar regla conservadora (todas pendientes)
-        if (candidato === undefined) {
-          const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
-          candidato = todasPendientes ? (grupo.find(g => g.estado_general !== 'Completada') || grupo[0]) : null;
-        }
-      }
-
-      if (candidato && candidato.estado_general !== 'Completada') {
-        pendienteEncontrada = candidato;
-        break;
-      }
-    }
-    t.bloqueada_real = !!pendienteEncontrada;
-    t.bloqueada_por = pendienteEncontrada || null;
-  });
+  return count * sign;
 }
 
 function render() {
@@ -993,68 +694,81 @@ function render() {
   renderTareas();
 }
 
-function diasHabilesJS(d1str, d2str) {
-  if (!d1str || !d2str) return null;
-  const feriados = new Set([
-    '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
-    '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
-    '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
-    '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
-    '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
-  ]);
-  let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
-  const sign = d2 >= d1 ? 1 : -1;
-  if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
-  let count = 0, cur = new Date(d1);
-  cur.setDate(cur.getDate()+1);
-  while (cur <= d2) {
-    const iso = cur.toISOString().slice(0,10);
-    if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
-    cur.setDate(cur.getDate()+1);
-  }
-  return count * sign;
-}
-
 function renderAreas(tasks) {
   const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
+
+  // Primero acumular contadores generales desde las tareas (total, cerradas, verde, etc.)
   tasks.forEach(t => {
     areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0, dias_totales:0, dias_count:0};
     areas[t.area].total++;
-    if (t.estado_general === 'Completada') {
-      areas[t.area].cerradas++;
-      if (t.start_iso && t.completed) {
-        const d = diasHabilesJS(t.start_iso, t.completed);
-        if (d !== null && d >= 0) {
-          areas[t.area].dias_totales += d;
-          areas[t.area].dias_count++;
-        }
-      }
-    }
+    if (t.estado_general === 'Completada') areas[t.area].cerradas++;
     if (t.estado === 'verde') areas[t.area].verde++;
     if (t.estado_general === 'Completada' && t.estado === 'rojo') areas[t.area].cerrada_atraso++;
     if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
   });
+
+  // Calcular promedio por persona, luego promediar esos promedios por área (promedio de promedios).
+  const personas = {};
+  tasks.forEach(t => {
+    if (!t.assignee || t.assignee === '(sin asignar)') return;
+    personas[t.assignee] = personas[t.assignee] || {area: t.area, dias_totales: 0, dias_count: 0};
+    if (t.estado_general === 'Completada' && t.start_iso && t.completed) {
+      const d = diasHabilesJS(t.start_iso, t.completed);
+      if (d !== null && d >= 0) {
+        personas[t.assignee].dias_totales += d;
+        personas[t.assignee].dias_count++;
+      }
+    }
+  });
+
+  // Sumar los promedios individuales por área y dividir por cantidad de personas
+  const areaProms = {};
+  Object.values(personas).forEach(p => {
+    if (p.dias_count === 0) return;
+    const promPersona = p.dias_totales / p.dias_count;
+    areaProms[p.area] = areaProms[p.area] || {suma: 0, cant: 0};
+    areaProms[p.area].suma += promPersona;
+    areaProms[p.area].cant++;
+  });
+  Object.keys(areaProms).forEach(area => {
+    if (areas[area]) {
+      const ap = areaProms[area];
+      areas[area].prom_area = ap.cant > 0 ? ap.suma / ap.cant : null;
+      areas[area].prom_personas = ap.cant;
+    }
+  });
+
   const keys = Object.keys(areas).sort((a,b) => {
     const ia = ORDEN.indexOf(a), ib = ORDEN.indexOf(b);
     return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
   });
+
   let html = '';
   keys.forEach(area => {
     const a = areas[area];
     const p = pct(a.cerradas, a.total);
     const cls = a.total === 0 ? '' : (p >= 80 ? 'verde' : (p >= 50 ? 'amarillo' : 'rojo'));
-    const promDias = a.dias_count > 0 ? (a.dias_totales / a.dias_count).toFixed(1) : null;
+    const promDias = a.prom_area != null ? a.prom_area.toFixed(1) : null;
+    const promPersonas = a.prom_personas || 0;
+
     html += `<div class="area-card">
       <div class="titulo">${area}</div>
       <div class="pct ${cls}">${p.toFixed(0)}%</div>
-      <div class="meta">${a.total} tareas · ${a.cerradas} cerradas<br>
+      <div class="meta">
+        ${a.total} tareas · ${a.cerradas} cerradas<br>
         <span class="dot verde"></span>${a.verde} a tiempo
-        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde<br>
-        ${promDias !== null ? `⏱ Promedio cierre: <b>${promDias}d hábiles</b>` : ''}
+        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde
+      </div>
+      <div class="prom-box">
+        <div>
+          <div class="prom-val">${promDias !== null ? promDias + 'd' : '—'}</div>
+          <div class="prom-lbl">prom. por persona<br>(${promPersonas} ${promPersonas === 1 ? 'persona' : 'personas'})</div>
+        </div>
       </div>
     </div>`;
   });
+
   document.getElementById('areaGrid').innerHTML = html || '<i>Sin tareas nivel 2 en este proyecto</i>';
 }
 
@@ -1091,7 +805,7 @@ function renderPersonas(tasks) {
   let html = '';
   ordenadas.forEach(([nombre, d]) => {
     const p = pct(d.compl, d.total);
-    const promDias = d.dias_count > 0 ? (d.dias_totales / d.dias_count).toFixed(1) : '—';
+    const promDias = d.dias_count > 0 ? (d.dias_totales / d.dias_count).toFixed(1) : null;
     html += `<tr>
       <td></td>
       <td><b>${nombre}</b></td>
@@ -1099,13 +813,18 @@ function renderPersonas(tasks) {
       <td>${d.total}</td>
       <td>${d.compl}</td>
       <td><span class="pill ${p>=80?'verde':(p>=50?'amarillo':'rojo')}">${p.toFixed(0)}%</span></td>
+      <td class="prom-cierre-cell">
+        ${promDias !== null
+          ? `${promDias}d <span>${d.dias_count} tareas</span>`
+          : `<span style="color:#ccc;">—</span>`}
+      </td>
       <td><span class="dot verde"></span>${d.cerrada_tiempo}</td>
       <td><span class="dot rojo"></span>${d.cerrada_atraso}</td>
       <td><span class="dot verde"></span>${d.abierta_tiempo}</td>
       <td><span class="dot rojo"></span>${d.abierta_atraso}</td>
     </tr>`;
   });
-  document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="8"><i>Sin datos</i></td></tr>';
+  document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="11"><i>Sin datos</i></td></tr>';
 }
 
 function setAreaPersona(a) { areaFiltroPersona = a; renderPersonas(tareasSeleccionadas()); }
@@ -1129,7 +848,7 @@ function fillFiltrosTareas(tasks) {
   fill('fProyecto', proyectos, 'Proyecto');
 }
 
-let sortPlazoDir = null; // null = sin orden, 'desc' = mayor a menor, 'asc' = menor a mayor
+let sortPlazoDir = null;
 
 function toggleSortPlazo() {
   sortPlazoDir = sortPlazoDir === 'desc' ? 'asc' : 'desc';
@@ -1138,9 +857,71 @@ function toggleSortPlazo() {
 }
 
 function diasAtraso(estadoPlazo) {
-  // extrae número de días de strings como "52d vencida", "8d tarde", "a tiempo", etc.
   const m = estadoPlazo.match(/^(\d+)d/);
   return m ? parseInt(m[1]) : 0;
+}
+
+function calcularBloqueo(tasks) {
+  const gruposPorNombre = {};
+  tasks.forEach(t => {
+    const n = t.name.trim().replace(/:$/, '').trim();
+    const key = (t.project||'') + '||' + n;
+    gruposPorNombre[key] = gruposPorNombre[key] || [];
+    gruposPorNombre[key].push(t);
+  });
+
+  function buscarGrupo(nombre, proyecto) {
+    const n = nombre.trim().replace(/:$/, '').trim();
+    const key = (proyecto||'') + '||' + n;
+    if (gruposPorNombre[key]) return gruposPorNombre[key];
+    const nl = n.toLowerCase();
+    const candidatos = tasks.filter(t => t.project === proyecto &&
+      (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())));
+    return candidatos.length ? candidatos : null;
+  }
+
+  tasks.forEach(t => {
+    if (!t.blocked_by || t.blocked_by.length === 0) {
+      t.bloqueada_real = false;
+      t.bloqueada_por = null;
+      return;
+    }
+    let pendienteEncontrada = null;
+    for (const nombre of t.blocked_by) {
+      const grupo = buscarGrupo(nombre, t.project);
+      if (!grupo || grupo.length === 0) continue;
+      let candidato;
+      if (grupo.length === 1) {
+        candidato = grupo[0];
+      } else {
+        const refDate = t.start_iso || t.due_iso;
+        if (refDate) {
+          let mejor = null, mejorDiff = Infinity;
+          grupo.forEach(g => {
+            if (!g.due_iso) return;
+            const diff = Math.abs(new Date(g.due_iso) - new Date(refDate));
+            if (diff < mejorDiff) { mejorDiff = diff; mejor = g; }
+          });
+          if (mejor) {
+            const subgrupo = grupo.filter(g => g.due_iso === mejor.due_iso);
+            candidato = subgrupo.every(g => g.estado_general !== 'Completada')
+              ? (subgrupo.find(g => g.estado_general !== 'Completada') || subgrupo[0])
+              : null;
+          }
+        }
+        if (candidato === undefined) {
+          const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
+          candidato = todasPendientes ? (grupo.find(g => g.estado_general !== 'Completada') || grupo[0]) : null;
+        }
+      }
+      if (candidato && candidato.estado_general !== 'Completada') {
+        pendienteEncontrada = candidato;
+        break;
+      }
+    }
+    t.bloqueada_real = !!pendienteEncontrada;
+    t.bloqueada_por = pendienteEncontrada || null;
+  });
 }
 
 function renderTareas() {
@@ -1201,7 +982,213 @@ function renderTareas() {
       <td>${t.asana_url ? `<a href="${t.asana_url}" target="_blank" style="color:var(--azul);text-decoration:none;font-weight:600;">🔗 Abrir</a>` : '—'}</td>
     </tr>`;
   });
-  document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="8"><i>Sin tareas</i></td></tr>';
+  document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="14"><i>Sin tareas</i></td></tr>';
+}
+
+function renderCascada() {
+  const tasks = tareasSeleccionadas();
+  const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
+
+  const byName = {};
+  tasks.forEach(t => {
+    const key = (t.project||'') + '||' + t.name.trim();
+    const keyClean = (t.project||'') + '||' + t.name.trim().replace(/:$/, '').trim();
+    byName[key] = t;
+    byName[keyClean] = t;
+    byName[t.name.trim()] = t;
+    byName[t.name.trim().replace(/:$/, '').trim()] = t;
+  });
+
+  function findTask(nombre, proyecto) {
+    const n = nombre.trim().replace(/:$/, '').trim();
+    if (proyecto) {
+      const keyP = proyecto + '||' + n;
+      if (byName[keyP]) return byName[keyP];
+    }
+    if (byName[n]) return byName[n];
+    const nl = n.toLowerCase();
+    const enProyecto = proyecto ? tasks.filter(t => t.project === proyecto) : tasks;
+    return enProyecto.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
+  }
+
+  function diasHabilesJSLocal(d1str, d2str) {
+    if (!d1str || !d2str) return null;
+    const feriados = new Set([
+      '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
+      '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
+      '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
+      '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
+      '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
+    ]);
+    let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
+    const sign = d2 >= d1 ? 1 : -1;
+    if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
+    let count = 0, cur = new Date(d1);
+    cur.setDate(cur.getDate()+1);
+    while (cur <= d2) {
+      const iso = cur.toISOString().slice(0,10);
+      if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
+      cur.setDate(cur.getDate()+1);
+    }
+    return count * sign;
+  }
+
+  const visitadas = new Set();
+  const cadenas = [];
+
+  function findRaiz(task, seen) {
+    seen = seen || new Set();
+    const key = (task.project||'') + '||' + task.name;
+    if (seen.has(key)) return task;
+    seen.add(key);
+    const prevs = (task.blocked_by||[]).map(b => findTask(b, task.project)).filter(Boolean);
+    if (prevs.length === 0) return task;
+    return findRaiz(prevs[0], seen);
+  }
+
+  tasks.forEach(t => {
+    if (!t.name || !t.name.trim()) return;
+    const raiz = findRaiz(t);
+    const raizKey = (raiz.project||'') + '||' + raiz.name;
+    if (!visitadas.has(raizKey)) {
+      visitadas.add(raizKey);
+      const arbol = { task: raiz, hijos: [] };
+      const visitadasArbol = new Set([raizKey]);
+
+      function buildTree(nodo) {
+        const t = nodo.task;
+        (t.blocking||[]).forEach(nextName => {
+          const next = findTask(nextName, t.project);
+          if (!next) return;
+          const nextKey = (next.project||'') + '||' + next.name;
+          if (visitadasArbol.has(nextKey)) return;
+          visitadasArbol.add(nextKey);
+          const hijo = { task: next, hijos: [] };
+          nodo.hijos.push(hijo);
+          buildTree(hijo);
+        });
+        nodo.hijos.sort((a,b) => (a.task.start_iso||a.task.due_iso||'9999').localeCompare(b.task.start_iso||b.task.due_iso||'9999'));
+      }
+
+      buildTree(arbol);
+
+      const chain = [];
+      function flatten(nodo) {
+        chain.push(nodo.task);
+        nodo.hijos.forEach(flatten);
+      }
+      flatten(arbol);
+
+      const chainValida = chain.filter(c => c.name && c.name.trim());
+      if (chainValida.length > 1) cadenas.push(chainValida);
+    }
+  });
+
+  let filtradas = soloAtraso
+    ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
+    : cadenas;
+
+  if (filtradas.length === 0) {
+    document.getElementById('cascadaContainer').innerHTML =
+      cadenas.length === 0
+        ? '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>'
+        : '<p style="color:#9aa0a6;padding:16px;">No hay cadenas que coincidan con los filtros.</p>';
+    return;
+  }
+
+  const COLORS = {
+    rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
+    verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
+    encurso: { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
+  };
+
+  let html = '';
+  filtradas.forEach((chain, ci) => {
+    const proyecto = chain[0].project || '';
+    html += `<div style="margin-bottom:32px;">
+      <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
+        🔗 Cadena ${ci+1} — ${chain.length} tareas &nbsp;<span style="font-weight:400;">${proyecto}</span>
+      </div>
+      <div style="position:relative;">`;
+
+    chain.forEach((t, i) => {
+      const diasReales = (t.completed && t.start_iso)
+        ? diasHabilesJSLocal(t.start_iso, t.completed) : null;
+
+      const todasAntecesoras = (t.blocked_by && t.blocked_by.length > 0)
+        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)
+        : (i > 0 ? [chain[i-1]] : []);
+
+      const antecReal = todasAntecesoras
+        .filter(a => a.completed)
+        .sort((a,b) => (b.completed||'').localeCompare(a.completed||''))[0]
+        || todasAntecesoras[0] || null;
+
+      let atrasoHeredado = null;
+      if (antecReal) {
+        if (antecReal.completed && t.start_iso) {
+          atrasoHeredado = diasHabilesJSLocal(t.start_iso, antecReal.completed);
+        }
+      }
+
+      const enAtraso = t.atraso_dias > 0;
+      const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
+      const estadoTxt = enAtraso
+        ? `⚠ ${t.atraso_dias}d de atraso`
+        : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
+
+      if (i > 0) {
+        const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
+          ? `<div style="padding:6px 0;font-size:12px;color:#b3261e;font-weight:700;display:flex;align-items:center;gap:6px;">
+               <span style="font-size:20px;">↓</span>
+               <span>Recibe con <b>-${atrasoHeredado}d hábiles</b> menos para completar</span>
+             </div>`
+          : `<div style="padding:4px 0;font-size:20px;color:#9aa0a6;">↓</div>`;
+        html += heredadoHtml;
+      }
+
+      html += `
+      <div style="border-left:5px solid ${col.border};background:${col.bg};
+                  border-radius:10px;padding:14px 18px;color:${col.text};width:100%;box-sizing:border-box;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
+          <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
+          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${estadoTxt}</div>
+        </div>
+        <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
+          <span>👤 ${t.assignee}</span>
+          <span>🏢 ${t.area}</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
+            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
+            <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
+            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
+            <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
+          </div>
+          ${t.atraso_dias > 0 ? `
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
+            <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
+            <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
+          </div>` : ''}
+          ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
+          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
+            <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
+            <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
+          </div>` : ''}
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('cascadaContainer').innerHTML = html;
 }
 
 refrescarSelector();
@@ -1232,7 +1219,7 @@ def main():
         try:
             r = process_file(f, today)
             if r is None:
-                errores.append((f, "encabezados/columnas no reconocidas (revisar 'Parent task', 'Due Date', 'Completed At')"))
+                errores.append((f, "encabezados/columnas no reconocidas"))
                 continue
             data[r["project"]] = r["tasks"]
         except Exception as e:
