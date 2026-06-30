@@ -1200,10 +1200,26 @@ def main():
     input_dir = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
     output_file = sys.argv[2] if len(sys.argv) > 2 else "/mnt/user-data/outputs/KPI.html"
 
+    input_dir_abs = os.path.abspath(input_dir)
+    print(f"Buscando archivos .xlsx en: {input_dir_abs}")
+
+    if not os.path.isdir(input_dir_abs):
+        print(f"[ERROR] Esa carpeta NO existe. Verifica la ruta.")
+        sys.exit(1)
+
     files = sorted(glob.glob(os.path.join(input_dir, "*.xlsx")))
     files = [f for f in files if not os.path.basename(f).startswith("~$")]
+
+    print(f"Archivos .xlsx encontrados: {len(files)}")
     if not files:
-        print(f"No se encontraron archivos .xlsx en {input_dir}")
+        # Mostrar qué tipo de archivos SI hay en la carpeta, para ayudar a diagnosticar
+        todos = os.listdir(input_dir_abs)
+        ejemplo = todos[:10]
+        print(f"No se encontraron archivos .xlsx en {input_dir_abs}")
+        if todos:
+            print(f"La carpeta tiene {len(todos)} archivos/carpetas, por ejemplo: {ejemplo}")
+        else:
+            print("La carpeta está vacía.")
         sys.exit(1)
 
     today = datetime.date.today()
