@@ -11,47 +11,43 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Instalar dependencias
         run: |
           pip install playwright openpyxl
           playwright install chromium --with-deps
-
       - name: Restaurar sesion de Asana
         run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
-
       - name: Limpiar carpeta data (evitar archivos huerfanos)
         run: rm -f data/*.xlsx data/*.csv
-
       - name: Exportar proyectos
         run: python scripts/asana_export.py
-
       - name: Subir diagnostico (si hubo fallos)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: debug
           path: debug/
           if-no-files-found: ignore
-
       - name: Borrar sesion (no dejar rastro en el runner)
         if: always()
         run: rm -f auth.json
-
       - name: Generar KPI.html
         run: python scripts/generar_kpi.py data docs/KPI.html
-
-      - name: Commit y push
+      - name: Commit y push de los CSV actualizados
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ docs/KPI.html
           git diff --staged --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git fetch origin main
+          git reset --soft origin/main
+          git add data/ docs/KPI.html
+          git diff --staged --quiet && echo "Sin cambios tras fetch" && exit 0
           git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
