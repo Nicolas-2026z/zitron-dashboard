@@ -1,1246 +1,1136 @@
-#!/usr/bin/env python3
 """
-Genera KPI.html - "Dashboard Desempeño de Equipos"
-basado en exports de Asana (.xlsx), replicando la estructura de las
-capturas: tarjetas globales, Resumen por área, Detalle por persona,
-Detalle de tareas, con semáforo en días hábiles de Chile.
-
-REGLAS
-------
-- "Tarea nivel 2"  = filas cuyo campo 'Parent task' NO está vacío
-                     (subtareas de una tarea padre).
-- Semáforo:
-    VERDE = completada en la fecha de entrega o antes (días hábiles Chile)
-    ROJO  = todo lo demás:
-              - completada 1+ día hábil después de la fecha de entrega
-              - o no completada y la fecha de entrega ya pasó (1+ día hábil)
-    (tareas en curso, sin vencer aún -> estado "En curso", no entran al %)
-
-- Área del equipo: se determina por assignee (diccionario editable
-  ASSIGNEE_AREA) y, si no está mapeado, por palabras clave en
-  'Section/Column' (ver SECTION_AREA_KEYWORDS).
-
-USO
----
-  python3 generar_kpi.py <carpeta_con_excels> <archivo_salida_html>
-
-Por defecto:
-  carpeta_con_excels  = /mnt/user-data/uploads
-  archivo_salida_html = /mnt/user-data/outputs/KPI.html
+generar_curvas.py
+Lee los Excel de Asana en data/ y genera CURVAS.HTML con Curva S por proyecto.
 """
-
 import sys
-from pathlib import Path
-from zoneinfo import ZoneInfo
-import os
-import glob
+import re
 import json
-import datetime
-import warnings
-import openpyxl
+from pathlib import Path
+from datetime import date, datetime, timedelta
 
-warnings.filterwarnings("ignore")
+try:
+    import openpyxl
+except ImportError:
+    print("Instalando openpyxl...")
+    import subprocess
+    subprocess.run([sys.executable, "-m", "pip", "install", "openpyxl", "--break-system-packages"], check=True)
+    import openpyxl
 
-# ---------------------------------------------------------------------
-# CONFIGURACIÓN EDITABLE
-# ---------------------------------------------------------------------
-
-FERIADOS_CHILE = {
-    datetime.date(2025, 1, 1), datetime.date(2025, 4, 18), datetime.date(2025, 4, 19),
-    datetime.date(2025, 5, 1), datetime.date(2025, 5, 21), datetime.date(2025, 6, 20),
-    datetime.date(2025, 6, 29), datetime.date(2025, 7, 16), datetime.date(2025, 8, 15),
-    datetime.date(2025, 9, 18), datetime.date(2025, 9, 19), datetime.date(2025, 10, 12),
-    datetime.date(2025, 10, 31), datetime.date(2025, 11, 1), datetime.date(2025, 12, 8),
-    datetime.date(2025, 12, 25),
-    datetime.date(2026, 1, 1), datetime.date(2026, 4, 3), datetime.date(2026, 4, 4),
-    datetime.date(2026, 5, 1), datetime.date(2026, 5, 21), datetime.date(2026, 6, 20),
-    datetime.date(2026, 6, 29), datetime.date(2026, 7, 16), datetime.date(2026, 8, 15),
-    datetime.date(2026, 9, 18), datetime.date(2026, 9, 19), datetime.date(2026, 10, 12),
-    datetime.date(2026, 10, 31), datetime.date(2026, 11, 1), datetime.date(2026, 12, 8),
-    datetime.date(2026, 12, 25),
+# ── Feriados Chile 2025-2026 ──────────────────────────────────────────────────
+FERIADOS = {
+    date(2025,4,18), date(2025,4,19), date(2025,5,1), date(2025,5,21),
+    date(2025,6,20), date(2025,6,29), date(2025,7,16), date(2025,8,15),
+    date(2025,9,18), date(2025,9,19), date(2025,10,12), date(2025,10,31),
+    date(2025,11,1), date(2025,12,8), date(2025,12,25),
+    date(2026,1,1), date(2026,4,3), date(2026,4,4), date(2026,5,1),
+    date(2026,5,21), date(2026,6,20), date(2026,6,29), date(2026,7,16),
+    date(2026,8,15), date(2026,9,18), date(2026,9,19), date(2026,10,12),
+    date(2026,10,31), date(2026,11,1), date(2026,12,8), date(2026,12,25),
 }
 
-ASSIGNEE_AREA = {
-    # Servicios
-    "Ignacio García": "Servicios",
-    "Ignacio Garcia": "Servicios",
-    "IGNACIO GARCIA MARTINEZ": "Servicios",
-    "Ignacio Garcia Martinez": "Servicios",
-    "Sergio Saavedra": "Servicios",
-    "sergio saavedra fernandez": "Servicios",
-    "Sergio Saavedra Fernandez": "Servicios",
-    # Equipo Proyecto
-    "Carlos Pérez": "Equipo Proyecto",
-    "Carlos Perez": "Equipo Proyecto",
-    "Francisca Ramos": "Equipo Proyecto",
-    "Francisca Alejandra Ramos Aravales": "Equipo Proyecto",
-    "Sergio de la Fuente": "Equipo Proyecto",
-    "Sergio de la Fuente Fernandez": "Equipo Proyecto",
-    "David Blazquez": "Equipo Proyecto",
-    "DAVID BLAZQUEZ": "Equipo Proyecto",
-    # Producción
-    "Benjamín Bustos": "Producción",
-    "benjamin.bustos@zitron.com": "Producción",
-    "Benjamin Bustos": "Producción",
-    "Benjamin Umaña": "Producción",
-    "Hugo Isla": "Producción",
-    "hugo isla martinez": "Producción",
-    "Nicolás Mol": "Producción",
-    "Nicolas Mol": "Producción",
-    "Nicolás López": "Producción",
-    "Nicolas Lopez": "Producción",
-    # Compras
-    "Eliana": "Compras",
-    "Yerlia": "Compras",
-    "Yerlia Ayleen Castillo Diaz": "Compras",
-    "Rose": "Compras",
-    "Rosemary Singh": "Compras",
-    # Ingeniería
-    "Hernán Gutierrez": "Ingeniería",
-    "Hernan Roberto Gutierrez Barrientos": "Ingeniería",
-    "Hernan Gutierrez": "Ingeniería",
-    "Francisca González": "Ingeniería",
-    "Francisca González Cornejo": "Ingeniería",
-    "Francisca Gonzalez": "Ingeniería",
-    "Gonzalo Davila": "Ingeniería",
-    "Gonzalo Dávila": "Ingeniería",
-    "Gabriel Venegas": "Ingeniería",
-    "Gabriel Venega": "Ingeniería",
-    # Bodega
-    "Víctor Muñoz": "Bodega",
-    "Victor Muñoz": "Bodega",
-    "Victor Munoz": "Bodega",
-    # Logística
-    "Karin Pinto": "Logística",
+HRS_TURNO = 8      # horas kick off total
+HRS_DIA   = 8.3   # 8.3 horas por día hábil
+
+# ── Fechas EXW por GID de proyecto ──────────────────────────────────────────
+FECHAS_EXW_GID = {
+    "1215922055649550": "2026-08-04",
+    "1215727332551578": "2026-07-13",
+    "1215504785832997": "2026-06-23",
+    "1215137857526702": "2026-06-16",
+    "1215137857526520": "2026-06-16",
+    "1215139673478155": "2026-06-16",
+    "1215118022011721": "2026-08-05",
+    "1214969047721199": "2026-07-18",
+    "1214969047720950": "2026-07-18",
+    "1214969284200793": "2026-07-18",
+    "1214922603742599": "2026-08-03",
+    "1214892476594825": "2026-08-15",
+    "1214787972061369": "2026-07-01",
+    "1214739697907723": "2026-06-26",
+    "1214563704105168": "2026-06-26",
+    "1214508463084754": "2026-06-16",
+    "1213832650589314": "2026-07-16",
+    "1213881596172396": "2026-08-03",
+    "1214137717389412": "2026-06-22",
+    "1213963037596622": "2026-04-22",
+    "1213377149548665": "2026-04-21",
+    "1213377149548798": "2026-05-07",
+    "1213377149548731": "2026-04-20",
+    "1213244147627519": "2026-04-10",
+    "1213377149548388": "2026-05-26",
+    "1213193352022841": "2026-06-15",
+    "1213244147627934": "2026-05-10",
+    "1213362937195444": "2026-02-16",
+    "1213377149548525": "2026-02-04",
+    "1213377149548988": "2026-04-21",
+    "1213396195711984": "2026-03-13",
+    "1213458785834993": "2026-08-13",
+    "1213955236952392": "2026-05-04",
 }
-
-SECTION_AREA_KEYWORDS = [
-    ("produccion", "Producción"), ("producción", "Producción"),
-    ("ingenier", "Ingeniería"),
-    ("compra", "Compras"),
-    ("bodega", "Bodega"),
-    ("logist", "Logística"), ("logíst", "Logística"),
-]
-
-# ---------------------------------------------------------------------
-# UTILIDADES DE FECHAS (días hábiles Chile)
-# ---------------------------------------------------------------------
-
-def es_habil(d: datetime.date) -> bool:
-    return d.weekday() < 5 and d not in FERIADOS_CHILE
-
-
-def dias_habiles_entre(d1: datetime.date, d2: datetime.date) -> int:
-    if d1 == d2:
-        return 0
-    a, b = (d1, d2) if d2 > d1 else (d2, d1)
-    count = 0
-    cur = a + datetime.timedelta(days=1)
-    while cur <= b:
-        if es_habil(cur):
-            count += 1
-        cur += datetime.timedelta(days=1)
-    return count if d2 > d1 else -count
-
 
 def to_date(val):
-    if val is None:
-        return None
-    if isinstance(val, datetime.datetime):
-        return val.date()
-    if isinstance(val, datetime.date):
-        return val
+    if val is None: return None
+    if isinstance(val, (date, datetime)):
+        return val.date() if isinstance(val, datetime) else val
+    if isinstance(val, str):
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try: return datetime.strptime(val.strip(), fmt).date()
+            except: pass
     return None
 
+def dias_habiles(d1, d2):
+    if not d1 or not d2: return 0
+    if d1 > d2: d1, d2 = d2, d1
+    count = 0
+    cur = d1
+    while cur <= d2:
+        if cur.weekday() < 5 and cur not in FERIADOS:
+            count += 1
+        cur += timedelta(days=1)
+    return max(count, 1)
 
-# ---------------------------------------------------------------------
-# LECTURA DE EXCELS
-# ---------------------------------------------------------------------
+def dias_habiles_en_semana(ini, fin, ws, we):
+    a = max(ini, ws)
+    b = min(fin, we)
+    if a > b: return 0
+    return dias_habiles(a, b)
 
-def find_header_row(ws, max_scan=10):
-    for r in range(1, max_scan + 1):
-        values = [c.value for c in ws[r]]
-        if "Task ID" in values and "Name" in values:
-            return r, values
-    return None, None
+def parse_av(av_raw, completado):
+    """Convierte el campo Avance Tarea a float 0.0-1.0 de forma robusta."""
+    # Si tiene Completed At con fecha → siempre 100%
+    if completado:
+        return 1.0
+    if av_raw is None:
+        return 0.0
+    # Puede venir como número (0, 1, 0.5) o texto ("1", "0.75", "Alta", etc.)
+    try:
+        v = float(av_raw)
+        return min(max(v, 0.0), 1.0)
+    except (ValueError, TypeError):
+        # Texto no numérico (ej: "Tarea Terminada", "Alta") → ignorar
+        return 0.0
 
+# GIDs de proyectos ya despachados — se excluyen SIEMPRE del dashboard
+GIDS_DESPACHADOS = {
+    "1213997266064436",  # 50001466 - ZITRON PERU PODEROSA
+    "1213377149548590",  # 50001477 - TRITON MINERA
+    "1213400421980747",  # 50001504 A - ZITRON PERU CODESTABLE
+    "1213377149548924",  # 50001504 B - ZITRON PERU CODESTABLE
+    "1213391072478428",  # 50001415 - ZITRON PERU METRO LIMA E05
+    "1213391072478496",  # 50001451 - ZITRON COLOMBIA
+    "1213234368822465",  # 50001500 - EQ MIN LA HACIENDA
+    "1213377149548860",  # 50001501 - EQ MIN LA HACIENDA B
+    "1213458788103499",  # 50001524 - ATACAMA KOZAN
+    "1213185599076077",  # 50001514 - CLIENTE POR DEFINIR A
+    "1213234368821945",  # 50001515 - CLIENTE POR DEFINIR B
+}
 
-def _norm(s):
-    s = str(s or "").lower().strip()
-    repl = {"á":"a","é":"e","í":"i","ó":"o","ú":"u","ñ":"n"}
-    for a, b in repl.items():
-        s = s.replace(a, b)
-    return s
+def es_seccion_logistica(section_name):
+    """Detecta si una sección es Logística."""
+    s = section_name.lower().strip()
+    return any(x in s for x in ["logis", "logís", "despacho"])
 
-
-def area_for(assignee, section):
-    sec = (section or "").lower()
-    for kw, area in SECTION_AREA_KEYWORDS:
-        if kw in sec:
-            return area
-    if assignee:
-        a_norm = _norm(assignee)
-        a_words = set(a_norm.split())
-        for k, v in ASSIGNEE_AREA.items():
-            k_norm = _norm(k)
-            if k_norm == a_norm or k_norm in a_norm:
-                return v
-            k_words = set(k_norm.split())
-            if k_words and k_words.issubset(a_words):
-                return v
-    return "Equipo Proyecto"
-
-
-def process_file(path, today):
+def process_file(path):
     wb = openpyxl.load_workbook(path, data_only=True)
-    ws = wb.active
-    project_name = Path(path).stem.strip()
+    ws_sheet = wb.active
 
-    header_row, headers = find_header_row(ws)
-    if header_row is None:
+    hdr = None
+    for i, row in enumerate(ws_sheet.iter_rows(min_row=1, max_row=5, values_only=True)):
+        if row and "Name" in row:
+            hdr = {str(v).strip(): j for j, v in enumerate(row) if v is not None}
+            header_row = i + 1
+            break
+    if not hdr:
         return None
 
-    col = {name: idx for idx, name in enumerate(headers) if name is not None}
-    required = ["Name", "Due Date", "Completed At", "Parent task"]
-    if not all(r in col for r in required):
-        return None
+    def g(row, col_name):
+        idx = hdr.get(col_name)
+        if idx is None: return None
+        return row[idx]
 
-    tasks = []
-    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
-        if row[col["Name"]] in (None, ""):
+    tareas = []
+    tareas_logistica_raw = []  # incluye nivel 1 y nivel 2 de Logística
+    kickoff_date = None
+    contractual_date = None
+
+    for row in ws_sheet.iter_rows(min_row=header_row + 1, values_only=True):
+        name = g(row, "Name")
+        if not name: continue
+        name = str(name).strip()
+
+        parent     = g(row, "Parent task") or ""
+        section    = g(row, "Section/Column") or ""
+        ini_raw    = g(row, "inicio ") or g(row, "inicio") or g(row, "Start Date")
+        fin_raw    = g(row, "Entrega ") or g(row, "Entrega") or g(row, "Due Date")
+        av_raw     = g(row, "Avance Tarea")
+        completado = g(row, "Completed At")
+        notas      = g(row, "Notes") or ""
+
+        ini = to_date(ini_raw)
+        fin = to_date(fin_raw)
+        av  = parse_av(av_raw, completado)
+        sec = str(section).strip()
+
+        if kickoff_date is None and parent and "kick off" in str(parent).lower() and ini:
+            kickoff_date = ini
+
+        if "plazo contractual" in name.lower() and notas:
+            m = re.search(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2,4})', notas)
+            if m:
+                d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                if y < 100: y += 2000
+                try:
+                    contractual_date = date(y, mo, d)
+                except:
+                    pass
+
+        # Recolectar tareas de Logística en TODOS los niveles (con o sin parent)
+        # para detectar despachado correctamente
+        if es_seccion_logistica(sec):
+            tareas_logistica_raw.append({"name": name, "av": av, "section": sec})
+
+        # Para la curva S solo usamos nivel 2 (con parent) y con fechas
+        # Excluir cabeceras — tareas sin fechas o cuyo nombre termina en ":"
+        if not parent or not ini or not fin:
+            continue
+        if str(name).strip().endswith(":"):
             continue
 
-        parent = row[col["Parent task"]]
-        if parent in (None, ""):
-            continue
+        es_kickoff = "kick off" in str(parent).lower() or "kick off" in name.lower()
 
-        name = str(row[col["Name"]]).strip()
-        section = row[col.get("Section/Column")] if "Section/Column" in col else ""
-        assignee = row[col.get("Assignee")] if "Assignee" in col else ""
 
-        if assignee and str(assignee).strip().lower() in ("nicolás", "nicolas"):
-            continue
-
-        start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
-        due = to_date(row[col["Due Date"]])
-        completed = to_date(row[col["Completed At"]])
-
-        area = area_for(assignee, section)
-
-        if completed is not None:
-            if due is not None:
-                diff = dias_habiles_entre(due, completed)
-                if diff <= 0:
-                    estado = "verde"
-                    estado_plazo = "a tiempo" if diff == 0 else f"{abs(diff)}d antes"
-                else:
-                    estado = "rojo"
-                    estado_plazo = f"{diff}d tarde"
-            else:
-                estado = "verde"
-                estado_plazo = "sin fecha"
-            estado_general = "Completada"
-        else:
-            if due is not None:
-                diff = dias_habiles_entre(due, today)
-                if diff > 0:
-                    estado = "rojo"
-                    estado_plazo = f"{diff}d vencida"
-                    estado_general = "Vencida"
-                else:
-                    estado = "encurso"
-                    estado_plazo = f"{abs(diff)}d rest." if diff < 0 else "vence hoy"
-                    estado_general = "En curso"
-            else:
-                estado = "encurso"
-                estado_plazo = "sin fecha"
-                estado_general = "En curso"
-
-        blocked_by = row[col["Blocked By (Dependencies)"]] if "Blocked By (Dependencies)" in col else ""
-        blocking = row[col["Blocking (Dependencies)"]] if "Blocking (Dependencies)" in col else ""
-        task_id = row[col["Task ID"]] if "Task ID" in col else None
-
-        tasks.append({
+        tareas.append({
             "name": name,
-            "section": section or "",
-            "assignee": assignee or "(sin asignar)",
-            "area": area,
-            "project": project_name,
-            "start_iso": start.isoformat() if start else (due.isoformat() if due else None),
-            "due_iso": due.isoformat() if due else None,
-            "completed": completed.isoformat() if completed else None,
-            "start_fmt": start.strftime("%d/%m/%y") if start else (due.strftime("%d/%m/%y") if due else "--"),
-            "due_fmt": due.strftime("%d/%m/%y") if due else "--",
-            "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
-            "duracion_prevista": dias_habiles_entre(start, due) if start and due else (1 if due else None),
-            "blocked_by": [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else [],
-            "blocking": [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else [],
-            "bloqueada": bool(blocked_by and str(blocked_by).strip()),
-            "asana_url": f"https://app.asana.com/0/0/{int(task_id)}/f" if task_id else None,
-            "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
-            "dias_plazo": dias_habiles_entre(due, completed) if completed and due else None,
-            "estado": estado,
-            "estado_plazo": estado_plazo,
-            "estado_general": estado_general,
+            "section": sec,
+            "parent": str(parent).strip(),
+            "ini": ini,
+            "fin": fin,
+            "av": min(max(av, 0.0), 1.0),
+            "kickoff": es_kickoff,
         })
 
-    return {"project": project_name, "file": os.path.basename(path), "tasks": tasks}
+    return {
+        "tareas": tareas,
+        "tareas_logistica_raw": tareas_logistica_raw,
+        "kickoff_date": kickoff_date,
+        "contractual_date": contractual_date,
+    }
+
+def calcular_curva(tareas, kickoff_date, fin_real_date):
+    if not kickoff_date or not fin_real_date:
+        return [], 0
+
+    n_kick = sum(1 for t in tareas if t["kickoff"]) or 1
+    hrs_kick = HRS_TURNO / n_kick
+
+    for t in tareas:
+        dl = dias_habiles(t["ini"], t["fin"])
+        t["_hrs"] = hrs_kick if t["kickoff"] else dl * HRS_DIA
+
+    total_pv = sum(t["_hrs"] for t in tareas)
+    if total_pv == 0:
+        return [], 0
+
+    semanas = []
+    ws = kickoff_date
+    fin_ext = fin_real_date + timedelta(days=14)
+    while ws <= fin_ext:
+        semanas.append(ws)
+        ws = ws + timedelta(days=7)
+
+    today = date.today()
+
+    rows = []
+    for i, ws in enumerate(semanas):
+        we = ws + timedelta(days=6)
+        pv_sem = 0.0
+        ev_sem = 0.0
+        n_tareas = 0
+
+        for t in tareas:
+            if t["kickoff"]:
+                if t["ini"] >= ws and t["ini"] <= we:
+                    pv_sem += t["_hrs"]
+                    ev_sem += t["_hrs"] * t["av"]
+                    n_tareas += 1
+            else:
+                dl = dias_habiles_en_semana(t["ini"], t["fin"], ws, we)
+                if dl == 0:
+                    continue
+                hrs = dl * HRS_DIA
+                pv_sem += hrs
+                ev_sem += hrs * t["av"]
+                n_tareas += 1
+
+        rows.append({
+            "idx": i + 1,
+            "ws": ws.isoformat(),
+            "we": we.isoformat(),
+            "n": n_tareas,
+            "pv": round(pv_sem, 1),
+            "ev": round(ev_sem, 1),
+        })
+
+    pa, ea = 0.0, 0.0
+    for r in rows:
+        pa += r["pv"]
+        ea += r["ev"]
+        r["pvA"] = round(pa, 1)
+        r["evA"] = round(ea, 1)
+        r["pctPV"] = round(min(pa / total_pv * 100, 100.0), 1) if total_pv else 0
+        r["pctEV"] = round(min(ea / total_pv * 100, 100.0), 1) if total_pv else 0
+
+    # Forzar SOLO la última semana con PV > 0 al 100%
+    last_pv_idx = max((i for i, r in enumerate(rows) if r["pv"] > 0), default=-1)
+    if last_pv_idx >= 0:
+        rows[last_pv_idx]["pctPV"] = 100.0
+        rows[last_pv_idx]["pvA"]   = round(total_pv, 1)
+        # Cortar filas después de la última semana con PV
+        rows = rows[:last_pv_idx + 1]
+
+    return rows, round(total_pv, 1)
+
+def process_all(data_dir):
+    data_path = Path(data_dir)
+    proyectos = []
+
+    for xlsx in sorted(data_path.glob("*.xlsx")):
+        nombre = xlsx.stem.replace("_", " ")
+        print(f"  Procesando: {nombre}")
+
+        m = re.search(r'(5000\d{4})', nombre)
+        pedido = m.group(1) if m else None
+
+        PEDIDO_GID = {
+            "50001566": "1215922055649550", "50001563": "1215727332551578",
+            "50001559": "1215504785832997", "50001558": "1215137857526702",
+            "50001554": "1215118022011721", "50001555": "1214922603742599",
+            "50001544": "1214892476594825", "50001547": "1214787972061369",
+            "50001546": "1214739697907723", "50001545": "1214563704105168",
+            "50001543": "1214508463084754", "50001525": "1213832650589314",
+            "50001534": "1213881596172396", "50001541": "1214137717389412",
+            "50001532": "1213963037596622",
+            "50001485": "1213377149548665", "50001498": "1213377149548798",
+            "50001497": "1213193352022841", "50001499": "1213244147627934",
+            "50001508": "1213362937195444", "50001473": "1213377149548525",
+            "50001520": "1213396195711984", "50001518": "1213458785834993",
+        }
+
+        gid = None
+        if "OT4326" in nombre or "OT4326" in xlsx.stem:
+            gid = "1214969047721199"
+        elif "OT4327" in nombre or "OT4327" in xlsx.stem:
+            gid = "1214969047720950"
+        elif "OT4324" in nombre or "OT4324" in xlsx.stem:
+            gid = "1214969284200793"
+        elif "OT4340" in nombre or "OT4340" in xlsx.stem:
+            gid = "1215137857526520"
+        elif "OT4335" in nombre or "OT4335" in xlsx.stem:
+            gid = "1215139673478155"
+        elif pedido:
+            gid = PEDIDO_GID.get(pedido)
+
+        exw_str = FECHAS_EXW_GID.get(gid) if gid else None
+        exw_date = date.fromisoformat(exw_str) if exw_str else None
+
+        # Excluir proyectos ya despachados por GID o por número de pedido
+        PEDIDOS_DESPACHADOS = {
+            "50001466","50001477","50001504","50001415","50001451",
+            "50001500","50001501","50001524","50001514","50001515",
+        }
+        if (gid and gid in GIDS_DESPACHADOS) or (pedido and pedido in PEDIDOS_DESPACHADOS):
+            print(f"    🚢 Proyecto despachado → excluido ({pedido or gid})")
+            continue
+
+        result = process_file(xlsx)
+        if not result or not result["tareas"]:
+            print(f"    ⚠ Sin tareas: {nombre}")
+            continue
+
+        tareas = result["tareas"]
+        tareas_logistica_raw = result["tareas_logistica_raw"]
+        kickoff = result["kickoff_date"]
+        contractual = result["contractual_date"]
+
+        fin_real = max((t["fin"] for t in tareas), default=None)
+
+        if not kickoff:
+            kickoff = min((t["ini"] for t in tareas if t["ini"]), default=None)
+        if not fin_real:
+            continue
+
+        rows, total_pv = calcular_curva(tareas, kickoff, fin_real)
+
+        today = date.today()
+        ev_hoy = 0.0
+        pv_hoy = 0.0
+        for r in rows:
+            if date.fromisoformat(r["ws"]) <= today:
+                ev_hoy = r["evA"]
+                pv_hoy = r["pvA"]
+
+        pct_ev = round(min(ev_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
+        pct_pv = round(min(pv_hoy / total_pv * 100, 100.0), 1) if total_pv else 0
+        # Si ya pasamos la fecha de fin del proyecto, PV debe ser 100%
+        if fin_real and today >= fin_real:
+            pct_pv = 100.0
+
+        at_weeks = max((today - kickoff).days / 7, 0) if kickoff else 0
+        # AT: usar la última semana con datos EV como referencia
+        # Si el EV no avanza más (proyecto terminado o detenido), no seguir contando
+        last_ev_date = None
+        for r in reversed(rows):
+            if r["evA"] > 0:
+                last_ev_date = date.fromisoformat(r["ws"])
+                break
+        at_ref = min(last_ev_date, today) if last_ev_date else today
+        if kickoff:
+            iso_kickoff = kickoff.isocalendar()[1]
+            iso_at_ref  = at_ref.isocalendar()[1]
+            year_ko     = kickoff.isocalendar()[0]
+            year_at_ref = at_ref.isocalendar()[0]
+            at_iso = iso_at_ref + (year_at_ref - year_ko) * 52 - iso_kickoff
+        else:
+            at_iso = at_weeks
+
+        es_weeks = 0.0
+        es_iso   = 0.0
+        for i, r in enumerate(rows):
+            if r["pctPV"] >= pct_ev:
+                if i == 0:
+                    es_weeks = pct_ev / max(r["pctPV"], 0.001)
+                    es_iso   = es_weeks
+                else:
+                    prev = rows[i-1]
+                    f = (pct_ev - prev["pctPV"]) / max(r["pctPV"] - prev["pctPV"], 0.001)
+                    # ES en semanas reales desde kickoff
+                    ws_prev = (date.fromisoformat(prev["ws"]) - kickoff).days / 7
+                    ws_cur  = (date.fromisoformat(r["ws"])  - kickoff).days / 7
+                    es_weeks = ws_prev + f * (ws_cur - ws_prev)
+                    # ES en semana ISO: interpolar la fecha exacta y leer su semana ISO
+                    # Restamos 1 día porque ws es el lunes (inicio S_n) y el gráfico 
+                    # etiqueta con el domingo anterior (fin S_n-1)
+                    es_date = date.fromisoformat(prev["ws"]) + timedelta(days=f * 7) - timedelta(days=1)
+                    es_iso  = es_date.isocalendar()[1] + (f * 7 % 7) / 7
+                break
+            es_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
+            es_iso   = (date.fromisoformat(rows[-1]["ws"]) - timedelta(days=1)).isocalendar()[1]
+
+        # ── SPI y SV — fórmula simple EV/PV ──────────────────────────
+        # SPI = EV% ÷ PV%  (igual que Excel original)
+        # SV  = EV% - PV%  (en puntos porcentuales)
+        spit = round(pct_ev / pct_pv, 2) if pct_pv > 0 else (99 if pct_ev > 0 else 0)
+        svt  = round(pct_ev - pct_pv, 1)
+        # EAC: duración planificada / SPI → fecha estimada de cierre
+        total_dur_weeks = (date.fromisoformat(rows[-1]["ws"]) - kickoff).days / 7
+        eac_dur_weeks = total_dur_weeks / spit if 0 < spit < 90 else total_dur_weeks
+        eac_date = (kickoff + timedelta(weeks=eac_dur_weeks)).isoformat() if kickoff else None
+
+        if pct_ev >= 100:
+            estado = "Terminado"
+        elif contractual and contractual < today and pct_ev < 100:
+            estado = "Vencido"
+        elif svt >= 0:
+            estado = "Adelantado"
+        else:
+            estado = "Atrasado"
+
+        if pct_ev >= 100:
+            prob = 100
+        elif spit <= 0:
+            prob = 15
+        else:
+            dias_left = max((contractual - today).days, 0) if contractual else 0
+            dur = max((fin_real - kickoff).days, 1) if kickoff else 1
+            base = min(max((spit - 0.3) / 1.7 * 100, 5), 95)
+            tBonus = min(dias_left / dur * 20, 20)
+            prob = min(int(base + tBonus), 99)
+            if contractual and contractual < today and pct_ev < 100:
+                prob = min(prob, 15)
+
+        # ── DESPACHADO: todas las tareas de Logística al 100% ────────────────
+        # tareas_logistica_raw incluye nivel 1 Y nivel 2 (con o sin parent)
+        # así no se pierden las tareas madre de la sección Logística
+        tareas_logistica = tareas_logistica_raw if tareas_logistica_raw else [
+            t for t in tareas if es_seccion_logistica(t["section"])
+        ]
+
+        # DEBUG: muestra qué encontró en Logística
+        if tareas_logistica:
+            avs = [round(t["av"]*100) for t in tareas_logistica]
+            all_done = all(t["av"] >= 1.0 for t in tareas_logistica)
+            print(f"    Logística: {len(tareas_logistica)} tareas, avances={avs} → despachado={all_done}")
+        else:
+            secciones = sorted(set(t["section"] for t in tareas))
+            print(f"    ⚠ Sin sección Logística. Secciones: {secciones}")
+
+        despachado = len(tareas_logistica) > 0 and all(t["av"] >= 1.0 for t in tareas_logistica)
+
+        if despachado:
+            print(f"    🚢 Despachado → excluido de Curva S")
+            continue
+
+        proyectos.append({
+            "nombre": nombre,
+            "kickoff": kickoff.isoformat() if kickoff else None,
+            "contractual": contractual.isoformat() if contractual else None,
+            "exw": exw_date.isoformat() if exw_date else None,
+            "fin_real": fin_real.isoformat() if fin_real else None,
+            "eac_date": eac_date,
+            "total_pv": total_pv,
+            "pct_ev": pct_ev,
+            "pct_pv": pct_pv,
+            "at_weeks": round(at_iso, 1),
+            "es_weeks": round(es_weeks, 2),
+            "es_iso": round(es_iso, 1),
+            "spit": spit,
+            "svt": svt,
+            "prob": prob,
+            "estado": estado,
+            "despachado": despachado,
+            "rows": rows,
+            "tareas": [
+                {
+                    "name": t["name"],
+                    "section": t["section"],
+                    "ini": t["ini"].isoformat(),
+                    "fin": t["fin"].isoformat(),
+                    "av": t["av"],
+                    "kickoff": t["kickoff"],
+                }
+                for t in tareas
+            ],
+        })
+
+    return proyectos
 
 
-TEMPLATE = r"""<!DOCTYPE html>
+def generar_html(proyectos, output_path):
+    from datetime import datetime, timezone, timedelta
+    tz_chile = timezone(timedelta(hours=-4))
+    now_chile = datetime.now(tz_chile)
+    today_str = now_chile.strftime("%d/%m/%Y %H:%M hrs (Chile)")
+    data_json = json.dumps(proyectos, ensure_ascii=False)
+
+    html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Desempeño de Equipos</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curva S — Portafolio Zitron</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --verde: #1e8e3e; --verde-bg: #e6f4ea;
-    --rojo: #b3261e; --rojo-bg: #fce8e6;
-    --amarillo: #eab308; --amarillo-bg: #fef9c3;
-    --azul: #1a73e8;
-    --gris: #80868b; --gris-bg: #f1f3f4;
-    --bg: #f1efe9; --card: #ffffff; --texto: #202124; --borde: #e6e3dc;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    background: var(--bg); color: var(--texto); margin: 0; padding: 28px;
-    max-width: 1280px; margin-left: auto; margin-right: auto;
-  }
-  h1 { font-size: 26px; margin: 0 0 4px 0; }
-  .subt { color: #5f6368; font-size: 14px; margin: 2px 0; }
-  .subt2 { color: #9aa0a6; font-size: 12px; margin: 2px 0 18px 0; }
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+:root{{
+  --navy:#0f2240;--navy2:#162d4f;--blue:#2563eb;--blue3:#3b82f6;
+  --bg:#f0f4f8;--card:#fff;--text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --verde:#16a34a;--verde-bg:#dcfce7;
+  --rojo:#dc2626;--rojo-bg:#fee2e2;
+  --amarillo:#d97706;--amarillo-bg:#fef3c7;
+  --purple:#7c3aed;
+  --font:"IBM Plex Sans",sans-serif;--mono:"IBM Plex Mono",monospace;
+}}
+body{{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}}
 
-  .cards-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px; }
-  .card-g {
-    background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 12px 16px;
-  }
-  .card-g .lbl { font-size: 12px; color: #80868b; text-transform: uppercase; letter-spacing: .04em; }
-  .card-g .val { font-size: 26px; font-weight: 700; margin: 4px 0; }
-  .card-g .sub { font-size: 11.5px; color: #9aa0a6; line-height: 1.4; }
-  .card-g .val.verde { color: var(--verde); }
-  .card-g .val.rojo { color: var(--rojo); }
+.login-wrap{{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 50%,#0f2240 100%)}}
+.login-card{{background:#fff;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}}
+.logo{{width:52px;height:52px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}}
+.lt{{font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px}}
+.ls{{font-size:12px;color:var(--muted);margin-bottom:28px}}
+.linput{{width:100%;border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;letter-spacing:2px;text-align:center;transition:border-color .15s;margin-bottom:12px}}
+.linput:focus{{border-color:var(--blue)}}
+.lbtn{{width:100%;background:var(--navy);border:none;color:#fff;font-size:14px;font-weight:600;padding:12px;border-radius:8px;cursor:pointer}}
+.lbtn:hover{{background:#1e3a62}}
+.lerr{{color:var(--rojo);font-size:11px;margin-top:8px}}
 
-  .tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--borde); margin-bottom: 18px; }
-  .tab { padding: 10px 2px; cursor: pointer; font-size: 14px; color: #5f6368; border-bottom: 2px solid transparent; }
-  .tab.active { color: var(--texto); font-weight: 600; border-bottom-color: var(--texto); }
-  .tabcontent { display: none; }
-  .tabcontent.active { display: block; }
+.main{{display:none;min-height:100vh}}
+.topbar{{background:var(--navy);padding:12px 28px;display:flex;align-items:center;justify-content:space-between}}
+.topbar .brand{{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:1px}}
+.topbar .meta{{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)}}
+.body{{max-width:1400px;margin:0 auto;padding:20px 24px}}
 
-  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
-  .area-card {
-    background: var(--card); border: 1px solid var(--borde); border-radius: 10px;
-    padding: 14px; width: auto;
-  }
-  .area-card .titulo { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .area-card .pct { font-size: 28px; font-weight: 700; margin: 4px 0; }
-  .area-card .pct.verde { color: var(--verde); }
-  .area-card .pct.rojo { color: var(--rojo); }
-  .area-card .pct.amarillo { color: var(--amarillo); }
-  .area-card .meta { font-size: 12px; color: #5f6368; margin-top: 6px; line-height: 1.6; }
-  .area-card .prom-box {
-    margin-top: 10px;
-    border-top: 1px solid var(--borde);
-    padding-top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .area-card .prom-val {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--texto);
-  }
-  .area-card .prom-lbl {
-    font-size: 11px;
-    color: #9aa0a6;
-    line-height: 1.3;
-  }
-  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 3px; }
-  .dot.verde { background: var(--verde); } .dot.rojo { background: var(--rojo); } .dot.gris { background: var(--gris); }
+.resumen-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}}
+.proj-card{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;border-left:4px solid transparent}}
+.proj-card:hover{{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}}
+.proj-card.sel{{border-left-color:var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.15)}}
+.proj-card.estado-Adelantado{{border-left-color:var(--verde)}}
+.proj-card.estado-Atrasado{{border-left-color:var(--amarillo)}}
+.proj-card.estado-Vencido{{border-left-color:var(--rojo)}}
+.proj-card.estado-Terminado{{border-left-color:var(--purple)}}
+.proj-card.despachado-true{{border-left-color:var(--purple)!important;background:#faf5ff}}
+.proj-card .pname{{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}}
+.proj-card .pmeta{{font-size:10px;color:var(--muted);font-family:var(--mono)}}
+.proj-card .pbadge{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:6px}}
+.b-verde{{background:var(--verde-bg);color:var(--verde)}}
+.b-rojo{{background:var(--rojo-bg);color:var(--rojo)}}
+.b-amarillo{{background:var(--amarillo-bg);color:var(--amarillo)}}
+.b-purple{{background:#f3e8ff;color:var(--purple)}}
+.proj-card .pbar{{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}}
+.proj-card .pbarf{{height:4px;border-radius:2px}}
 
-  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
-  thead th {
-    text-align: left; background: #fafafa; border-bottom: 2px solid var(--borde);
-    padding: 9px 10px; font-size: 12px; color: #5f6368; text-transform: uppercase; letter-spacing: .03em;
-  }
-  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--borde); font-size: 13px; }
-  tbody tr:hover { background: #fafafa; }
-  .pill { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-  .pill.verde { background: var(--verde-bg); color: var(--verde); }
-  .pill.rojo { background: var(--rojo-bg); color: var(--rojo); }
-  .pill.amarillo { background: var(--amarillo-bg); color: var(--amarillo); }
-  .estado-txt.rojo { color: var(--rojo); font-weight: 600; }
-  .estado-txt.verde { color: var(--verde); font-weight: 600; }
-  .estado-txt.encurso { color: var(--azul); font-weight: 600; }
+.filtros-bar{{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}}
+.filtro-btn{{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}}
+.filtro-btn.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
+.search-box{{flex:1;min-width:200px;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;outline:none;background:var(--card)}}
 
-  .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .filtros select {
-    padding: 6px 10px; border: 1px solid var(--borde); border-radius: 6px; background: var(--card); font-size: 13px;
-  }
-  .resumen-linea { font-size: 13px; color: #5f6368; margin-bottom: 10px; }
-  .resumen-linea b.rojo { color: var(--rojo); } .resumen-linea b.azul { color: var(--azul); } .resumen-linea b.verde { color: var(--verde); }
+.dash{{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;display:none}}
+.dash.open{{display:block}}
+.dash-header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px}}
+.dash-title{{font-size:16px;font-weight:600;color:var(--navy)}}
+.dash-meta{{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px;line-height:1.8}}
+.dash-close{{font-size:11px;color:var(--muted);cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:6px}}
+.dash-close:hover{{color:var(--text)}}
 
-  .leyenda { margin-top: 18px; font-size: 12px; color: #80868b; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
-  .area-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-  .area-pill {
-    padding: 6px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--borde);
-    font-size: 13px; cursor: pointer;
-  }
-  .area-pill.active { background: var(--texto); color: #fff; border-color: var(--texto); }
+.kpi-row{{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px}}
+.kpi{{background:var(--bg);border-radius:8px;padding:10px 12px;position:relative;overflow:hidden}}
+.kpi::before{{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--blue))}}
+.kl{{font-family:var(--mono);font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}}
+.kv{{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--c,var(--text));line-height:1}}
+.ks{{font-size:10px;color:var(--muted);margin-top:2px}}
 
-  .cascada-chain { background: var(--card); border: 1px solid var(--borde); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
-  .cascada-chain .chain-header { padding: 10px 16px; background: #fafafa; border-bottom: 1px solid var(--borde); font-size: 13px; font-weight: 600; color: #5f6368; }
-  .cascada-node { display: flex; align-items: flex-start; padding: 10px 16px; border-bottom: 1px solid var(--borde); gap: 12px; }
-  .cascada-node:last-child { border-bottom: none; }
-  .cascada-arrow { color: #9aa0a6; font-size: 18px; padding-top: 2px; min-width: 20px; }
-  .cascada-task { flex: 1; }
-  .cascada-task .task-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
-  .cascada-task .task-meta { font-size: 12px; color: #5f6368; display: flex; gap: 16px; flex-wrap: wrap; }
-  .cascada-task .task-meta span { display: flex; align-items: center; gap: 4px; }
-  .badge-atraso { background: var(--rojo-bg); color: var(--rojo); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-  .badge-ok { background: var(--verde-bg); color: var(--verde); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-  .badge-encurso { background: #e8f0fe; color: var(--azul); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.chart-wrap{{position:relative;height:280px;margin-bottom:12px}}
+.chart-legend{{display:flex;flex-wrap:wrap;gap:8px 16px;padding-top:8px;border-top:1px solid var(--border)}}
+.lgi{{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}}
+.lgl{{width:20px;height:2px;border-radius:1px}}
+.lgd{{width:20px;height:0;border-top:2px dashed}}
 
-  #gate {
-    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-  }
-  #gate.hidden { display: none; }
-  #gate .box {
-    background: var(--card); border: 1px solid var(--borde); border-radius: 14px;
-    padding: 40px 44px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    width: 320px;
-  }
-  #gate .box .icono { font-size: 32px; margin-bottom: 8px; }
-  #gate .box h2 { margin: 0 0 4px 0; font-size: 18px; font-weight: 700; }
-  #gate .box .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 18px; }
-  #gate .box input {
-    padding: 11px 14px; border: 1px solid var(--borde); border-radius: 8px;
-    font-size: 14px; width: 100%; margin-bottom: 12px; box-sizing: border-box;
-  }
-  #gate .box button {
-    padding: 11px 18px; border: none; border-radius: 8px; background: var(--texto);
-    color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
-  }
-  #gate .box .error { color: var(--rojo); font-size: 13px; margin-top: 8px; height: 16px; }
-  #app { display: none; }
-  #app.show { display: block; }
+.tbl-wrap{{overflow-x:auto;margin-top:14px}}
+table{{width:100%;border-collapse:collapse;font-size:11px}}
+th{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted2);padding:7px 10px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}}
+td{{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}}
+tr:last-child td{{border-bottom:none}}
+tr:hover td{{background:#f8fafc}}
+.mono{{font-family:var(--mono)}}
+.chip{{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600}}
+.c-ok{{background:#dcfce7;color:#15803d}} .c-bad{{background:#fee2e2;color:#b91c1c}}
+.c-warn{{background:#fef3c7;color:#b45309}} .c-gray{{background:#f1f5f9;color:#64748b}}
 
-  .selector-multi { position: relative; display: inline-block; margin-bottom: 18px; }
-  .selector-multi .selector-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
-    padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
-  }
-  .selector-multi .panel {
-    display: none; position: absolute; top: 110%; left: 0; z-index: 100;
-    background: var(--card); border: 1px solid var(--borde); border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 8px 0;
-    max-height: 320px; overflow-y: auto; min-width: 320px;
-  }
-  .selector-multi.open .panel { display: block; }
-  .selector-multi .panel label {
-    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
-    font-size: 13px; font-weight: 400; cursor: pointer; white-space: nowrap;
-  }
-  .selector-multi .panel label:hover { background: #fafafa; }
-  .selector-multi .panel .acciones {
-    display: flex; gap: 10px; padding: 6px 14px 10px 14px; border-bottom: 1px solid var(--borde);
-    margin-bottom: 4px; font-size: 12px;
-  }
-  .selector-multi .panel .acciones a { color: var(--azul); cursor: pointer; text-decoration: none; }
+.fase-header{{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);background:var(--bg);padding:5px 10px;border-bottom:1px solid var(--border)}}
+.av-bar{{display:flex;align-items:center;gap:6px}}
+.av-track{{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}}
+.av-fill{{height:4px;border-radius:2px}}
 
-  /* Columna prom cierre en tabla personas */
-  .prom-cierre-cell {
-    font-weight: 700;
-    color: var(--texto);
-    white-space: nowrap;
-  }
-  .prom-cierre-cell span {
-    font-size: 11px;
-    font-weight: 400;
-    color: #9aa0a6;
-    display: block;
-  }
+.desp-banner{{display:flex;align-items:center;gap:10px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;padding:10px 16px;margin-top:8px}}
+.desp-banner span.icon{{font-size:22px}}
+.desp-banner span.txt{{font-family:var(--mono);font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:.5px}}
 </style>
 </head>
 <body>
 
-<div id="gate">
-  <div class="box">
-    <div class="icono">📊</div>
-    <h2>Dashboard Desempeño</h2>
-    <div class="sub">Ingresa la clave para continuar</div>
-    <input type="password" id="gatePass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkPass()">
-    <button onclick="checkPass()">Ingresar</button>
-    <div class="error" id="gateError"></div>
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">Z</div>
+    <div class="lt">Portafolio — Curva S</div>
+    <div class="ls">Zitron · Acceso privado</div>
+    <input class="linput" type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Ingresar</button>
+    <div class="lerr" id="lerr"></div>
   </div>
 </div>
 
-<div id="app">
+<div class="main" id="main">
+  <div class="topbar">
+    <div class="brand">// CURVA S · PORTAFOLIO ZITRON · {len(proyectos)} PROYECTOS</div>
+    <div class="meta">Última actualización: {today_str} · Días hábiles Chile</div>
+  </div>
+  <div class="body">
 
-<h1>Dashboard Desempeño de Equipos</h1>
-<div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
-<div class="subt2">Días calculados en días hábiles Chile · Última actualización: __FECHA__</div>
-
-<div class="selector-multi" id="selectorMulti">
-  <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
-  <div class="panel" id="selectorPanel">
-    <div class="acciones">
-      <a onclick="seleccionarTodos(true)">Marcar todos</a>
-      <a onclick="seleccionarTodos(false)">Desmarcar todos</a>
+    <div class="filtros-bar">
+      <input class="search-box" type="text" id="searchBox" placeholder="Buscar proyecto..." oninput="filtrar()">
+      <button class="filtro-btn active" onclick="setFiltro('Todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="setFiltro('Adelantado',this)">✅ Adelantado</button>
+      <button class="filtro-btn" onclick="setFiltro('Atrasado',this)">⚠️ Atrasado</button>
+      <button class="filtro-btn" onclick="setFiltro('Vencido',this)">🔴 Vencido</button>
+      <button class="filtro-btn" onclick="setFiltro('Terminado',this)">✓ Terminado</button>
+      <button class="filtro-btn" onclick="setFiltro('Despachado',this)">🚢 Despachados</button>
     </div>
-    <div id="selectorOpciones"></div>
+
+    <div class="resumen-grid" id="resumenGrid"></div>
+
+    <div class="dash" id="dashPanel">
+      <div class="dash-header">
+        <div>
+          <div class="dash-title" id="dashTitle"></div>
+          <div class="dash-meta" id="dashMeta"></div>
+          <div id="dashDespachado"></div>
+        </div>
+        <div class="dash-close" onclick="cerrarDash()">✕ Cerrar</div>
+      </div>
+      <div class="kpi-row" id="dashKpis"></div>
+      <div class="chart-wrap"><canvas id="chartS" style="cursor:pointer"></canvas></div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:-4px">💡 Click en cualquier punto para ver el detalle de tareas de esa semana</div>
+      <div class="chart-legend">
+        <div class="lgi"><span class="lgd" style="border-color:#2563eb"></span>PV — % planificado</div>
+        <div class="lgi"><span class="lgl" style="background:#16a34a"></span>EV — % ganado real</div>
+        <div class="lgi"><span class="lgl" style="background:#d97706"></span>ES — semana equivalente</div>
+        <div class="lgi"><span class="lgd" style="border-color:#dc2626;border-style:dotted"></span>Fecha contractual</div>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr>
+          <th>Sem</th><th>Fecha</th><th>Tareas</th>
+          <th>PV Sem</th><th>EV Sem</th>
+          <th>PV Acum</th><th>EV Acum</th>
+          <th>% PV</th><th>% EV</th>
+          <th>SPI</th><th>SV</th><th>Estado</th>
+        </tr></thead><tbody id="dashTbl"></tbody></table>
+      </div>
+      <div style="margin-top:20px">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Detalle de tareas</div>
+        <div style="overflow-x:auto">
+          <table><thead><tr>
+            <th>Fase</th><th>Tarea</th><th>Inicio</th><th>Entrega</th><th>Avance</th><th>Estado</th>
+          </tr></thead><tbody id="dashTareas"></tbody></table>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
-
-<div id="globales"></div>
-
-<div class="tabs">
-  <div class="tab active" onclick="cambiarTab('area')">Resumen por área</div>
-  <div class="tab" onclick="cambiarTab('persona')">Detalle por persona</div>
-  <div class="tab" onclick="cambiarTab('tareas')">📄 Detalle tareas</div>
-  <div class="tab" onclick="cambiarTab('cascada')">🔗 Cascada de atrasos</div>
-</div>
-
-<div class="tabcontent active" id="tab-area">
-  <div class="area-grid" id="areaGrid"></div>
-</div>
-
-<div class="tabcontent" id="tab-persona">
-  <div class="area-pills" id="areaPills"></div>
-  <table>
-    <thead><tr>
-      <th></th>
-      <th>Persona</th>
-      <th>Área</th>
-      <th>Tareas</th>
-      <th>Compl.</th>
-      <th>% Compl.</th>
-      <th>⏱ Prom. plazo</th>
-      <th>Cerradas en tiempo</th>
-      <th>Cerradas fuera de tiempo</th>
-      <th>Abiertas en tiempo</th>
-      <th>Abiertas fuera de tiempo</th>
-    </tr></thead>
-    <tbody id="personaBody"></tbody>
-  </table>
-  <div style="margin-top:10px;font-size:11px;color:#9aa0a6;">
-    ⏱ Prom. plazo = promedio de días hábiles entre fecha de vencimiento y fecha de completado. Verde = anticipado · Rojo = con atraso
-  </div>
-</div>
-
-<div class="tabcontent" id="tab-tareas">
-  <div class="filtros">
-    <select id="fUsuario" onchange="renderTareas()"><option value="">Usuario: Todos</option></select>
-    <select id="fArea" onchange="renderTareas()"><option value="">Área: Todas</option></select>
-    <select id="fSeccion" onchange="renderTareas()"><option value="">Sección: Todas</option></select>
-    <select id="fProyecto" onchange="renderTareas()"><option value="">Proyecto: Todos</option></select>
-    <select id="fEstado" onchange="renderTareas()">
-      <option value="">Estado: Todos</option>
-      <option value="Completada">Completada</option>
-      <option value="Vencida">Vencida</option>
-      <option value="En curso">En curso</option>
-    </select>
-    <select id="fBloqueada" onchange="renderTareas()">
-      <option value="">Bloqueo: Todas</option>
-      <option value="si">Solo bloqueadas</option>
-      <option value="no">Solo liberadas</option>
-    </select>
-  </div>
-  <div class="resumen-linea" id="resumenTareas"></div>
-  <table>
-    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Sección</th><th>Usuario</th><th>Área</th><th>Inicio</th><th>Vence</th><th>Completó</th><th>Duración prevista</th><th style="cursor:pointer;white-space:nowrap;" onclick="toggleSortPlazo()">Estado plazo ↕<span id="sortPlazoIcon"></span></th><th>Estado</th><th>Bloqueo</th><th>Bloqueada por</th><th>Link</th></tr></thead>
-    <tbody id="tareasBody"></tbody>
-  </table>
-</div>
-
-<div class="tabcontent" id="tab-cascada">
-  <div class="filtros">
-    <select id="fCascadaEstado" onchange="renderCascada()">
-      <option value="">Todas las cadenas</option>
-      <option value="con_atraso">Solo con atraso</option>
-    </select>
-  </div>
-  <div id="cascadaContainer"></div>
-</div>
-
-<div class="leyenda">
-  <span><span class="dot verde"></span> Verde: cerrada en fecha o antes</span>
-  <span><span class="dot rojo"></span> Rojo: 1+ día hábil de atraso</span>
-  <span style="margin-left:auto;">Solo tareas nivel 2 (con tarea padre) · días hábiles Chile</span>
 </div>
 
 <script>
-const CLAVE = "zitron2026!";
-function checkPass() {
-  const val = document.getElementById('gatePass').value;
-  if (val === CLAVE) {
-    sessionStorage.setItem('zitron_ok', '1');
-    document.getElementById('gate').classList.add('hidden');
-    document.getElementById('app').classList.add('show');
-  } else {
-    document.getElementById('gateError').textContent = 'Contraseña incorrecta';
-  }
-}
-if (sessionStorage.getItem('zitron_ok') === '1') {
-  document.getElementById('gate').classList.add('hidden');
-  document.getElementById('app').classList.add('show');
-}
+const PWD = 'zitron2026!';
+const DATA = {data_json};
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
-const DATA = __DATA__;
-const PROYECTOS = Object.keys(DATA);
-let seleccionados = new Set(PROYECTOS);
-let areaFiltroPersona = "Todos";
+let filtroEstado = 'Todos';
+let chartInst = null;
+let selCard = null;
 
-function cambiarTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-  const idx = tab === 'area' ? 1 : (tab === 'persona' ? 2 : (tab === 'tareas' ? 3 : 4));
-  document.querySelector(`.tab:nth-child(${idx})`).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'cascada') renderCascada();
-}
+function login() {{
+  if (document.getElementById('pwd').value === PWD) {{
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    renderResumen();
+  }} else {{
+    document.getElementById('lerr').textContent = 'Contraseña incorrecta';
+  }}
+}}
+document.getElementById('pwd').addEventListener('keydown', e => {{ if(e.key==='Enter') login(); }});
 
-function toggleSelector() {
-  document.getElementById('selectorMulti').classList.toggle('open');
-}
-document.addEventListener('click', function(e) {
-  const sel = document.getElementById('selectorMulti');
-  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
-});
+function setFiltro(estado, btn) {{
+  filtroEstado = estado;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filtrar();
+}}
 
-function seleccionarTodos(valor) {
-  if (valor) PROYECTOS.forEach(p => seleccionados.add(p));
-  else seleccionados.clear();
-  refrescarSelector();
-  areaFiltroPersona = "Todos";
-  render();
-  if (document.getElementById('tab-cascada').classList.contains('active')) renderCascada();
-}
+function filtrar() {{
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('.proj-card').forEach(card => {{
+    const nombre = card.dataset.nombre.toLowerCase();
+    const estado = card.dataset.estado;
+    const despachado = card.dataset.despachado === 'true';
+    const matchQ = !q || nombre.includes(q);
+    let matchE = false;
+    if (filtroEstado === 'Todos') matchE = true;
+    else if (filtroEstado === 'Despachado') matchE = despachado;
+    else matchE = estado === filtroEstado;
+    card.style.display = (matchQ && matchE) ? '' : 'none';
+  }});
+}}
 
-function toggleProyecto(p, checked) {
-  if (checked) seleccionados.add(p); else seleccionados.delete(p);
-  refrescarSelector();
-  areaFiltroPersona = "Todos";
-  render();
-  if (document.getElementById('tab-cascada').classList.contains('active')) renderCascada();
-}
+function estadoBadge(estado) {{
+  const map = {{'Adelantado':'b-verde','Atrasado':'b-amarillo','Vencido':'b-rojo','Terminado':'b-purple'}};
+  return map[estado] || 'c-gray';
+}}
 
-function refrescarSelector() {
-  document.getElementById('selectorLabel').textContent = `${seleccionados.size} de ${PROYECTOS.length}`;
-  const cont = document.getElementById('selectorOpciones');
-  cont.innerHTML = PROYECTOS.map(p =>
-    `<label><input type="checkbox" ${seleccionados.has(p) ? 'checked' : ''} onchange="toggleProyecto('${p.replace(/'/g, "\\'")}', this.checked)"> ${p}</label>`
-  ).join('');
-}
+function renderResumen() {{
+  const grid = document.getElementById('resumenGrid');
+  grid.innerHTML = '';
+  DATA.forEach((p, idx) => {{
+    const card = document.createElement('div');
+    card.className = `proj-card estado-${{p.estado}} despachado-${{p.despachado}}`;
+    card.dataset.nombre = p.nombre;
+    card.dataset.estado = p.estado;
+    card.dataset.despachado = p.despachado;
+    card.dataset.idx = idx;
 
-function tareasSeleccionadas() {
-  let out = [];
-  PROYECTOS.forEach(p => { if (seleccionados.has(p)) out = out.concat(DATA[p]); });
-  return out;
-}
+    const spit = p.spit === 99 ? '∞' : p.spit.toFixed(2);
+    const svt = (p.svt >= 0 ? '+' : '') + p.svt.toFixed(1) + 'w';
+    const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—';
+    const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
 
-function pct(verde, total) { return total ? (100 * verde / total) : 0; }
+    const despBadge = p.despachado
+      ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;border:1.5px solid #c4b5fd;font-size:11px;padding:4px 12px;font-weight:700">🚢 Despachado</span>`
+      : `<span class="pbadge ${{estadoBadge(p.estado)}}">${{p.estado}}</span>`;
 
-function diasHabilesJS(d1str, d2str) {
-  if (!d1str || !d2str) return null;
-  const feriados = new Set([
-    '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
-    '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
-    '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
-    '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
-    '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
-  ]);
-  let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
-  const sign = d2 >= d1 ? 1 : -1;
-  if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
-  let count = 0, cur = new Date(d1);
-  cur.setDate(cur.getDate()+1);
-  while (cur <= d2) {
-    const iso = cur.toISOString().slice(0,10);
-    if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
-    cur.setDate(cur.getDate()+1);
-  }
-  return count * sign;
-}
-
-function render() {
-  const tasks = tareasSeleccionadas();
-  calcularBloqueo(tasks);
-  const total = tasks.length;
-
-  const complAtiempo = tasks.filter(t => t.estado_general === "Completada" && t.estado === "verde").length;
-  const complAtraso  = tasks.filter(t => t.estado_general === "Completada" && t.estado === "rojo").length;
-  const cursoAtiempo = tasks.filter(t => t.estado_general === "En curso").length;
-  const cursoAtraso  = tasks.filter(t => t.estado_general === "Vencida").length;
-
-  const subLabel = seleccionados.size === 1 ? Array.from(seleccionados)[0] : `${seleccionados.size} proyectos`;
-
-  document.getElementById('globales').innerHTML = `
-    <div class="cards-globales">
-      <div class="card-g"><div class="lbl">Tareas nivel 2</div><div class="val">${total}</div><div class="sub">${subLabel}</div></div>
-      <div class="card-g"><div class="lbl">Cerradas a tiempo</div><div class="val verde">${complAtiempo}</div><div class="sub">${pct(complAtiempo,total).toFixed(0)}% &middot; completadas en fecha o antes</div></div>
-      <div class="card-g"><div class="lbl">Cerradas con atraso</div><div class="val rojo">${complAtraso}</div><div class="sub">${pct(complAtraso,total).toFixed(0)}% &middot; completadas 1+ día tarde</div></div>
-      <div class="card-g"><div class="lbl">En curso a tiempo</div><div class="val verde">${cursoAtiempo}</div><div class="sub">${pct(cursoAtiempo,total).toFixed(0)}% &middot; aún dentro de plazo</div></div>
-      <div class="card-g"><div class="lbl">En curso atrasadas</div><div class="val rojo">${cursoAtraso}</div><div class="sub">${pct(cursoAtraso,total).toFixed(0)}% &middot; vencidas sin completar</div></div>
-    </div>`;
-
-  renderAreas(tasks);
-  renderPersonas(tasks);
-  fillFiltrosTareas(tasks);
-  renderTareas();
-}
-
-function renderAreas(tasks) {
-  const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
-  const areas = {};
-
-  // Primero acumular contadores generales desde las tareas (total, cerradas, verde, etc.)
-  tasks.forEach(t => {
-    areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0, dias_totales:0, dias_count:0};
-    areas[t.area].total++;
-    if (t.estado_general === 'Completada') areas[t.area].cerradas++;
-    if (t.estado === 'verde') areas[t.area].verde++;
-    if (t.estado_general === 'Completada' && t.estado === 'rojo') areas[t.area].cerrada_atraso++;
-    if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
-  });
-
-  // Promedio por persona usando dias_plazo (días entre vencimiento y completado, con signo).
-  // Negativo = antes del plazo, positivo = tarde. Promediamos esos valores por persona,
-  // luego promediamos los promedios de personas por área.
-  const personas = {};
-  tasks.forEach(t => {
-    if (!t.assignee || t.assignee === '(sin asignar)') return;
-    if (t.estado_general !== 'Completada' || t.dias_plazo === null || t.dias_plazo === undefined) return;
-    personas[t.assignee] = personas[t.assignee] || {area: t.area, dias_totales: 0, dias_count: 0};
-    personas[t.assignee].dias_totales += t.dias_plazo;
-    personas[t.assignee].dias_count++;
-  });
-
-  // Sumar los promedios individuales por área y dividir por cantidad de personas
-  const areaProms = {};
-  Object.values(personas).forEach(p => {
-    if (p.dias_count === 0) return;
-    const promPersona = p.dias_totales / p.dias_count;
-    areaProms[p.area] = areaProms[p.area] || {suma: 0, cant: 0};
-    areaProms[p.area].suma += promPersona;
-    areaProms[p.area].cant++;
-  });
-  Object.keys(areaProms).forEach(area => {
-    if (areas[area]) {
-      const ap = areaProms[area];
-      areas[area].prom_area = ap.cant > 0 ? ap.suma / ap.cant : null;
-      areas[area].prom_personas = ap.cant;
-    }
-  });
-
-  const keys = Object.keys(areas).sort((a,b) => {
-    const ia = ORDEN.indexOf(a), ib = ORDEN.indexOf(b);
-    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-  });
-
-  let html = '';
-  keys.forEach(area => {
-    const a = areas[area];
-    const p = pct(a.cerradas, a.total);
-    const cls = a.total === 0 ? '' : (p >= 80 ? 'verde' : (p >= 50 ? 'amarillo' : 'rojo'));
-    const promDias = a.prom_area != null ? a.prom_area.toFixed(1) : null;
-    const promPersonas = a.prom_personas || 0;
-
-    html += `<div class="area-card">
-      <div class="titulo">${area}</div>
-      <div class="pct ${cls}">${p.toFixed(0)}%</div>
-      <div class="meta">
-        ${a.total} tareas · ${a.cerradas} cerradas<br>
-        <span class="dot verde"></span>${a.verde} a tiempo
-        &nbsp;<span class="dot rojo"></span>${a.cerrada_atraso} cerradas tarde
+    card.innerHTML = `
+      <div class="pname">${{p.nombre}}</div>
+      <div class="pmeta">
+        📅 KO: ${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}} &nbsp;·&nbsp;
+        🏁 Contractual: ${{due}}<br>
+        📊 EV: ${{p.pct_ev}}% &nbsp;·&nbsp; SPI: ${{p.spit.toFixed(2)}} &nbsp;·&nbsp; SV: ${{(p.svt>=0?'+':'')+p.svt.toFixed(1)}}%<br>
+        📆 EAC: ${{eac}} &nbsp;·&nbsp; Prob: ${{p.prob}}%
       </div>
-      <div class="prom-box">
+      <div class="pbar"><div class="pbarf" style="width:${{p.pct_ev}}%;background:${{p.pct_ev>=80?'var(--verde)':p.pct_ev>=40?'var(--amarillo)':'var(--rojo)'}}"></div></div>
+      ${{despBadge}}
+    `;
+    card.onclick = () => abrirDash(idx, card);
+    grid.appendChild(card);
+  }});
+}}
+
+function abrirDash(idx, card) {{
+  if (selCard) selCard.classList.remove('sel');
+  selCard = card;
+  card.classList.add('sel');
+
+  const p = DATA[idx];
+  const dash = document.getElementById('dashPanel');
+  dash.classList.add('open');
+  dash.scrollIntoView({{behavior:'smooth', block:'start'}});
+
+  document.getElementById('dashTitle').textContent = p.nombre;
+  document.getElementById('dashDespachado').innerHTML = p.despachado
+    ? `<div class="desp-banner"><span class="icon">🚢</span><span class="txt">DESPACHADO — Logística 100% completada</span></div>`
+    : '';
+
+  document.getElementById('dashMeta').innerHTML = `
+    📅 Kick Off: <b>${{p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🏁 Contractual: <b>${{p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🚚 EXW: <b style="color:${{p.exw ? '#d97706' : 'var(--muted)'}}">${{p.exw ? new Date(p.exw).toLocaleDateString('es-CL') : '—'}}</b> &nbsp;·&nbsp;
+    🔚 Fin real: <b>${{p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}}</b><br>
+    📋 PV total: <b>${{p.total_pv.toFixed(0)}} hrs</b> &nbsp;·&nbsp;
+    ⏱ AT: <b>S${{calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}}</b> &nbsp;·&nbsp;
+
+  `;
+
+  // ── SPI y SV — fórmula simple EV/PV (igual que Excel) ──────────
+  const pvLive   = (p.fin_real && new Date(p.fin_real) < new Date()) ? 100 : p.pct_pv;
+  const spitLive = pvLive > 0 ? Math.min(p.pct_ev / pvLive, 9.99) : (p.pct_ev > 0 ? 99 : 0);
+  const svtLive  = p.pct_ev - pvLive;
+
+  const svtColor = svtLive >= 0 ? 'var(--verde)' : 'var(--rojo)';
+  const spitColor = spitLive >= 1 ? 'var(--verde)' : spitLive >= 0.7 ? 'var(--amarillo)' : 'var(--rojo)';
+  const probColor = p.prob >= 70 ? 'var(--verde)' : p.prob >= 40 ? 'var(--amarillo)' : 'var(--rojo)';
+
+  document.getElementById('dashKpis').innerHTML = `
+    <div class="kpi" style="--c:var(--verde)"><div class="kl">EV %</div><div class="kv">${{p.pct_ev}}%</div><div class="ks">avance real</div></div>
+    <div class="kpi" style="--c:var(--blue)"><div class="kl">PV %</div><div class="kv">${{(p.fin_real && new Date(p.fin_real) < new Date()) ? 100 : p.pct_pv}}%</div><div class="ks">planificado</div></div>
+    <div class="kpi" style="--c:${{svtColor}}"><div class="kl">SV</div><div class="kv">${{(svtLive>=0?'+':'')+svtLive.toFixed(1)}}%</div><div class="ks">${{svtLive>=0?'adelantado':'atrasado'}}</div></div>
+    <div class="kpi" style="--c:${{spitColor}}"><div class="kl">SPI</div><div class="kv">${{spitLive===99?'∞':spitLive.toFixed(2)}}</div><div class="ks">${{spitLive>=1?'en tiempo':spitLive>=0.7?'moderado':'crítico'}}</div></div>
+    <div class="kpi" style="--c:${{svtLive<0?'var(--rojo)':'var(--verde)'}}">
+      <div class="kl">Hrs atrasadas</div>
+      <div class="kv" style="font-size:16px">${{Math.abs(Math.round(svtLive/100*p.total_pv))}}h</div>
+      <div class="ks" style="font-size:11px;font-weight:600">≈ ${{Math.abs(Math.round(svtLive/100*p.total_pv/8.3/5))}} sem ${{svtLive<0?'de déficit':'de adelanto'}}</div>
+    </div>
+    ${{p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${{new Date(p.exw).toLocaleDateString('es-CL')}}</div><div class="ks">entrega prevista</div></div>` : ''}}
+  `;
+
+  renderChart(p);
+  renderTabla(p);
+  renderTareas(p);
+}}
+
+function cerrarDash() {{
+  document.getElementById('dashPanel').classList.remove('open');
+  if (selCard) selCard.classList.remove('sel');
+  selCard = null;
+}}
+
+function fmts(isoStr) {{
+  const d = new Date(isoStr);
+  return `${{d.getDate().toString().padStart(2,'0')}}/${{(d.getMonth()+1).toString().padStart(2,'0')}}`;
+}}
+
+function isoWeek(isoStr) {{
+  const d = new Date(isoStr);
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const startOfWeek1 = new Date(jan4);
+  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const diff = d - startOfWeek1;
+  const week = Math.floor(diff / 604800000) + 1;
+  if (week < 1) {{
+    const dec28 = new Date(d.getFullYear() - 1, 11, 28);
+    const jan4prev = new Date(d.getFullYear() - 1, 0, 4);
+    const startPrev = new Date(jan4prev);
+    startPrev.setDate(jan4prev.getDate() - ((jan4prev.getDay() + 6) % 7));
+    return Math.floor((dec28 - startPrev) / 604800000) + 1;
+  }}
+  return week;
+}}
+
+function renderChart(p) {{
+  if (chartInst) {{ chartInst.destroy(); chartInst = null; }}
+  const rows = p.rows;
+  const todayRows = rows.filter(r => new Date(r.ws) <= TODAY);
+  const todayIdx = todayRows.length - 1;
+  const pctEVhoy = todayIdx >= 0 ? todayRows[todayIdx].pctEV : 0;
+
+  let dueIdx = rows.length - 1;
+  if (p.contractual) {{
+    const dueD = new Date(p.contractual);
+    for (let i = 0; i < rows.length; i++) {{
+      if (new Date(rows[i].ws) >= dueD) {{ dueIdx = i; break; }}
+    }}
+  }}
+
+  const labels = rows.map(r => `S${{isoWeek(r.ws)}} ${{fmts(r.ws)}}`);
+  // PV: forzar que la última semana con PV > 0 llegue a 100%
+  const pvRaw = rows.map(r => r.pctPV);
+  // Encontrar primer índice donde PV alcanza su máximo (fin del proyecto)
+  const pvMax = Math.max(...pvRaw);
+  const firstMaxIdx = pvRaw.findIndex(v => v >= pvMax);
+  // Desde ese punto en adelante, PV = 100%
+  const pvData = pvRaw.map((v, i) => i >= firstMaxIdx ? 100 : v);
+  const evData = rows.map((r, i) => new Date(r.ws) <= TODAY ? r.pctEV : null);
+  const esData = rows.map((r, i) => i <= todayIdx ? pctEVhoy : null);
+
+  chartInst = new Chart(document.getElementById('chartS'), {{
+    type: 'line',
+    data: {{
+      labels,
+      datasets: [
+        {{label:'PV', data:pvData, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.06)', borderWidth:2, borderDash:[6,4], tension:0.3, pointRadius:2, fill:true}},
+        {{label:'EV', data:evData, borderColor:'#16a34a', borderWidth:2.5, tension:0.2, pointRadius:2, spanGaps:false,
+          fill:{{
+            target:'-1',
+            above:'rgba(22,163,74,0.15)',   // EV sobre PV → verde (adelantado)
+            below:'rgba(220,38,38,0.10)'    // EV bajo PV  → rojo  (atrasado)
+          }}
+        }},
+        {{label:'ES', data:esData, borderColor:'#d97706', backgroundColor:'transparent', borderWidth:2, borderDash:[3,3], tension:0, pointRadius:0, spanGaps:false}},
+      ]
+    }},
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{{mode:'index',intersect:false}},
+      onClick: (evt, elements) => {{
+        if (!elements.length) return;
+        const idx = elements[0].index;
+        const r = rows[idx];
+        mostrarDetalleSemana(p, r);
+      }},
+      plugins:{{
+        legend:{{display:false}},
+        tooltip:{{
+          backgroundColor:'#0f172a', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+          titleColor:'#f8fafc', bodyColor:'#94a3b8',
+          titleFont:{{family:'IBM Plex Mono',size:10}}, bodyFont:{{family:'IBM Plex Mono',size:10}},
+          callbacks:{{
+            label: ctx => {{
+              if (ctx.parsed.y === null) return null;
+              const r = rows[ctx.dataIndex];
+              if (ctx.datasetIndex===0) return `PV: ${{ctx.parsed.y}}% (${{r.pvA.toFixed(0)}}h acum)`;
+              if (ctx.datasetIndex===1) return `EV: ${{ctx.parsed.y}}% (${{r.evA.toFixed(1)}}h acum)`;
+              return `ES: S${{p.es_iso.toFixed(1)}}`;
+            }}
+          }}
+        }}
+      }},
+      scales:{{
+        x:{{ticks:{{color:'#94a3b8',font:{{size:8,family:'IBM Plex Mono'}},maxRotation:45,autoSkip:true,maxTicksLimit:18}},grid:{{color:'rgba(0,0,0,.03)'}}}},
+        y:{{min:0,max:100,ticks:{{color:'#94a3b8',font:{{size:9,family:'IBM Plex Mono'}},callback:v=>v+'%'}},grid:{{color:'rgba(0,0,0,.03)'}}}}
+      }}
+    }}
+  }});
+}}
+
+function mostrarDetalleSemana(p, r) {{
+  const wsDate = new Date(r.ws);
+  const weDate = new Date(wsDate.getTime() + 6*86400000);
+  // Filtrar tareas de p.tareas que cruzan esta semana (ini <= we && fin >= ws)
+  const tareasSemana = (p.tareas || []).filter(t => {{
+    const ini = new Date(t.ini), fin = new Date(t.fin);
+    return ini <= weDate && fin >= wsDate;
+  }});
+
+  let totalPlan = 0, totalHecho = 0;
+  const filas = tareasSemana.map(t => {{
+    const ini = new Date(t.ini), fin = new Date(t.fin);
+    const diasTot = Math.max(1, Math.round((fin-ini)/86400000)+1);
+    const horasTot = t.kickoff ? 8 : diasTot * 8.3;
+    const avPct = Math.round(t.av * 100);
+    const horasHechas = horasTot * t.av;
+    totalPlan += horasTot;
+    totalHecho += horasHechas;
+    const check = avPct >= 100 ? '✅' : avPct > 0 ? '🟡' : '❌';
+    return `<tr>
+      <td style="padding:6px 8px;font-size:11px">${{check}} ${{t.name}}</td>
+      <td style="padding:6px 8px;font-size:11px;color:var(--muted)">${{t.section||'—'}}</td>
+      <td style="padding:6px 8px;font-size:11px;text-align:right;font-family:monospace">${{horasTot.toFixed(1)}}h</td>
+      <td style="padding:6px 8px;font-size:11px;text-align:right;font-family:monospace;font-weight:600">${{avPct}}%</td>
+    </tr>`;
+  }}).join('');
+
+  const pctTotal = totalPlan > 0 ? Math.round(totalHecho/totalPlan*100) : 0;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:12px;max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div>
-          <div class="prom-val" style="${promDias !== null ? (parseFloat(promDias) > 0 ? 'color:var(--rojo)' : parseFloat(promDias) < 0 ? 'color:var(--verde)' : '') : ''}">${promDias !== null ? (parseFloat(promDias) > 0 ? '+' : '') + promDias + 'd' : '—'}</div>
-          <div class="prom-lbl">${promDias !== null && parseFloat(promDias) > 0 ? 'prom. atraso' : promDias !== null && parseFloat(promDias) < 0 ? 'prom. anticipado' : 'prom. exacto'}<br>(${promPersonas} ${promPersonas === 1 ? 'persona' : 'personas'})</div>
+          <div style="font-weight:600;font-size:14px">Tareas — S${{isoWeek(r.ws)}} (${{wsDate.toLocaleDateString('es-CL')}})</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${{tareasSemana.length}} tareas · ${{totalHecho.toFixed(1)}}h / ${{totalPlan.toFixed(1)}}h completadas (${{pctTotal}}%)</div>
         </div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="border:none;background:#f1f5f9;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px">✕ Cerrar</button>
       </div>
-    </div>`;
-  });
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:1px solid #e2e8f0">
+          <th style="padding:6px 8px;font-size:10px;text-align:left;color:var(--muted)">TAREA</th>
+          <th style="padding:6px 8px;font-size:10px;text-align:left;color:var(--muted)">SECCIÓN</th>
+          <th style="padding:6px 8px;font-size:10px;text-align:right;color:var(--muted)">HORAS</th>
+          <th style="padding:6px 8px;font-size:10px;text-align:right;color:var(--muted)">AVANCE</th>
+        </tr></thead>
+        <tbody>${{filas || '<tr><td colspan=4 style="padding:12px;text-align:center;color:var(--muted)">Sin tareas en esta semana</td></tr>'}}</tbody>
+      </table>
+    </div>
+  `;
+  modal.onclick = (e) => {{ if (e.target === modal) modal.remove(); }};
+  document.body.appendChild(modal);
+}}
 
-  document.getElementById('areaGrid').innerHTML = html || '<i>Sin tareas nivel 2 en este proyecto</i>';
-}
+function renderTabla(p) {{
+  // Mostrar TODAS las semanas — pasadas y futuras planificadas
+  const rows = p.rows;
+  const tbody = document.getElementById('dashTbl');
+  tbody.innerHTML = '';
 
-function renderPersonas(tasks) {
-  const areasSet = new Set(tasks.map(t => t.area));
-  const pillsHtml = ['Todos', ...Array.from(areasSet)].map(a =>
-    `<div class="area-pill ${a===areaFiltroPersona?'active':''}" onclick="setAreaPersona('${a}')">${a}</div>`).join('');
-  document.getElementById('areaPills').innerHTML = pillsHtml;
+  rows.forEach(r => {{
+    // Saltar semanas sin tareas y sin PV (semanas vacías al final)
+    if (r.pv === 0 && r.n === 0) return;
+    const esFutura = new Date(r.ws) > TODAY;
+    const pctEV = r.pctEV || 0;
+    const pctPV = r.pctPV || 0;
 
-  const filtradas = areaFiltroPersona === 'Todos' ? tasks : tasks.filter(t => t.area === areaFiltroPersona);
+    // SPI y SV solo para semanas pasadas con datos reales
+    let spiTxt = '—', svTxt = '—', estadoTxt = '—';
+    let spiF = null, svF = null;
+    if (!esFutura && pctPV > 0) {{
+      spiF = pctEV / pctPV;
+      svF  = pctEV - pctPV;
+      spiTxt = spiF.toFixed(2);
+      svTxt  = (svF >= 0 ? '+' : '') + svF.toFixed(1) + '%';
+      estadoTxt = svF >= 0 ? 'Adelantado' : 'Atrasado';
+    }}
 
-  const personas = {};
-  filtradas.forEach(t => {
-    const key = t.assignee;
-    personas[key] = personas[key] || {area: t.area, total:0, compl:0, verde:0, rojo:0, abierta_tiempo:0, abierta_atraso:0, cerrada_tiempo:0, cerrada_atraso:0, dias_totales:0, dias_count:0};
-    personas[key].total++;
-    if (t.estado_general === 'Completada') {
-      personas[key].compl++;
-      // Usar dias_plazo (diferencia entre vencimiento y completado, con signo)
-      if (t.dias_plazo !== null && t.dias_plazo !== undefined) {
-        personas[key].dias_totales += t.dias_plazo;
-        personas[key].dias_count++;
-      }
-    }
-    if (t.estado_general === 'En curso') personas[key].abierta_tiempo++;
-    if (t.estado_general === 'Vencida') personas[key].abierta_atraso++;
-    if (t.estado_general === 'Completada' && t.estado === 'verde') personas[key].cerrada_tiempo++;
-    if (t.estado_general === 'Completada' && t.estado === 'rojo') personas[key].cerrada_atraso++;
-  });
+    const tr = document.createElement('tr');
+    // Filas futuras con fondo diferente
+    if (esFutura) tr.style.opacity = '0.5';
 
-  const ordenadas = Object.entries(personas).sort((a,b) => b[1].total - a[1].total);
-  let html = '';
-  ordenadas.forEach(([nombre, d]) => {
-    const p = pct(d.compl, d.total);
-    const promDias = d.dias_count > 0 ? (d.dias_totales / d.dias_count).toFixed(1) : null;
-    html += `<tr>
-      <td></td>
-      <td><b>${nombre}</b></td>
-      <td>${d.area}</td>
-      <td>${d.total}</td>
-      <td>${d.compl}</td>
-      <td><span class="pill ${p>=80?'verde':(p>=50?'amarillo':'rojo')}">${p.toFixed(0)}%</span></td>
-      <td class="prom-cierre-cell">
-        ${promDias !== null
-          ? `<span style="color:${parseFloat(promDias) > 0 ? 'var(--rojo)' : parseFloat(promDias) < 0 ? 'var(--verde)' : 'var(--texto)'}">${parseFloat(promDias) > 0 ? '+' : ''}${promDias}d</span> <span>${d.dias_count} tareas</span>`
-          : `<span style="color:#ccc;">—</span>`}
+    tr.innerHTML = `
+      <td class="mono">${{esFutura ? '→' : ''}} S${{isoWeek(r.ws)}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{new Date(r.ws).toLocaleDateString('es-CL')}}</td>
+      <td class="mono">${{r.n || '—'}}</td>
+      <td class="mono" style="color:#2563eb">${{r.pv.toFixed(1)}}h</td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : r.ev.toFixed(1) + 'h'}}</td>
+      <td class="mono" style="color:#2563eb">${{r.pvA.toFixed(0)}}h</td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : r.evA.toFixed(1) + 'h'}}</td>
+      <td class="mono" style="color:#2563eb">${{pctPV}}%</td>
+      <td class="mono" style="color:#16a34a">${{esFutura ? '—' : pctEV + '%'}}</td>
+      <td><span class="chip ${{spiF===null?'':spiF>=1?'c-ok':spiF>=0.7?'c-warn':'c-bad'}}">${{spiTxt}}</span></td>
+      <td><span class="chip ${{svF===null?'':svF>=0?'c-ok':'c-bad'}}">${{svTxt}}</span></td>
+      <td><span class="chip ${{estadoTxt==='Adelantado'?'c-ok':estadoTxt==='Atrasado'?'c-warn':''}}">${{estadoTxt}}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }});
+}}
+
+function calcAT(kickoffStr, finRealStr, rows) {{
+  if (!kickoffStr) return 0;
+  const ko = new Date(kickoffStr);
+  const getISOWeek = d => {{
+    const tmp = new Date(d);
+    tmp.setHours(0,0,0,0);
+    tmp.setDate(tmp.getDate() + 3 - (tmp.getDay()+6)%7);
+    const w1 = new Date(tmp.getFullYear(), 0, 4);
+    return [tmp.getFullYear(), 1 + Math.round(((tmp-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7)];
+  }};
+  // Usar la última semana con EV > 0 como referencia
+  let lastEvDate = null;
+  if (rows) {{
+    for (let i = rows.length - 1; i >= 0; i--) {{
+      if (rows[i].evA > 0) {{ lastEvDate = new Date(rows[i].ws); break; }}
+    }}
+  }}
+  const today = new Date();
+  const ref = lastEvDate && lastEvDate < today ? lastEvDate : today;
+  const [yrKo, wkKo] = getISOWeek(ko);
+  const [yrRef, wkRef] = getISOWeek(ref);
+  return wkRef + (yrRef - yrKo) * 52 - wkKo;
+}}
+
+function calcES(rows, evAcum, totalPV, kickoff) {{
+  const pctEV = totalPV > 0 ? evAcum / totalPV * 100 : 0;
+  if (pctEV <= 0) return 0;
+  const ko = kickoff ? new Date(kickoff) : new Date(rows[0].ws);
+  const weeksFrom = ws => (new Date(ws) - ko) / 604800000;
+  if (pctEV >= 100) return weeksFrom(rows[rows.length-1].ws);
+  for (let i = 1; i < rows.length; i++) {{
+    if (rows[i].pctPV >= pctEV) {{
+      const prev = rows[i-1], cur = rows[i];
+      const f = (pctEV - prev.pctPV) / Math.max(cur.pctPV - prev.pctPV, 0.001);
+      return weeksFrom(prev.ws) + f * (weeksFrom(cur.ws) - weeksFrom(prev.ws));
+    }}
+  }}
+  return weeksFrom(rows[rows.length-1].ws);
+}}
+
+function renderTareas(p) {{
+  const tbody = document.getElementById('dashTareas');
+  tbody.innerHTML = '';
+  let lastFase = null;
+  p.tareas.forEach(t => {{
+    if (t.section !== lastFase) {{
+      lastFase = t.section;
+      const tr = document.createElement('tr');
+      // Resaltar sección Logística
+      const esLog = t.section.toLowerCase().includes('logis') || t.section.toLowerCase().includes('despacho');
+      tr.innerHTML = `<td colspan="6" class="fase-header" style="${{esLog?'background:#ede9fe;color:#7c3aed':''}}">${{t.section || 'Sin sección'}}${{esLog?' 🚢':''}}</td>`;
+      tbody.appendChild(tr);
+    }}
+    const av = t.av;
+    const avColor = av >= 1 ? 'var(--verde)' : av > 0 ? 'var(--amarillo)' : 'var(--muted2)';
+    const stTxt = av >= 1 ? 'Terminada' : av > 0 ? 'En curso' : 'Sin iniciar';
+    const stCls = av >= 1 ? 'c-ok' : av > 0 ? 'c-warn' : 'c-gray';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:10px">${{t.section}}${{t.kickoff?' ⚡':''}}</td>
+      <td>${{t.name}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{t.ini}}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${{t.fin}}</td>
+      <td>
+        <div class="av-bar">
+          <div class="av-track"><div class="av-fill" style="width:${{av*100}}%;background:${{avColor}}"></div></div>
+          <span class="mono" style="font-size:10px;color:${{avColor}}">${{Math.round(av*100)}}%</span>
+        </div>
       </td>
-      <td><span class="dot verde"></span>${d.cerrada_tiempo}</td>
-      <td><span class="dot rojo"></span>${d.cerrada_atraso}</td>
-      <td><span class="dot verde"></span>${d.abierta_tiempo}</td>
-      <td><span class="dot rojo"></span>${d.abierta_atraso}</td>
-    </tr>`;
-  });
-  document.getElementById('personaBody').innerHTML = html || '<tr><td colspan="11"><i>Sin datos</i></td></tr>';
-}
-
-function setAreaPersona(a) { areaFiltroPersona = a; renderPersonas(tareasSeleccionadas()); }
-
-function fillFiltrosTareas(tasks) {
-  const usuarios = [...new Set(tasks.map(t => t.assignee))].sort();
-  const areas = [...new Set(tasks.map(t => t.area))].sort();
-  const secciones = [...new Set(tasks.map(t => t.section).filter(s => s))].sort();
-  const proyectos = [...new Set(tasks.map(t => t.project).filter(p => p))].sort();
-
-  const fill = (id, items, label) => {
-    const sel = document.getElementById(id);
-    const current = sel.value;
-    sel.innerHTML = `<option value="">${label}: Todos</option>` +
-      items.map(i => `<option value="${i}">${i}</option>`).join('');
-    sel.value = current;
-  };
-  fill('fUsuario', usuarios, 'Usuario');
-  fill('fArea', areas, 'Área');
-  fill('fSeccion', secciones, 'Sección');
-  fill('fProyecto', proyectos, 'Proyecto');
-}
-
-let sortPlazoDir = null;
-
-function toggleSortPlazo() {
-  sortPlazoDir = sortPlazoDir === 'desc' ? 'asc' : 'desc';
-  document.getElementById('sortPlazoIcon').textContent = sortPlazoDir === 'desc' ? ' ▼' : ' ▲';
-  renderTareas();
-}
-
-function diasAtraso(estadoPlazo) {
-  const m = estadoPlazo.match(/^(\d+)d/);
-  return m ? parseInt(m[1]) : 0;
-}
-
-function calcularBloqueo(tasks) {
-  const gruposPorNombre = {};
-  tasks.forEach(t => {
-    const n = t.name.trim().replace(/:$/, '').trim();
-    const key = (t.project||'') + '||' + n;
-    gruposPorNombre[key] = gruposPorNombre[key] || [];
-    gruposPorNombre[key].push(t);
-  });
-
-  function buscarGrupo(nombre, proyecto) {
-    const n = nombre.trim().replace(/:$/, '').trim();
-    const key = (proyecto||'') + '||' + n;
-    if (gruposPorNombre[key]) return gruposPorNombre[key];
-    const nl = n.toLowerCase();
-    const candidatos = tasks.filter(t => t.project === proyecto &&
-      (t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())));
-    return candidatos.length ? candidatos : null;
-  }
-
-  tasks.forEach(t => {
-    if (!t.blocked_by || t.blocked_by.length === 0) {
-      t.bloqueada_real = false;
-      t.bloqueada_por = null;
-      return;
-    }
-    let pendienteEncontrada = null;
-    for (const nombre of t.blocked_by) {
-      const grupo = buscarGrupo(nombre, t.project);
-      if (!grupo || grupo.length === 0) continue;
-      let candidato;
-      if (grupo.length === 1) {
-        candidato = grupo[0];
-      } else {
-        const refDate = t.start_iso || t.due_iso;
-        if (refDate) {
-          let mejor = null, mejorDiff = Infinity;
-          grupo.forEach(g => {
-            if (!g.due_iso) return;
-            const diff = Math.abs(new Date(g.due_iso) - new Date(refDate));
-            if (diff < mejorDiff) { mejorDiff = diff; mejor = g; }
-          });
-          if (mejor) {
-            const subgrupo = grupo.filter(g => g.due_iso === mejor.due_iso);
-            candidato = subgrupo.every(g => g.estado_general !== 'Completada')
-              ? (subgrupo.find(g => g.estado_general !== 'Completada') || subgrupo[0])
-              : null;
-          }
-        }
-        if (candidato === undefined) {
-          const todasPendientes = grupo.every(g => g.estado_general !== 'Completada');
-          candidato = todasPendientes ? (grupo.find(g => g.estado_general !== 'Completada') || grupo[0]) : null;
-        }
-      }
-      if (candidato && candidato.estado_general !== 'Completada') {
-        pendienteEncontrada = candidato;
-        break;
-      }
-    }
-    t.bloqueada_real = !!pendienteEncontrada;
-    t.bloqueada_por = pendienteEncontrada || null;
-  });
-}
-
-function renderTareas() {
-  const tasks = tareasSeleccionadas();
-  const fu = document.getElementById('fUsuario').value;
-  const fa = document.getElementById('fArea').value;
-  const fs = document.getElementById('fSeccion').value;
-  const fp = document.getElementById('fProyecto').value;
-  const fe = document.getElementById('fEstado').value;
-  const fb = document.getElementById('fBloqueada').value;
-
-  const filtradas = tasks.filter(t =>
-    (!fu || t.assignee === fu) &&
-    (!fa || t.area === fa) &&
-    (!fs || t.section === fs) &&
-    (!fp || t.project === fp) &&
-    (!fe || t.estado_general === fe) &&
-    (!fb || (fb === 'si' ? t.bloqueada_real === true : t.bloqueada_real === false))
-  );
-
-  let sorted = [...filtradas];
-  if (sortPlazoDir) {
-    sorted.sort((a, b) => {
-      const da = diasAtraso(a.estado_plazo), db = diasAtraso(b.estado_plazo);
-      return sortPlazoDir === 'desc' ? db - da : da - db;
-    });
-  }
-
-  const completadas = filtradas.filter(t => t.estado_general === 'Completada').length;
-  const enCurso = filtradas.filter(t => t.estado_general === 'En curso').length;
-  const vencidas = filtradas.filter(t => t.estado_general === 'Vencida').length;
-
-  document.getElementById('resumenTareas').innerHTML =
-    `${filtradas.length} tareas &nbsp; <b class="verde">${completadas} completadas (${pct(completadas,filtradas.length).toFixed(0)}%)</b> &nbsp; ` +
-    `<b class="azul">${enCurso} en curso</b> &nbsp; <b class="rojo">${vencidas} vencidas</b>`;
-
-  let html = '';
-  sorted.forEach(t => {
-    const cls = t.estado === 'verde' ? 'verde' : (t.estado === 'rojo' ? 'rojo' : 'encurso');
-    const estadoLabel = t.estado_general === 'Vencida' ? '⚠ Vencida' :
-                         t.estado_general === 'En curso' ? '● En curso' : '✓ Completada';
-    html += `<tr>
-      <td>${t.name}</td>
-      <td style="font-size:12px;color:#5f6368;">${t.project}</td>
-      <td>${t.section}</td>
-      <td><b>${t.assignee}</b></td>
-      <td>${t.area}</td>
-      <td>${t.start_fmt || '--'}</td>
-      <td>${t.due_fmt}</td>
-      <td>${t.completed_fmt}</td>
-      <td>${t.duracion_prevista !== null && t.duracion_prevista !== undefined ? t.duracion_prevista + 'd hábiles' : '--'}</td>
-      <td class="estado-txt ${cls}">${t.estado_plazo}</td>
-      <td><span class="estado-txt ${cls}">${estadoLabel}</span></td>
-      <td>${t.bloqueada_real
-        ? `<span style="color:var(--rojo);font-weight:700;" title="Bloqueada por: ${(t.blocked_by||[]).join(', ')}">🔴 Bloqueada</span>`
-        : `<span style="color:var(--verde);font-weight:700;">🟢 Liberada</span>`}</td>
-      <td style="font-size:12px;">${t.bloqueada_por ? `<b>${t.bloqueada_por.name}</b><br>👤 ${t.bloqueada_por.assignee}` : '—'}</td>
-      <td>${t.asana_url ? `<a href="${t.asana_url}" target="_blank" style="color:var(--azul);text-decoration:none;font-weight:600;">🔗 Abrir</a>` : '—'}</td>
-    </tr>`;
-  });
-  document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="14"><i>Sin tareas</i></td></tr>';
-}
-
-function renderCascada() {
-  const tasks = tareasSeleccionadas();
-  const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
-
-  const byName = {};
-  tasks.forEach(t => {
-    const key = (t.project||'') + '||' + t.name.trim();
-    const keyClean = (t.project||'') + '||' + t.name.trim().replace(/:$/, '').trim();
-    byName[key] = t;
-    byName[keyClean] = t;
-    byName[t.name.trim()] = t;
-    byName[t.name.trim().replace(/:$/, '').trim()] = t;
-  });
-
-  function findTask(nombre, proyecto) {
-    const n = nombre.trim().replace(/:$/, '').trim();
-    if (proyecto) {
-      const keyP = proyecto + '||' + n;
-      if (byName[keyP]) return byName[keyP];
-    }
-    if (byName[n]) return byName[n];
-    const nl = n.toLowerCase();
-    const enProyecto = proyecto ? tasks.filter(t => t.project === proyecto) : tasks;
-    return enProyecto.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
-  }
-
-  function diasHabilesJSLocal(d1str, d2str) {
-    if (!d1str || !d2str) return null;
-    const feriados = new Set([
-      '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
-      '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
-      '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
-      '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
-      '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
-    ]);
-    let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
-    const sign = d2 >= d1 ? 1 : -1;
-    if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
-    let count = 0, cur = new Date(d1);
-    cur.setDate(cur.getDate()+1);
-    while (cur <= d2) {
-      const iso = cur.toISOString().slice(0,10);
-      if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
-      cur.setDate(cur.getDate()+1);
-    }
-    return count * sign;
-  }
-
-  const visitadas = new Set();
-  const cadenas = [];
-
-  function findRaiz(task, seen) {
-    seen = seen || new Set();
-    const key = (task.project||'') + '||' + task.name;
-    if (seen.has(key)) return task;
-    seen.add(key);
-    const prevs = (task.blocked_by||[]).map(b => findTask(b, task.project)).filter(Boolean);
-    if (prevs.length === 0) return task;
-    return findRaiz(prevs[0], seen);
-  }
-
-  tasks.forEach(t => {
-    if (!t.name || !t.name.trim()) return;
-    const raiz = findRaiz(t);
-    const raizKey = (raiz.project||'') + '||' + raiz.name;
-    if (!visitadas.has(raizKey)) {
-      visitadas.add(raizKey);
-      const arbol = { task: raiz, hijos: [] };
-      const visitadasArbol = new Set([raizKey]);
-
-      function buildTree(nodo) {
-        const t = nodo.task;
-        (t.blocking||[]).forEach(nextName => {
-          const next = findTask(nextName, t.project);
-          if (!next) return;
-          const nextKey = (next.project||'') + '||' + next.name;
-          if (visitadasArbol.has(nextKey)) return;
-          visitadasArbol.add(nextKey);
-          const hijo = { task: next, hijos: [] };
-          nodo.hijos.push(hijo);
-          buildTree(hijo);
-        });
-        nodo.hijos.sort((a,b) => (a.task.start_iso||a.task.due_iso||'9999').localeCompare(b.task.start_iso||b.task.due_iso||'9999'));
-      }
-
-      buildTree(arbol);
-
-      const chain = [];
-      function flatten(nodo) {
-        chain.push(nodo.task);
-        nodo.hijos.forEach(flatten);
-      }
-      flatten(arbol);
-
-      const chainValida = chain.filter(c => c.name && c.name.trim());
-      if (chainValida.length > 1) cadenas.push(chainValida);
-    }
-  });
-
-  let filtradas = soloAtraso
-    ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
-    : cadenas;
-
-  if (filtradas.length === 0) {
-    document.getElementById('cascadaContainer').innerHTML =
-      cadenas.length === 0
-        ? '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>'
-        : '<p style="color:#9aa0a6;padding:16px;">No hay cadenas que coincidan con los filtros.</p>';
-    return;
-  }
-
-  const COLORS = {
-    rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
-    verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-    encurso: { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-  };
-
-  let html = '';
-  filtradas.forEach((chain, ci) => {
-    const proyecto = chain[0].project || '';
-    html += `<div style="margin-bottom:32px;">
-      <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
-        🔗 Cadena ${ci+1} — ${chain.length} tareas &nbsp;<span style="font-weight:400;">${proyecto}</span>
-      </div>
-      <div style="position:relative;">`;
-
-    chain.forEach((t, i) => {
-      const diasReales = (t.completed && t.start_iso)
-        ? diasHabilesJSLocal(t.start_iso, t.completed) : null;
-
-      const todasAntecesoras = (t.blocked_by && t.blocked_by.length > 0)
-        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)
-        : (i > 0 ? [chain[i-1]] : []);
-
-      const antecReal = todasAntecesoras
-        .filter(a => a.completed)
-        .sort((a,b) => (b.completed||'').localeCompare(a.completed||''))[0]
-        || todasAntecesoras[0] || null;
-
-      let atrasoHeredado = null;
-      if (antecReal) {
-        if (antecReal.completed && t.start_iso) {
-          atrasoHeredado = diasHabilesJSLocal(t.start_iso, antecReal.completed);
-        }
-      }
-
-      const enAtraso = t.atraso_dias > 0;
-      const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
-      const estadoTxt = enAtraso
-        ? `⚠ ${t.atraso_dias}d de atraso`
-        : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
-
-      if (i > 0) {
-        const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
-          ? `<div style="padding:6px 0;font-size:12px;color:#b3261e;font-weight:700;display:flex;align-items:center;gap:6px;">
-               <span style="font-size:20px;">↓</span>
-               <span>Recibe con <b>-${atrasoHeredado}d hábiles</b> menos para completar</span>
-             </div>`
-          : `<div style="padding:4px 0;font-size:20px;color:#9aa0a6;">↓</div>`;
-        html += heredadoHtml;
-      }
-
-      html += `
-      <div style="border-left:5px solid ${col.border};background:${col.bg};
-                  border-radius:10px;padding:14px 18px;color:${col.text};width:100%;box-sizing:border-box;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
-          <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
-          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${estadoTxt}</div>
-        </div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
-          <span>👤 ${t.assignee}</span>
-          <span>🏢 ${t.area}</span>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
-            <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
-          </div>
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
-            <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
-          </div>
-          ${t.atraso_dias > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
-            <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
-          </div>` : ''}
-          ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
-            <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
-          </div>` : ''}
-        </div>
-      </div>`;
-    });
-
-    html += `</div></div>`;
-  });
-
-  document.getElementById('cascadaContainer').innerHTML = html;
-}
-
-refrescarSelector();
-render();
+      <td><span class="chip ${{stCls}}">${{stTxt}}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }});
+}}
 </script>
 </body>
-</html>
-"""
+</html>"""
+
+    Path(output_path).write_text(html, encoding="utf-8")
+    print(f"\n✓ CURVAS.HTML generado: {output_path}")
+    print(f"  {len(proyectos)} proyectos incluidos")
+    desp = sum(1 for p in proyectos if p['despachado'])
+    print(f"  {desp} proyectos despachados")
 
 
 def main():
-    input_dir = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
-    output_file = sys.argv[2] if len(sys.argv) > 2 else "/mnt/user-data/outputs/KPI.html"
-
-    files = sorted(glob.glob(os.path.join(input_dir, "*.xlsx")))
-    files = [f for f in files if not os.path.basename(f).startswith("~$")]
-    if not files:
-        print(f"No se encontraron archivos .xlsx en {input_dir}")
+    if len(sys.argv) < 3:
+        print("Uso: python generar_curvas.py <carpeta_data> <output.html>")
         sys.exit(1)
 
-    today = datetime.date.today()
-    now_chile = datetime.datetime.now(ZoneInfo("America/Santiago"))
-    DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
-    fecha_str = f"{DIAS[now_chile.weekday()]} {now_chile.strftime('%d/%m/%Y')} {now_chile.strftime('%H:%M')} hrs (Chile)"
-    data = {}
-    errores = []
-    for f in files:
-        try:
-            r = process_file(f, today)
-            if r is None:
-                errores.append((f, "encabezados/columnas no reconocidas"))
-                continue
-            data[r["project"]] = r["tasks"]
-        except Exception as e:
-            errores.append((f, str(e)))
+    data_dir    = sys.argv[1]
+    output_path = sys.argv[2]
 
-    if not data:
-        print("No se pudo procesar ningun archivo.")
-        for f, e in errores:
-            print(f"  - {f}: {e}")
-        sys.exit(1)
+    print("=" * 60)
+    print("  GENERADOR CURVA S — PORTAFOLIO ZITRON")
+    print(f"  Leyendo Excel desde: {data_dir}")
+    print("=" * 60)
 
-    html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
-    html_out = html_out.replace("__FECHA__", fecha_str)
+    proyectos = process_all(data_dir)
+    generar_html(proyectos, output_path)
 
-    out_dir = os.path.dirname(output_file)
-    if out_dir:
-        os.makedirs(out_dir, exist_ok=True)
-    with open(output_file, "w", encoding="utf-8") as fh:
-        fh.write(html_out)
-
-    print(f"Proyectos procesados: {len(data)} / {len(files)}")
-    for f, e in errores:
-        print(f"  [ERROR] {os.path.basename(f)}: {e}")
-    print(f"KPI generado en: {output_file}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
