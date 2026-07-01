@@ -1,56 +1,30 @@
-name: Exportar Asana cada hora
+name: Generar Curva S
 on:
   schedule:
-    - cron: "0 13 * * 1-5"
-    - cron: "0 20 * * 1-5"
+    - cron: "*/30 11-20 * * 1-5"
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
-  exportar:
+  curva_s:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Instalar dependencias
-        run: |
-          pip install playwright openpyxl
-          playwright install chromium --with-deps
-      - name: Restaurar sesion de Asana
-        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
-      - name: Limpiar carpeta data (evitar archivos huerfanos)
-        run: rm -f data/*.xlsx data/*.csv
-      - name: Exportar proyectos
-        run: python scripts/asana_export.py
-      - name: Subir diagnostico (si hubo fallos)
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: debug
-          path: debug/
-          if-no-files-found: ignore
-      - name: Borrar sesion (no dejar rastro en el runner)
-        if: always()
-        run: rm -f auth.json
-      - name: Generar KPI.HTML
-        run: python scripts/generar_kpi.py data KPI.HTML
+        run: pip install openpyxl
       - name: Generar Curva S
-        run: python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
+        run: python scripts/generar_curvaS.py data curva-s-buscador.html curva-s-buscador.html
       - name: Commit y push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ KPI.HTML CURVAS.HTML
+          git add curva-s-buscador.html
           git diff --staged --quiet && echo "Sin cambios" && exit 0
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git fetch origin main
-          git reset --soft origin/main
-          git add data/ KPI.HTML CURVAS.HTML
-          git diff --staged --quiet && echo "Sin cambios tras fetch" && exit 0
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "Curva S actualizada $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
