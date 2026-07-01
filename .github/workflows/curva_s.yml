@@ -19,12 +19,12 @@ jobs:
       - name: Instalar dependencias
         run: pip install openpyxl
       - name: Generar Curva S
-        run: python scripts/generar_curvas.py data curva-s-buscador.html curva-s-buscador.html
+        run: python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
       - name: Commit y push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add curva-s-buscador.html
+          git add CURVAS.HTML
           git diff --staged --quiet && echo "Sin cambios" && exit 0
           git commit -m "Curva S actualizada $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
