@@ -596,9 +596,9 @@ def inyectar_html(template_path, output_path, proyectos):
 
     # Timestamp para forzar commit de git
     ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    html = re.sub(r'<!-- updated:.*?-->', f'<!-- updated: {ahora} -->', html)
-    if f'<!-- updated: {ahora} -->' not in html:
-        html = html.replace('</head>', f'\n<!-- updated: {ahora} -->\n</head>', 1)
+    html = re.sub(r'<!-- updated: 2026-07-01 15:04:17 -->', f'<!-- updated: 2026-07-01 15:04:17 -->', html)
+    if f'<!-- updated: 2026-07-01 15:04:17 -->' not in html:
+        html = html.replace('</head>', f'\n<!-- updated: 2026-07-01 15:04:17 -->\n</head>', 1)
     print(f"[OK] Timestamp: {ahora}")
 
     with open(output_path, 'w', encoding='utf-8') as f:
