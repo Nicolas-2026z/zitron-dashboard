@@ -1,53 +1,34 @@
-name: Exportar Asana cada hora
+name: Actualizar KPI
+
 on:
   schedule:
-    - cron: "*/30 11-20 * * 1-5"  # cada 30 min entre 07:00-16:00 Chile (UTC-4), lunes a viernes
+    - cron: '0 13 * * 1-5'
+    - cron: '0 20 * * 1-5'
   workflow_dispatch:
-permissions:
-  contents: write
+
 jobs:
-  exportar:
+  actualizar-kpi:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Instalar dependencias
-        run: |
-          pip install playwright openpyxl
-          playwright install chromium --with-deps
-      - name: Restaurar sesion de Asana
-        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
-      - name: Limpiar carpeta data (evitar archivos huerfanos)
-        run: rm -f data/*.xlsx data/*.csv
-      - name: Exportar proyectos
+        run: pip install openpyxl requests
+
+      - name: Exportar datos desde Asana
+        env:
+          ASANA_TOKEN: ${{ secrets.ASANA_TOKEN }}
         run: python scripts/asana_export.py
-      - name: Subir diagnostico (si hubo fallos)
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: debug
-          path: debug/
-          if-no-files-found: ignore
-      - name: Borrar sesion (no dejar rastro en el runner)
-        if: always()
-        run: rm -f auth.json
+
       - name: Generar KPI.HTML
-        run: python scripts/generar_kpi.py data docs/KPI.HTML
-      - name: Commit y push de los CSV actualizados
+        run: python scripts/generar_kpi.py data KPI.HTML KPI.HTML
+
+      - name: Commit y Push
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ docs/KPI.HTML
-          git diff --staged --quiet && echo "Sin cambios" && exit 0
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git fetch origin main
-          git reset --soft origin/main
-          git add data/ docs/KPI.HTML
-          git diff --staged --quiet && echo "Sin cambios tras fetch" && exit 0
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main
+          git add KPI.HTML
+          git diff --staged --quiet || git commit -m "KPI actualizado $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git push
