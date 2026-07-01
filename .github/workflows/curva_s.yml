@@ -1,51 +1,39 @@
-name: Actualizar Curva S y KPI
+name: Actualizar Curva S
 
 on:
   schedule:
-    # 09:00 Chile = 13:00 UTC  (horario invierno Chile = UTC-4)
-    - cron: '0 13 * * 1-5'
-    # 16:00 Chile = 20:00 UTC
-    - cron: '0 20 * * 1-5'
-  workflow_dispatch:   # permite ejecutar manualmente desde GitHub
+    # 09:05 Chile = 13:05 UTC  (5 min después del KPI para evitar conflictos)
+    - cron: '5 13 * * 1-5'
+    # 16:05 Chile = 20:05 UTC
+    - cron: '5 20 * * 1-5'
+  workflow_dispatch:
 
 jobs:
-  actualizar:
+  actualizar-curvas:
     runs-on: ubuntu-latest
 
     steps:
-
-      # 1. Clonar el repositorio
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Instalar Python y dependencias
-      - name: Instalar dependencias Python
+      - name: Instalar dependencias
         run: |
-          python -m pip install --upgrade pip
           pip install openpyxl requests
 
-      # 3. Exportar Excel desde Asana → carpeta data/
       - name: Exportar datos desde Asana
         env:
           ASANA_TOKEN: ${{ secrets.ASANA_TOKEN }}
         run: |
           python scripts/exportar_asana.py
 
-      # 4. Generar KPI.HTML
-      - name: Generar KPI
-        run: |
-          python scripts/generar_kpi.py data KPI.HTML KPI.HTML
-
-      # 5. Generar CURVAS.HTML  ← ESTE ES EL PASO CLAVE
-      - name: Generar Curva S
+      - name: Generar CURVAS.HTML
         run: |
           python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
 
-      # 6. Commit y push
       - name: Commit y Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add KPI.HTML CURVAS.HTML
-          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git add CURVAS.HTML
+          git diff --staged --quiet || git commit -m "Curva S actualizada $(date -u '+%Y-%m-%d %H:%M') UTC"
           git push
