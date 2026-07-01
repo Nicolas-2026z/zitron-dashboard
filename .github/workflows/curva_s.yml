@@ -19,7 +19,7 @@ jobs:
       - name: Instalar dependencias
         run: pip install openpyxl
       - name: Generar Curva S
-        run: python scripts/generar_curvaS.py data curva-s-buscador.html curva-s-buscador.html
+        run: python scripts/generar_curvas.py data curva-s-buscador.html curva-s-buscador.html
       - name: Commit y push
         run: |
           git config user.name "github-actions[bot]"
