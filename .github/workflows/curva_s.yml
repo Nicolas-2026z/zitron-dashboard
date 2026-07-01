@@ -29,9 +29,9 @@ jobs:
 
       - name: Restaurar sesion de Asana (auth.json)
         env:
-          ASANA_AUTH: ${{ secrets.ASANA_AUTH }}
+          ASANA_AUTH_PORTAFOLIO: ${{ secrets.ASANA_AUTH_PORTAFOLIO }}
         run: |
-          echo "$ASANA_AUTH" > auth.json
+          echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
           echo "Tamaño auth.json: $(wc -c < auth.json) bytes"
 
       - name: Exportar datos desde Asana
