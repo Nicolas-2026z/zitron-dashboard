@@ -166,24 +166,10 @@ def leer_excel(path):
         if not ini:
             continue
 
-        # Si la tarea está 100% completada pero tiene fecha futura,
-        # moverla a hoy para que el EV se contabilice en la semana actual
-        fin_efectivo = fin if fin else ini
-        if av >= 1.0 and fin_efectivo:
-            from datetime import date as date_cls
-            hoy_str = date_cls.today().strftime('%Y-%m-%d')
-            if fin_efectivo > hoy_str:
-                fin_efectivo = hoy_str
-                ini_efectivo = min(ini, hoy_str) if ini else hoy_str
-            else:
-                ini_efectivo = ini
-        else:
-            ini_efectivo = ini
-
         subtask = {
             'name': name,
-            'ini': ini_efectivo,
-            'fin': fin_efectivo,
+            'ini': ini,
+            'fin': fin if fin else ini,
             'av': round(min(max(av, 0.0), 1.0), 2),
         }
         if es_kickoff(name):
@@ -343,17 +329,12 @@ def actualizar_html(template_path, output_path, demo_data):
 
     # ── Actualizar TODAY ────────────────────────────────────────────────────
     hoy = datetime.today().strftime('%Y-%m-%d')
-    ahora = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     html = re.sub(
         r"const TODAY=new Date\('[^']+'\)",
         f"const TODAY=new Date('{hoy}')",
         html
     )
-    # Forzar cambio en el HTML para que git siempre haga commit
-    html = re.sub(r'<!-- updated:.*?-->', f'<!-- updated: {ahora} -->', html)
-    if f'<!-- updated: {ahora} -->' not in html:
-        html = html.replace('</head>', f'<!-- updated: {ahora} --></head>', 1)
-    print(f"[OK] TODAY actualizado a {hoy} ({ahora})")
+    print(f"[OK] TODAY actualizado a {hoy}")
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
