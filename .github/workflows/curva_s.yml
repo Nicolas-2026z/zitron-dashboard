@@ -2,9 +2,7 @@ name: Actualizar Curva S
 
 on:
   schedule:
-    # 09:05 Chile = 13:05 UTC  (5 min después del KPI para evitar conflictos)
     - cron: '5 13 * * 1-5'
-    # 16:05 Chile = 20:05 UTC
     - cron: '5 20 * * 1-5'
   workflow_dispatch:
 
@@ -17,18 +15,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Instalar dependencias
-        run: |
-          pip install openpyxl requests
+        run: pip install openpyxl requests
 
       - name: Exportar datos desde Asana
         env:
           ASANA_TOKEN: ${{ secrets.ASANA_TOKEN }}
-        run: |
-          python scripts/exportar_asana.py
+        run: python scripts/asana_export.py
 
       - name: Generar CURVAS.HTML
-        run: |
-          python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
+        run: python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
 
       - name: Commit y Push
         run: |
