@@ -1,30 +1,51 @@
-name: Generar Curva S
+name: Actualizar Curva S y KPI
+
 on:
   schedule:
-    - cron: "*/30 11-20 * * 1-5"
-  workflow_dispatch:
-permissions:
-  contents: write
+    # 09:00 Chile = 13:00 UTC  (horario invierno Chile = UTC-4)
+    - cron: '0 13 * * 1-5'
+    # 16:00 Chile = 20:00 UTC
+    - cron: '0 20 * * 1-5'
+  workflow_dispatch:   # permite ejecutar manualmente desde GitHub
+
 jobs:
-  curva_s:
+  actualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
-      - name: Checkout repo
+
+      # 1. Clonar el repositorio
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Instalar dependencias
-        run: pip install openpyxl
-      - name: Generar Curva S
-        run: python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
-      - name: Commit y push
+
+      # 2. Instalar Python y dependencias
+      - name: Instalar dependencias Python
         run: |
-          git config user.name "github-actions[bot]"
+          python -m pip install --upgrade pip
+          pip install openpyxl requests
+
+      # 3. Exportar Excel desde Asana → carpeta data/
+      - name: Exportar datos desde Asana
+        env:
+          ASANA_TOKEN: ${{ secrets.ASANA_TOKEN }}
+        run: |
+          python scripts/exportar_asana.py
+
+      # 4. Generar KPI.HTML
+      - name: Generar KPI
+        run: |
+          python scripts/generar_kpi.py data KPI.HTML KPI.HTML
+
+      # 5. Generar CURVAS.HTML  ← ESTE ES EL PASO CLAVE
+      - name: Generar Curva S
+        run: |
+          python scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
+
+      # 6. Commit y push
+      - name: Commit y Push
+        run: |
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CURVAS.HTML
-          git diff --staged --quiet && echo "Sin cambios" && exit 0
-          git commit -m "Curva S actualizada $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main
+          git add KPI.HTML CURVAS.HTML
+          git diff --staged --quiet || git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git push
