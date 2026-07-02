@@ -58,4 +58,4 @@ jobs:
           git add data/ docs/KPI.HTML
           git diff --staged --quiet && echo "Sin cambios" && exit 0
           git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main --force
+          git push origin main
