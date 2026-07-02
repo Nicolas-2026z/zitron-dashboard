@@ -1,7 +1,10 @@
 name: Exportar Asana cada hora
 on:
   schedule:
-    - cron: "*/30 11-20 * * 1-5"  # cada 30 min entre 07:00-16:00 Chile (UTC-4), lunes a viernes
+    - cron: "0 13 * * 1-4"   # Lunes a jueves 09:00 Chile (UTC-4)
+    - cron: "0 20 * * 1-4"   # Lunes a jueves 16:00 Chile (UTC-4)
+    - cron: "0 13 * * 5"     # Viernes 09:00 Chile (UTC-4)
+    - cron: "0 16 * * 5"     # Viernes 12:00 Chile (UTC-4)
   workflow_dispatch:
 permissions:
   contents: write
@@ -26,12 +29,8 @@ jobs:
       - name: Restaurar sesion de Asana
         run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
 
-      - name: Limpiar TODOS los xlsx de data (evitar duplicados)
-        run: |
-          git rm -f data/*.xlsx data/*.csv --ignore-unmatch
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --staged --quiet || git commit -m "Limpia archivos xlsx huerfanos"
+      - name: Limpiar carpeta data del disco (sin commit aun)
+        run: rm -f data/*.xlsx data/*.csv
 
       - name: Exportar proyectos
         run: python scripts/asana_export.py
@@ -51,7 +50,7 @@ jobs:
       - name: Generar KPI.HTML
         run: python scripts/generar_kpi.py data docs/KPI.HTML
 
-      - name: Commit y push
+      - name: Commit y push todo junto
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
