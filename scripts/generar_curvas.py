@@ -140,10 +140,19 @@ def dias_laborales(d1, d2):
     return n
 
 def lunes(d):
-    return d - timedelta(days=d.weekday())
+    # Pese al nombre (heredado), devuelve el domingo de la semana que contiene
+    # a d, siguiendo el esquema domingo-a-sábado acordado con la empresa
+    # (Semana 1 = domingo 28-dic-2025 al sábado 03-ene-2026, numeración
+    # equivalente calculada en el JS via isoWeek() sobre esta misma ancla).
+    return d - timedelta(days=(d.weekday() + 1) % 7)
 
 def iso_week(d):
     return d.isocalendar()[1]
+
+ANCLA_SEMANA_1 = date(2025, 12, 28)  # domingo — Semana 1 según esquema de la empresa
+
+def numero_semana_empresa(d):
+    return (d - ANCLA_SEMANA_1).days // 7 + 1
 
 
 # ── LEER EXCEL ────────────────────────────────────────────────────────────────
@@ -402,6 +411,7 @@ def calcular_curva(pedido, nombre_proy, kickoff_str, due_str, contractual_str,
             ev_acum += ev_sem[s]
         rows.append({
             'idx': idx + 1, 'ws': s.strftime('%Y-%m-%d'), 'we': we.strftime('%Y-%m-%d'),
+            'sem': numero_semana_empresa(s),
             'n': n_sem[s],
             'pv': round(pv_sem[s], 1), 'ev': round(ev_s, 1),
             'pvA': round(pv_acum, 1), 'evA': round(ev_acum, 1),
