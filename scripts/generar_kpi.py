@@ -292,6 +292,9 @@ TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Dashboard Desempeño de Equipos</title>
 <style>
   :root {
@@ -575,6 +578,20 @@ TEMPLATE = r"""<!DOCTYPE html>
 </div>
 
 <script>
+// Timestamp de generación — fuerza recarga si el archivo tiene más de 35 min
+const GENERATED_AT = "__TIMESTAMP__";
+(function() {
+  const gen = new Date(GENERATED_AT);
+  const now = new Date();
+  const diffMin = (now - gen) / 60000;
+  if (diffMin > 35) {
+    // Recarga forzada con parámetro único para romper caché
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', Date.now());
+    window.location.replace(url.toString());
+  }
+})();
+
 const CLAVE = "zitron2026!";
 function checkPass() {
   const val = document.getElementById('gatePass').value;
@@ -1246,6 +1263,7 @@ def main():
 
     html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
     html_out = html_out.replace("__FECHA__", fecha_str)
+    html_out = html_out.replace("__TIMESTAMP__", now_chile.strftime("%Y-%m-%dT%H:%M:%S"))
 
     out_dir = os.path.dirname(output_file)
     if out_dir:
