@@ -29,7 +29,7 @@ jobs:
       - name: Restaurar sesion de Asana
         run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
 
-      - name: Limpiar carpeta data del disco (sin commit aun)
+      - name: Limpiar carpeta data del disco
         run: rm -f data/*.xlsx data/*.csv
 
       - name: Exportar proyectos
@@ -43,18 +43,17 @@ jobs:
           path: debug/
           if-no-files-found: ignore
 
-      - name: Borrar sesion (no dejar rastro en el runner)
+      - name: Borrar sesion
         if: always()
         run: rm -f auth.json
 
       - name: Generar KPI.HTML
         run: python scripts/generar_kpi.py data docs/KPI.HTML
 
-      - name: Commit y push todo junto
+      - name: Commit y push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ docs/KPI.HTML
-          git diff --staged --quiet && echo "Sin cambios" && exit 0
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')" --allow-empty
           git push origin main
