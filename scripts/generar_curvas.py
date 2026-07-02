@@ -228,17 +228,23 @@ def leer_excel(path):
         ini = fmt(ini_raw)
         fin = fmt(fin_raw) if fin_raw else ini
 
+        completado_str = fmt(completado_raw) if completado_raw else ''
+
         try:
             av = float(av_raw) if av_raw is not None else 0.0
         except (ValueError, TypeError):
             av = 0.0
         av = round(min(max(av, 0.0), 1.0), 4)
 
+        # En Asana muchas subtareas se marcan como "completadas" (check nativo,
+        # columna "Completed At") sin que nadie llene el campo manual "% Avance
+        # Tarea". Si Asana registró una fecha de completado, la tarea es 100%.
+        if completado_str:
+            av = 1.0
+
         if not ini:
             continue
         fin = fin or ini
-
-        completado_str = fmt(completado_raw) if completado_raw else ''
 
         todas_ini.append(ini)
         todas_fin.append(fin)
