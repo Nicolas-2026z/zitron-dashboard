@@ -38,13 +38,13 @@ jobs:
         run: python3 scripts/asana_export.py
 
       - name: Generar CURVAS.HTML
-        run: python3 scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
+        run: python3 scripts/generar_curvas.py data docs/CURVAS.HTML docs/CURVAS.HTML
 
       - name: Commit y Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CURVAS.HTML data
+          git add docs/CURVAS.HTML data
           git diff --staged --quiet || git commit -m "Curva S actualizada $(date -u '+%Y-%m-%d %H:%M') UTC"
           git pull --rebase origin main
           git push
