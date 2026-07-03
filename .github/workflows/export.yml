@@ -48,12 +48,14 @@ jobs:
         run: rm -f auth.json
 
       - name: Generar KPI.HTML
-        run: python scripts/generar_kpi.py data KPI.HTML
+        run: |
+          rm -f KPI.HTML
+          python scripts/generar_kpi.py data KPI.HTML
 
       - name: Commit y push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ KPI.HTML
-          git commit -m "Actualizacion automatica de datos Asana y KPI $(date -u +'%Y-%m-%d %H:%M UTC')" --allow-empty
+          git add -f data/ KPI.HTML
+          git commit -m "KPI actualizado $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
