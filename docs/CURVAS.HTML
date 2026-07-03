@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curva S — Portafolio Zitron</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#0f172a;min-height:100vh}
+.topbar{background:#0f2240;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.brand{font-family:monospace;font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:1px}
+.meta{font-family:monospace;font-size:10px;color:rgba(255,255,255,0.4)}
+.body{padding:16px;max-width:1400px;margin:0 auto}
+.filtros{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fbtn{font-size:11px;padding:5px 14px;border-radius:20px;border:1px solid #cbd5e1;background:#fff;color:#475569;cursor:pointer;font-family:monospace;transition:all .15s}
+.fbtn:hover{background:#f1f5f9}
+.fbtn.act{background:#0f2240;color:#fff;border-color:#0f2240}
+.search{flex:1;min-width:200px;max-width:320px;border:1px solid #cbd5e1;border-radius:8px;padding:6px 12px;font-size:13px;background:#fff;outline:none}
+.search:focus{border-color:#0f2240}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#fff;border-radius:10px;padding:12px 14px;border-left:3px solid #0f2240}
+.stat .sl{font-size:10px;color:#64748b;font-family:monospace;margin-bottom:2px}
+.stat .sv{font-size:22px;font-weight:600;color:#0f2240}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:13px 15px;border-left:4px solid #cbd5e1;cursor:pointer;transition:all .15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);transform:translateY(-1px)}
+.card.Adelantado{border-left-color:#16a34a}
+.card.Atrasado{border-left-color:#d97706}
+.card.Vencido{border-left-color:#dc2626}
+.card.Terminado{border-left-color:#7c3aed}
+.pname{font-size:12px;font-weight:600;margin-bottom:6px;color:#0f172a;line-height:1.4}
+.pmeta{font-size:10px;color:#64748b;font-family:monospace;line-height:1.8}
+.pbar{height:5px;background:#f1f5f9;border-radius:3px;margin-top:9px;overflow:hidden}
+.pbarf{height:5px;border-radius:3px;transition:width .3s}
+.badge{display:inline-block;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;margin-top:7px;font-family:monospace;letter-spacing:.5px}
+.b-Adelantado{background:#dcfce7;color:#15803d}
+.b-Atrasado{background:#fef3c7;color:#b45309}
+.b-Vencido{background:#fee2e2;color:#b91c1c}
+.b-Terminado{background:#f3e8ff;color:#7c3aed}
+.login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2240 0%,#1e3a62 100%)}
+.lcard{background:#fff;border-radius:16px;padding:36px 32px;width:320px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+.logo{width:52px;height:52px;background:#0f2240;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:monospace;font-size:22px;font-weight:700;color:#fff}
+.lt{font-size:17px;font-weight:600;color:#0f2240;margin-bottom:4px}
+.ls{font-size:12px;color:#64748b;margin-bottom:24px}
+.linput{width:100%;border:1.5px solid #e2e8f0;border-radius:9px;padding:11px 14px;font-size:14px;text-align:center;letter-spacing:3px;outline:none;transition:border .15s;margin-bottom:12px}
+.linput:focus{border-color:#0f2240}
+.lbtn{width:100%;background:#0f2240;color:#fff;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.lbtn:hover{background:#1e3a62}
+.lerr{color:#dc2626;font-size:11px;margin-top:8px;min-height:16px}
+.empty{text-align:center;padding:40px;color:#94a3b8;font-size:13px;grid-column:1/-1}
+</style>
+</head>
+<body>
+
+<div id="loginWrap" class="login">
+  <div class="lcard">
+    <div class="logo">Z</div>
+    <div class="lt">Portafolio — Curva S</div>
+    <div class="ls">Zitron · Acceso privado</div>
+    <input class="linput" type="password" id="pwd" placeholder="Contraseña" />
+    <button class="lbtn" onclick="login()">Ingresar</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<div id="main" style="display:none">
+  <div class="topbar">
+    <div class="brand">// CURVA S · PORTAFOLIO ZITRON</div>
+    <div class="meta" id="ts"><!-- updated: 2026-07-03 17:27:22 --></div>
+  </div>
+  <div class="body">
+    <div class="stats">
+      <div class="stat"><div class="sl">PROYECTOS</div><div class="sv" id="s-total">0</div></div>
+      <div class="stat"><div class="sl">ADELANTADOS</div><div class="sv" style="color:#16a34a" id="s-adel">0</div></div>
+      <div class="stat"><div class="sl">ATRASADOS</div><div class="sv" style="color:#d97706" id="s-atra">0</div></div>
+      <div class="stat"><div class="sl">VENCIDOS</div><div class="sv" style="color:#dc2626" id="s-venc">0</div></div>
+      <div class="stat"><div class="sl">TERMINADOS</div><div class="sv" style="color:#7c3aed" id="s-term">0</div></div>
+    </div>
+    <div class="filtros">
+      <input class="search" type="text" id="q" placeholder="🔍  Buscar proyecto..." oninput="renderCards()">
+      <button class="fbtn act" onclick="setF('Todos',this)">Todos</button>
+      <button class="fbtn" onclick="setF('Adelantado',this)">✅ Adelantado</button>
+      <button class="fbtn" onclick="setF('Atrasado',this)">⚠️ Atrasado</button>
+      <button class="fbtn" onclick="setF('Vencido',this)">🔴 Vencido</button>
+      <button class="fbtn" onclick="setF('Terminado',this)">✓ Terminado</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<script>
+const PWD='zitron2026!';
+const DEMO={};
+const CATALOGO=[];
+
+let filtro='Todos';
+
+function login(){
+  if(document.getElementById('pwd').value===PWD){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('main').style.display='block';
+    init();
+  } else {
+    document.getElementById('lerr').textContent='Contraseña incorrecta';
+    document.getElementById('pwd').value='';
+  }
+}
+document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+
+function setF(f,btn){
+  filtro=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  renderCards();
+}
+
+function calcProj(cat){
+  const fases=DEMO[cat.gid]?DEMO[cat.gid].fases:[];
+  let totalPV=0,totalEV=0;
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+
+  const DEMO={
+  '1213193352022841':{fases:[{fase:"Kick off meeting",subtasks:[{name:"Definicion Jefe de proyecto",ini:'2025-12-15',fin:'2025-12-15',av:1.0,kickoff:true},{name:"Apertura pedido",ini:'2025-12-15',fin:'2025-12-15',av:1.0,kickoff:true},{name:"Alcance del proyecto",ini:'2025-12-15',fin:'2025-12-15',av:1.0,kickoff:true},{name:"Definicion Tecnica de componentes principales",ini:'2025-12-15',fin:'2025-12-15',av:1.0,kickoff:true},{name:"Plazo Contractual",ini:'2025-12-15',fin:'2025-12-15',av:1.0,kickoff:true}]},
+    {fase:"Ingenieria de servicio",subtasks:[{name:"Ingenieria electrica",ini:'2025-12-16',fin:'2025-12-18',av:1.0},{name:"Revision tableros pruebas",ini:'2026-04-20',fin:'2026-04-24',av:0.0}]},
+    {fase:"Ingenieria Jefe de proyecto",subtasks:[{name:"Ingenieria Basica Motor",ini:'2025-12-16',fin:'2025-12-17',av:1.0},{name:"Ingenieria basica Rodete",ini:'2025-12-16',fin:'2025-12-24',av:1.0},{name:"Ingenieria Detalle",ini:'2025-12-16',fin:'2025-12-24',av:1.0},{name:"Analisis de costeo",ini:'2025-12-16',fin:'2025-12-24',av:1.0}]},
+    {fase:"Propuesta compras",subtasks:[{name:"propuesta motor",ini:'2025-12-18',fin:'2025-12-19',av:1.0},{name:"propuesta alabes",ini:'2025-12-26',fin:'2026-01-07',av:1.0},{name:"propuesta tableros",ini:'2025-12-19',fin:'2025-12-29',av:1.0},{name:"propuesta nucleo rodete",ini:'2025-12-26',fin:'2026-01-07',av:1.0},{name:"Propuesta sensores y accesorios",ini:'2025-12-26',fin:'2026-01-07',av:1.0},{name:"propuesta compras a codigo // aprovisionamiento",ini:'2025-12-26',fin:'2026-01-07',av:1.0}]},
+    {fase:"Compras",subtasks:[{name:"Alabe",ini:'2026-01-08',fin:'2026-05-04',av:1.0},{name:"Generación OC Alabe",ini:'2026-01-08',fin:'2026-01-08',av:0.0},{name:"Fabricación Alabe",ini:'2026-01-12',fin:'2026-01-12',av:0.0},{name:"Tablero",ini:'2025-12-30',fin:'2026-04-15',av:1.0},{name:"Generación OC Tableros",ini:'2025-12-30',fin:'2025-12-30',av:0.0},{name:"Fabricación Tablero",ini:'2026-01-08',fin:'2026-01-08',av:0.0},{name:"rodete",ini:'2026-01-08',fin:'2026-02-27',av:1.0},{name:"Generación OC Rodete",ini:'2026-01-08',fin:'2026-01-08',av:0.0},{name:"Fabricación Rodete",ini:'2026-01-12',fin:'2026-01-12',av:0.0},{name:"Motor OT 4196",ini:'2025-12-22',fin:'2026-05-19',av:1.0},{name:"Generación OC motor OT 4196",ini:'2025-12-22',fin:'2025-12-22',av:0.0},{name:"Fabricación motor OT 4196",ini:'2026-01-14',fin:'2026-01-14',av:0.0},{name:"Planos motor proveedor OT 4196",ini:'2026-01-14',fin:'2026-01-14',av:0.0},{name:"Materiales a codigo // compras locales aprovisionamientomiento",ini:'2026-01-08',fin:'2026-02-25',av:1.0},{name:"Generación OC materiales",ini:'2026-01-08',fin:'2026-01-08',av:0.0},{name:"Fabricacion a codigo y compras locales",ini:'2026-01-28',fin:'2026-01-28',av:0.0},{name:"Sensores y accesorios",ini:'2026-01-08',fin:'2026-04-28',av:1.0},{name:"Generación OC Sensores y accesorios",ini:'2026-01-08',fin:'2026-01-08',av:0.0},{name:"Fabricacion Sensores y accesorios",ini:'2026-02-06',fin:'2026-02-06',av:0.0}]},
+    {fase:"Ingenieria y diseño",subtasks:[{name:"Planos Preliminar",ini:'2025-12-26',fin:'2026-01-05',av:1.0},{name:"Planos Definitivos",ini:'2026-02-23',fin:'2026-02-27',av:1.0},{name:"Check Planos",ini:'2026-03-02',fin:'2026-03-02',av:1.0},{name:"Check pruebas FAT",ini:'2026-05-27',fin:'2026-05-27',av:0.0}]},
+    {fase:"Bodega",subtasks:[{name:"Recepcion materiales a codigos // compras locales aprovisionamiento",ini:'2026-02-26',fin:'2026-02-27',av:1.0},{name:"Control de calidad compras materiales a codigo // compras locale aprovisionamiento",ini:'2026-03-02',fin:'2026-03-03',av:1.0},{name:"Recepcion Alabe",ini:'2026-05-05',fin:'2026-05-06',av:0.0},{name:"Recepcion Rodete",ini:'2026-03-02',fin:'2026-02-03',av:0.0},{name:"Recepcion Motor",ini:'2026-05-20',fin:'2026-05-21',av:0.0},{name:"Recepcion Tableros",ini:'2026-04-16',fin:'2026-04-17',av:0.0},{name:"Recepcion sensores y accesorios",ini:'2026-04-29',fin:'2026-04-30',av:1.0}]},
+    {fase:"Fabricación externa",subtasks:[{name:"Generación OC FABRICACIÓN EXTERNA",ini:'2026-03-04',fin:'2026-03-12',av:1.0},{name:"Armado FABRICACIÓN EXTERNA",ini:'2026-03-13',fin:'2026-04-10',av:1.0},{name:"Control de calidad Armado",ini:'2026-04-13',fin:'2026-04-14',av:1.0}]},
+    {fase:"Montaje",subtasks:[{name:"Revestimiento",ini:'2026-04-15',fin:'2026-05-05',av:0.0},{name:"Montaje motor",ini:'2026-05-22',fin:'2026-05-25',av:0.0},{name:"Montaje Alabe",ini:'2026-05-07',fin:'2026-05-08',av:0.0},{name:"Montaje Rodete",ini:'2026-05-11',fin:'2026-05-12',av:0.0},{name:"Montaje sensores y accesorios",ini:'2026-05-04',fin:'2026-05-05',av:0.0}]},
+    {fase:"Logistica",subtasks:[{name:"Embalaje",ini:'2026-06-01',fin:'2026-06-03',av:0.0}]},
+    {fase:"Cierre proyecto",subtasks:[{name:"Costos",ini:'2026-06-08',fin:'2026-06-16',av:0.0},{name:"Gestion",ini:'2026-06-08',fin:'2026-06-16',av:0.0}]},
+    {fase:"Puesta en Marcha Servicios",subtasks:[{name:"instalación Componentes",ini:'2026-06-08',fin:'2026-06-16',av:0.0},{name:"Pruebas de instalación Componentes",ini:'2026-06-17',fin:'2026-06-25',av:0.0}]}]},
+  '1215504785832997':{fases:[{fase:"Ingenieria Servicios",subtasks:[{name:"Ingenieria Electrica",ini:'2026-05-20',fin:'2026-05-25',av:1.0},{name:"Revision Tableros",ini:'2026-07-27',fin:'2026-08-04',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-07-27',fin:'2026-07-27',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-07-27',fin:'2026-07-27',av:0.0}]},
+    {fase:"Ingenieria Jefe de proyecto",subtasks:[{name:"Ingenieria Basica Motor",ini:'2026-05-20',fin:'2026-05-22',av:1.0},{name:"Ingenieria basica Rodete",ini:'2026-05-20',fin:'2026-05-29',av:1.0},{name:"Ingenieria Detalle",ini:'2026-05-20',fin:'2026-05-29',av:1.0}]},
+    {fase:"Propuesta compras",subtasks:[{name:"propuesta motor  ot 4347",ini:'2026-05-25',fin:'2026-05-26',av:1.0},{name:"propuesta alabes  ot 4347",ini:'2026-06-01',fin:'2026-06-02',av:1.0},{name:"propuesta nucleo rodete  ot 4347",ini:'2026-06-01',fin:'2026-06-02',av:1.0},{name:"propuesta Corte Laser ot 4347",ini:'2026-07-03',fin:'2026-07-03',av:1.0},{name:"Propuesta Corte plasma  ot 4347",ini:'2026-07-03',fin:'2026-07-03',av:1.0},{name:"Propuesta Mecanizado ot 4347",ini:'2026-08-14',fin:'2026-08-17',av:0.0},{name:"Propuesta Fabricación externa ot 4347",ini:'2026-07-03',fin:'2026-07-03',av:1.0},{name:"Propuesta Tableros",ini:'2026-05-26',fin:'2026-05-27',av:1.0}]},
+    {fase:"Reserva material",subtasks:[{name:"Reserva motor ot 4347",ini:'2026-05-27',fin:'2026-06-02',av:1.0},{name:"Reserva alabe ot 4347",ini:'2026-06-03',fin:'2026-06-09',av:1.0},{name:"Reserva rodete ot 4347",ini:'2026-06-03',fin:'2026-06-09',av:1.0}]},
+    {fase:"Compras",subtasks:[{name:"Tableros ot 4348",ini:'2026-05-28',fin:'2026-07-22',av:0.0},{name:"Generación OC   ot 4343",ini:'2026-05-28',fin:'2026-05-28',av:0.0},{name:"fabricación tableros   ot 4343",ini:'2026-06-04',fin:'2026-06-04',av:0.0},{name:"Materiales corte Laser ot 4347",ini:'2026-08-18',fin:'2026-08-28',av:0.0},{name:"Generación OC materiales corte Laser ot 4342 -4344",ini:'2026-08-18',fin:'2026-08-18',av:0.0},{name:"Fabricacion Corte Laser ot 4342 -4344",ini:'2026-08-20',fin:'2026-08-20',av:0.0},{name:"Materiales Corte Plasma  ot 4347",ini:'2026-08-18',fin:'2026-08-28',av:0.0},{name:"Generación OC Corte Plasma  ot 4342 -4344",ini:'2026-08-18',fin:'2026-08-18',av:0.0},{name:"Fabricación Corte Plasma  ot 4342 -4344",ini:'2026-08-20',fin:'2026-08-20',av:0.0},{name:"Fabricación Externa  ot 4347",ini:'2026-08-18',fin:'2026-09-25',av:0.0},{name:"Generacion OC Fabricación Externa ot 4342 -4344",ini:'2026-08-18',fin:'2026-08-18',av:0.0},{name:"Fabricación estructura proveedor externo ot 4342 -4344",ini:'2026-08-27',fin:'2026-08-27',av:0.0},{name:"Control de calidad fabricación externa  ot 4342 -4344",ini:'2026-09-25',fin:'2026-09-25',av:0.0},{name:"Mecanizado  ot 4347",ini:'2026-08-18',fin:'2026-08-28',av:0.0},{name:"Generación OC Mecanizado ot 4342 -4344",ini:'2026-08-18',fin:'2026-08-18',av:0.0},{name:"Fabricación Mecanizado ot 4342 -4344",ini:'2026-08-20',fin:'2026-08-20',av:0.0}]},
+    {fase:"Ingenieria y diseñoo",subtasks:[{name:"Planos preliminar",ini:'2026-06-01',fin:'2026-06-18',av:1.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-06-01',fin:'2026-06-01',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-06-01',fin:'2026-06-01',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-06-01',fin:'2026-06-01',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-06-01',fin:'2026-06-01',av:0.0},{name:"Planos definitivos",ini:'2026-07-03',fin:'2026-07-03',av:1.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-07-24',fin:'2026-07-24',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-07-24',fin:'2026-07-24',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-07-24',fin:'2026-07-24',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-07-24',fin:'2026-07-24',av:0.0},{name:"check planos",ini:'2026-07-03',fin:'2026-07-03',av:1.0},{name:"check pruebas FAT",ini:'2026-10-27',fin:'2026-10-27',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-27',fin:'2026-10-27',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPO",ini:'2026-10-27',fin:'2026-10-27',av:0.0}]},
+    {fase:"Bodega",subtasks:[{name:"Recepcion materiales corte laser",ini:'2026-08-18',fin:'2026-08-19',av:0.0},{name:"control de calidad corte laser",ini:'2026-08-20',fin:'2026-08-21',av:0.0},{name:"Recepcion Materiales corte plasma",ini:'2026-08-18',fin:'2026-08-19',av:0.0},{name:"Control de calidad Corte plasma",ini:'2026-08-20',fin:'2026-08-21',av:0.0},{name:"Recepcion mecanizado",ini:'2026-08-18',fin:'2026-08-19',av:0.0},{name:"Control de calidad Mecanizado",ini:'2026-08-20',fin:'2026-08-21',av:0.0},{name:"Recepcion Rodete",ini:'2026-06-09',fin:'2026-06-10',av:0.0},{name:"Recepcion Alabe",ini:'2026-09-25',fin:'2026-09-28',av:0.0},{name:"Recepcion motor",ini:'2026-07-23',fin:'2026-07-24',av:0.0},{name:"Recepcion fabricación externa",ini:'2026-09-28',fin:'2026-09-29',av:0.0},{name:"Recepcion Tableros",ini:'2026-07-23',fin:'2026-07-24',av:0.0}]},
+    {fase:"Caldereria",subtasks:[{name:"Preparación Materiales",ini:'2026-08-24',fin:'2026-09-01',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-08-24',fin:'2026-08-24',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-08-24',fin:'2026-08-24',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-08-24',fin:'2026-08-24',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-08-24',fin:'2026-08-24',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-08-24',fin:'2026-08-24',av:0.0},{name:"Armado",ini:'2026-09-02',fin:'2026-09-23',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-02',fin:'2026-09-02',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-02',fin:'2026-09-02',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-09-02',fin:'2026-09-02',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-09-02',fin:'2026-09-02',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-09-02',fin:'2026-09-02',av:0.0},{name:"Control de calidad Armado",ini:'2026-09-24',fin:'2026-09-24',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-24',fin:'2026-09-24',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-24',fin:'2026-09-24',av:0.0},{name:"OT1 4349- CODO 90° Ø1600MM",ini:'2026-09-24',fin:'2026-09-24',av:0.0},{name:"OT2 4350 - CODO 135° Ø1600MM",ini:'2026-09-24',fin:'2026-09-24',av:0.0},{name:"OT3 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-09-24',fin:'2026-09-24',av:0.0}]},
+    {fase:"Montaje",subtasks:[{name:"Revestimiento",ini:'2026-09-25',fin:'2026-10-15',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-25',fin:'2026-09-25',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-09-25',fin:'2026-09-25',av:0.0},{name:"Montaje Alabe",ini:'2026-10-16',fin:'2026-10-19',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-16',fin:'2026-10-16',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-16',fin:'2026-10-16',av:0.0},{name:"Montaje Rodete",ini:'2026-10-20',fin:'2026-10-21',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-20',fin:'2026-10-20',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-20',fin:'2026-10-20',av:0.0},{name:"Montaje motor",ini:'2026-10-22',fin:'2026-10-23',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-22',fin:'2026-10-22',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-22',fin:'2026-10-22',av:0.0},{name:"Pruebas FAT",ini:'2026-10-26',fin:'2026-10-26',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-26',fin:'2026-10-26',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-26',fin:'2026-10-26',av:0.0},{name:"RE-PINTADO",ini:'2026-10-28',fin:'2026-10-28',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-28',fin:'2026-10-28',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-28',fin:'2026-10-28',av:0.0}]},
+    {fase:"Logistica",subtasks:[{name:"Coordinacion Entrega con Cliente",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"Ot 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-10-29',fin:'2026-10-29',av:0.0},{name:"Embalaje",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-10-30',fin:'2026-10-30',av:0.0},{name:"PACKING LIST",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-11-02',fin:'2026-11-02',av:0.0},{name:"Despacho",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4347- ZVN 1-14-75/4 + TIPOC + 2FAR140/200 + TIPOB",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4348 - VDF 75KW / IP54",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4349- CODO 90° Ø1600MM",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4350 - CODO 135° Ø1600MM",ini:'2026-11-03',fin:'2026-11-03',av:0.0},{name:"OT 4351 - DUCTO Ø1600MM L:1800MM",ini:'2026-11-03',fin:'2026-11-03',av:0.0}]},
+    {fase:"Cierre proyecto",subtasks:[{name:"Gestion",ini:'2026-11-04',fin:'2026-11-11',av:0.0},{name:"Costos",ini:'2026-11-04',fin:'2026-11-11',av:0.0}]},
+    {fase:"Puesta En Marcha",subtasks:[{name:"Instalación componentes",ini:'2026-11-04',fin:'2026-11-12',av:0.0},{name:"Pruebas de Instalacion Componentes",ini:'2026-11-13',fin:'2026-11-23',av:0.0}]}]}
+};
+
+const CATALOGO=[
+  {gid:'1213193352022841',name:"50001497 - XEMORTIZ IMMSA STA. BBR",due:'',kickoff:'2025-12-15',finReal:'2026-06-25'},
+  {gid:'1215504785832997',name:"50001559 - FERROVIAL",due:'2026-11-03',kickoff:'2026-05-20',finReal:'2026-11-23'}
+];
+
+function diasLab(d1,d2){
+    let n=0,c=new Date(d1);
+    while(c<=d2){if(c.getDay()>0&&c.getDay()<6)n++;c.setDate(c.getDate()+1);}
+    return n;
+  }
+
+  fases.forEach(f=>{
+    const esKO=f.fase.toLowerCase().includes('kick');
+    f.subtasks.forEach(t=>{
+      const ini=new Date(t.ini),fin=new Date(t.fin);
+      const h=esKO?8/Math.max(f.subtasks.length,1):diasLab(ini,fin)*8.4;
+      totalPV+=h;
+      const finEv=fin<=hoy?fin:hoy;
+      if(ini<=hoy){
+        const hEv=esKO?h:diasLab(ini,finEv<ini?ini:finEv)*8.4;
+        totalEV+=Math.min(hEv,h)*t.av;
+      }
+    });
+  });
+
+  if(totalPV===0)return null;
+  const pctEV=Math.min(totalPV>0?totalEV/totalPV*100:0,100);
+  const ko=new Date(cat.kickoff);
+  const hoyMs=hoy.getTime();
+  const semAt=Math.max(Math.floor((hoyMs-ko.getTime())/(7*86400000)),0);
+  const pctPV=totalPV>0?Math.min(semAt/26*100,100):0;
+  const spit=pctPV>0?pctEV/pctPV:0;
+  const svt=pctEV-pctPV;
+  let estado='Atrasado';
+  const due=cat.due?new Date(cat.due):null;
+  if(pctEV>=100)estado='Terminado';
+  else if(svt>2)estado='Adelantado';
+  else if(due&&hoy>due&&pctEV<100)estado='Vencido';
+  else if(svt<-2)estado='Atrasado';
+  else estado='Adelantado';
+
+  return {ev:Math.round(pctEV*10)/10,spit:Math.round(spit*100)/100,sv:Math.round(svt*10)/10,estado};
+}
+
+function init(){
+  const ts=document.getElementById('ts');
+  const m=document.querySelector('meta[name="updated"]');
+
+  // Stats
+  const results=CATALOGO.map(c=>({...c,...(calcProj(c)||{ev:0,spit:0,sv:0,estado:'Atrasado'})}));
+  document.getElementById('s-total').textContent=results.length;
+  document.getElementById('s-adel').textContent=results.filter(r=>r.estado==='Adelantado').length;
+  document.getElementById('s-atra').textContent=results.filter(r=>r.estado==='Atrasado').length;
+  document.getElementById('s-venc').textContent=results.filter(r=>r.estado==='Vencido').length;
+  document.getElementById('s-term').textContent=results.filter(r=>r.estado==='Terminado').length;
+
+  window._results=results;
+  renderCards();
+}
+
+function renderCards(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const grid=document.getElementById('grid');
+  const data=window._results||[];
+  const pc=ev=>ev>=80?'#16a34a':ev>=50?'#d97706':'#dc2626';
+
+  const filtered=data.filter(p=>{
+    const mQ=!q||p.name.toLowerCase().includes(q);
+    const mF=filtro==='Todos'||p.estado===filtro;
+    return mQ&&mF;
+  });
+
+  if(!filtered.length){
+    grid.innerHTML='<div class="empty">No se encontraron proyectos</div>';
+    return;
+  }
+
+  grid.innerHTML=filtered.map(p=>`
+    <div class="card ${p.estado}">
+      <div class="pname">${p.name}</div>
+      <div class="pmeta">
+        📅 KO: ${p.kickoff||'—'} &nbsp;·&nbsp; 🚚 EXW: ${p.due||'—'}<br>
+        📊 EV: ${p.ev}% &nbsp;·&nbsp; SPI: ${p.spit.toFixed(2)} &nbsp;·&nbsp; SV: ${p.sv>0?'+':''}${p.sv.toFixed(1)}%
+      </div>
+      <div class="pbar"><div class="pbarf" style="width:${p.ev}%;background:${pc(p.ev)}"></div></div>
+      <span class="badge b-${p.estado}">${p.estado}</span>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
