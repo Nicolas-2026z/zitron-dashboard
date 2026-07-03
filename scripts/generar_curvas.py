@@ -2,13 +2,10 @@
 """
 generar_curvas.py — Portafolio Zitron · Curva S
 =================================================
-Lee todos los .xlsx de la carpeta data/ y actualiza en CURVAS.HTML
-los TRES bloques que el JS necesita:
+Lee todos los .xlsx de la carpeta data/ y actualiza
+en CURVAS.HTML los dos bloques que el JS necesita:
 
-  const DATA     = [ {nombre, kickoff, contractual, exw, fin_real, eac_date,
-                       total_pv, pct_ev, pct_pv, at_weeks, es_weeks, es_iso,
-                       spit, svt, prob, estado, despachado, rows, tareas} ]
-  const DEMO     = { gid: { fases:[{fase, subtasks:[...]}] } }
+  const DEMO = { gid: { fases:[{fase, subtasks:[...]}] } }
   const CATALOGO = [ {gid, name, due, kickoff, finReal} ]
 
 Uso:
@@ -18,12 +15,6 @@ Uso:
 import os, sys, re, json
 from datetime import datetime, date, timedelta
 from openpyxl import load_workbook
-
-try:
-    from zoneinfo import ZoneInfo
-    TZ_CHILE = ZoneInfo('America/Santiago')
-except Exception:
-    TZ_CHILE = None
 
 # ── CATÁLOGO GID ─────────────────────────────────────────────────────────────
 CATALOGO_MAP = {
@@ -81,22 +72,10 @@ KICKOFF_KW = {
     'plazo contractual', 'definición jefe', 'definicion jefe',
 }
 
-# Palabras clave para detectar fecha EXW/despacho (= "due" en CATALOGO / "exw" en DATA)
+# Palabras clave para detectar fecha EXW/despacho (= "due" en CATALOGO)
 DUE_KW = {'despacho', 'exw', 'coordinacion entrega', 'coordinación entrega'}
-CONTRACTUAL_KW = {'plazo contractual'}
-
-# Posibles nombres de columna de fecha de completado en el export de Asana
-COMPLETADO_COLS = [
-    'Completed At', 'Completed On', 'Fecha de Completado',
-    'Fecha completado', 'Completado', 'Fecha Completado',
-]
 
 HOY = date.today()
-HOY_STR = HOY.strftime('%Y-%m-%d')
-
-HORAS_DIA = 8.4       # horas laborales por día
-HORAS_KICKOFF = 8.0   # horas totales del hito kickoff (repartidas entre sus tareas)
-DIAS_LAB = {0, 1, 2, 3, 4}  # lunes–viernes
 
 
 # ── UTILIDADES ────────────────────────────────────────────────────────────────
@@ -108,10 +87,6 @@ def es_kickoff(nombre):
 def es_due(nombre):
     n = nombre.lower()
     return any(kw in n for kw in DUE_KW)
-
-def es_contractual(nombre):
-    n = nombre.lower()
-    return any(kw in n for kw in CONTRACTUAL_KW)
 
 def fmt(d):
     if isinstance(d, (datetime, date)):
@@ -128,42 +103,13 @@ def parse(s):
     except Exception:
         return None
 
-def dias_laborales(d1, d2):
-    if d1 > d2:
-        return 0
-    n = 0
-    cur = d1
-    while cur <= d2:
-        if cur.weekday() in DIAS_LAB:
-            n += 1
-        cur += timedelta(days=1)
-    return n
-
-def lunes(d):
-    # Pese al nombre (heredado), devuelve el domingo de la semana que contiene
-    # a d, siguiendo el esquema domingo-a-sábado acordado con la empresa
-    # (Semana 1 = domingo 28-dic-2025 al sábado 03-ene-2026, numeración
-    # equivalente calculada en el JS via isoWeek() sobre esta misma ancla).
-    return d - timedelta(days=(d.weekday() + 1) % 7)
-
-def iso_week(d):
-    return d.isocalendar()[1]
-
-ANCLA_SEMANA_1 = date(2025, 12, 28)  # domingo — Semana 1 según esquema de la empresa
-
-def numero_semana_empresa(d):
-    return (d - ANCLA_SEMANA_1).days // 7 + 1
-
 
 # ── LEER EXCEL ────────────────────────────────────────────────────────────────
 
 def leer_excel(path):
     """
-    Retorna (nombre_proyecto, kickoff_str, due_str, contractual_str, finReal_str,
-             fases_js, tareas_flat)
-
-    fases_js    = [ {fase:str, subtasks:[{name,ini,fin,av,kickoff?}]} ]   (para DEMO)
-    tareas_flat = [ {name, section, ini, fin, av, kickoff, completado} ]  (para DATA)
+    Retorna (nombre_proyecto, kickoff_str, due_str, finReal_str, fases_js)
+    fases_js = [ {fase:str, subtasks:[{name,ini,fin,av,kickoff?}]} ]
     """
     wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active
@@ -193,19 +139,11 @@ def leer_excel(path):
                  col('% Avance proyecto', None) or
                  col('Avance', None) or 18)
 
-    ci_completado = None
-    for cand in COMPLETADO_COLS:
-        if cand in headers:
-            ci_completado = headers[cand]
-            break
-
-    fases       = {}      # nombre_fase → [subtask, ...]
-    fase_ord    = []      # orden de aparición
-    tareas_flat = []
-    todas_ini   = []
-    todas_fin   = []
-    due_str        = ''
-    contractual_str = ''
+    fases     = {}      # nombre_fase → [subtask, ...]
+    fase_ord  = []      # orden de aparición
+    todas_ini = []
+    todas_fin = []
+    due_str   = ''
 
     for row in ws.iter_rows(min_row=4, values_only=True):
         name   = str(row[ci_name]   or '').strip()
@@ -216,7 +154,6 @@ def leer_excel(path):
         ini_raw = row[ci_ini]
         fin_raw = row[ci_fin]
         av_raw  = row[ci_av]
-        completado_raw = row[ci_completado] if ci_completado is not None else None
 
         # Sin parent → sección
         if not parent:
@@ -229,6 +166,7 @@ def leer_excel(path):
         # Con parent → subtarea
         parent_clean = parent.rstrip(':').strip()
         if parent_clean not in fases:
+            # Sub-subtarea: asignar a la última sección
             if fase_ord:
                 parent_clean = fase_ord[-1]
             else:
@@ -237,72 +175,53 @@ def leer_excel(path):
         ini = fmt(ini_raw)
         fin = fmt(fin_raw) if fin_raw else ini
 
-        completado_str = fmt(completado_raw) if completado_raw else ''
-
         try:
             av = float(av_raw) if av_raw is not None else 0.0
         except (ValueError, TypeError):
             av = 0.0
         av = round(min(max(av, 0.0), 1.0), 4)
 
-        # En Asana muchas subtareas se marcan como "completadas" (check nativo,
-        # columna "Completed At") sin que nadie llene el campo manual "% Avance
-        # Tarea". Si Asana registró una fecha de completado, la tarea es 100%.
-        if completado_str:
-            av = 1.0
-
         if not ini:
             continue
         fin = fin or ini
 
+        # Recoger fechas para kickoff y finReal
         todas_ini.append(ini)
         todas_fin.append(fin)
 
+        # Detectar EXW/Despacho para "due"
         if es_due(name) and fin:
             if not due_str or fin > due_str:
                 due_str = fin
 
-        if es_contractual(name) and fin:
-            if not contractual_str or fin > contractual_str:
-                contractual_str = fin
-
         # Tareas 100% completadas con fecha futura → adelantar a hoy
-        # (para que su EV se refleje en la semana real de avance, no en la planificada)
+        hoy_str = HOY.strftime('%Y-%m-%d')
         ini_ef, fin_ef = ini, fin
-        if av >= 1.0 and fin > HOY_STR:
-            fin_ef = completado_str if completado_str and completado_str <= HOY_STR else HOY_STR
-            ini_ef = min(ini, fin_ef)
-
-        kickoff_flag = es_kickoff(name)
+        if av >= 1.0 and fin > hoy_str:
+            fin_ef = hoy_str
+            ini_ef = min(ini, hoy_str)
 
         subtask = {'name': name, 'ini': ini_ef, 'fin': fin_ef, 'av': av}
-        if kickoff_flag:
+        if es_kickoff(name):
             subtask['kickoff'] = True
-        fases[parent_clean].append(subtask)
 
-        tareas_flat.append({
-            'name': name,
-            'section': parent_clean,
-            'ini': ini_ef,
-            'fin': fin_ef,
-            'av': av,
-            'kickoff': kickoff_flag,
-            'completado': completado_str,
-        })
+        fases[parent_clean].append(subtask)
 
     wb.close()
 
+    # Construir fases_js (solo las que tienen subtareas)
     fases_js = [
         {'fase': f, 'subtasks': fases[f]}
         for f in fase_ord if fases.get(f)
     ]
 
+    # Fechas globales
     todas_ini_sorted = sorted([x for x in todas_ini if x])
     todas_fin_sorted = sorted([x for x in todas_fin if x])
     kickoff_str = todas_ini_sorted[0]  if todas_ini_sorted else ''
     finReal_str = todas_fin_sorted[-1] if todas_fin_sorted else ''
 
-    return nombre, kickoff_str, due_str, contractual_str, finReal_str, fases_js, tareas_flat
+    return nombre, kickoff_str, due_str, finReal_str, fases_js
 
 
 # ── EXTRAER PEDIDO + GID ──────────────────────────────────────────────────────
@@ -332,184 +251,6 @@ def extraer_pedido_gid(filename):
     return pedido, CATALOGO_MAP.get(pedido, '')
 
 
-# ── CALCULAR CURVA S (PV/EV/SPI/SV + filas semanales) ─────────────────────────
-
-def horas_tarea(t, n_kickoffs):
-    if t['kickoff']:
-        return HORAS_KICKOFF / max(n_kickoffs, 1)
-    ini_d, fin_d = parse(t['ini']), parse(t['fin'])
-    if not ini_d or not fin_d:
-        return 0.0
-    return dias_laborales(ini_d, fin_d) * HORAS_DIA
-
-
-def calcular_curva(pedido, nombre_proy, kickoff_str, due_str, contractual_str,
-                    finReal_str, tareas):
-    kickoff_date = parse(kickoff_str)
-    if not kickoff_date:
-        return None
-    fin_real_date = parse(finReal_str) or HOY
-
-    kickoffs = [t for t in tareas if t['kickoff']]
-    n_kickoffs = len(kickoffs) or 1
-
-    start_week = lunes(kickoff_date)
-    end_date   = max(fin_real_date, HOY)
-    end_week   = lunes(end_date)
-    if end_week < start_week:
-        end_week = start_week
-
-    semanas = []
-    cur = start_week
-    while cur <= end_week:
-        semanas.append(cur)
-        cur += timedelta(weeks=1)
-    if not semanas:
-        semanas = [start_week]
-
-    pv_sem = {s: 0.0 for s in semanas}
-    ev_sem = {s: 0.0 for s in semanas}
-    n_sem  = {s: 0   for s in semanas}
-
-    for t in tareas:
-        ini_d = parse(t['ini'])
-        if not ini_d:
-            continue
-        fin_d = parse(t['fin']) or ini_d
-        h_total = horas_tarea(t, n_kickoffs)
-        if h_total <= 0:
-            continue
-
-        semanas_tarea = [s for s in semanas if s <= fin_d and (s + timedelta(days=6)) >= ini_d]
-        if not semanas_tarea:
-            dists = [(abs((s - lunes(ini_d)).days), s) for s in semanas]
-            semanas_tarea = [min(dists)[1]]
-
-        dias_por_semana = []
-        for s in semanas_tarea:
-            w_ini, w_fin = s, s + timedelta(days=6)
-            d_ini, d_fin = max(ini_d, w_ini), min(fin_d, w_fin)
-            dias_por_semana.append(max(dias_laborales(d_ini, d_fin), 0))
-        total_dias = sum(dias_por_semana) or 1
-
-        for s, dias in zip(semanas_tarea, dias_por_semana):
-            frac = dias / total_dias
-            h_sem = h_total * frac
-            pv_sem[s] += h_sem
-            ev_sem[s] += h_sem * t['av']
-            n_sem[s]  += 1
-
-    total_pv = sum(pv_sem.values()) or 1.0
-
-    rows = []
-    pv_acum = ev_acum = 0.0
-    for idx, s in enumerate(semanas):
-        we = s + timedelta(days=6)
-        pv_acum += pv_sem[s]
-        ev_s = ev_sem[s] if s <= HOY else 0.0
-        if s <= HOY:
-            ev_acum += ev_sem[s]
-        rows.append({
-            'idx': idx + 1, 'ws': s.strftime('%Y-%m-%d'), 'we': we.strftime('%Y-%m-%d'),
-            'sem': numero_semana_empresa(s),
-            'n': n_sem[s],
-            'pv': round(pv_sem[s], 1), 'ev': round(ev_s, 1),
-            'pvA': round(pv_acum, 1), 'evA': round(ev_acum, 1),
-            'pctPV': round(pv_acum / total_pv * 100, 1),
-            'pctEV': round(ev_acum / total_pv * 100, 1),
-        })
-
-    rows_pasadas = [r for r in rows if parse(r['ws']) <= HOY]
-    if rows_pasadas:
-        pct_ev_final = rows_pasadas[-1]['pctEV']
-        pct_pv_final = rows_pasadas[-1]['pctPV']
-    else:
-        pct_ev_final = 0.0
-        pct_pv_final = rows[0]['pctPV'] if rows else 0.0
-
-    spit = round(pct_ev_final / pct_pv_final, 2) if pct_pv_final > 0 else 0.0
-    svt  = round(pct_ev_final - pct_pv_final, 1)
-    at_weeks = max(len(rows_pasadas) - 1, 0)
-
-    es_weeks = 0.0
-    if pct_ev_final > 0 and rows:
-        for i, r in enumerate(rows):
-            if r['pctPV'] >= pct_ev_final:
-                if i == 0:
-                    es_weeks = 0.0
-                else:
-                    prev = rows[i - 1]
-                    frac = ((pct_ev_final - prev['pctPV']) / (r['pctPV'] - prev['pctPV'])
-                            if r['pctPV'] != prev['pctPV'] else 1.0)
-                    es_weeks = (i - 1) + frac
-                break
-        else:
-            es_weeks = len(rows) - 1.0
-
-    if es_weeks > 0 and rows:
-        es_idx = min(int(es_weeks), len(rows) - 1)
-        es_date = parse(rows[es_idx]['ws'])
-        es_iso = round(iso_week(es_date) + (es_weeks - es_idx), 1) if es_date else es_weeks
-    else:
-        es_iso = round(iso_week(kickoff_date), 1) if kickoff_date else 0.0
-
-    if spit > 0 and pct_ev_final < 100:
-        semanas_restantes = (100 - pct_ev_final) / max(pct_ev_final / max(at_weeks, 1), 0.01)
-        eac_date = (HOY + timedelta(weeks=semanas_restantes)).strftime('%Y-%m-%d')
-    elif pct_ev_final >= 100:
-        eac_date = finReal_str or HOY_STR
-    else:
-        eac_date = None
-
-    contractual_date = parse(contractual_str)
-    if pct_ev_final >= 100:
-        estado = 'Terminado'
-    elif svt > 2:
-        estado = 'Adelantado'
-    elif contractual_date and HOY > contractual_date and pct_ev_final < 100:
-        estado = 'Vencido'
-    else:
-        estado = 'Atrasado' if svt < -2 else 'Adelantado'
-
-    if pct_ev_final >= 100:
-        prob = 100
-    elif spit >= 1.0:
-        prob = min(90, int(spit * 70))
-    elif spit >= 0.8:
-        prob = 35
-    elif spit >= 0.5:
-        prob = 15
-    else:
-        prob = 5
-
-    tareas_out = [{
-        'name': t['name'], 'section': t['section'], 'ini': t['ini'], 'fin': t['fin'],
-        'av': t['av'], 'kickoff': t['kickoff'], 'completado': t.get('completado', ''),
-    } for t in tareas]
-
-    return {
-        'nombre': f"{pedido} - {nombre_proy}" if pedido and pedido not in nombre_proy else (nombre_proy or pedido),
-        'kickoff': kickoff_str or None,
-        'contractual': contractual_str or None,
-        'exw': due_str or None,
-        'fin_real': finReal_str or None,
-        'eac_date': eac_date,
-        'total_pv': round(total_pv, 1),
-        'pct_ev': pct_ev_final,
-        'pct_pv': pct_pv_final,
-        'at_weeks': at_weeks,
-        'es_weeks': round(es_weeks, 2),
-        'es_iso': es_iso,
-        'spit': spit,
-        'svt': svt,
-        'prob': prob,
-        'estado': estado,
-        'despachado': False,
-        'rows': rows,
-        'tareas': tareas_out,
-    }
-
-
 # ── SERIALIZAR A JS ───────────────────────────────────────────────────────────
 
 def subtask_to_js(s):
@@ -532,18 +273,16 @@ def procesar_carpeta(carpeta):
     archivos = sorted([f for f in os.listdir(carpeta) if f.lower().endswith('.xlsx')])
     if not archivos:
         print(f"[WARN] Sin .xlsx en {carpeta}")
-        return {}, [], []
+        return {}, []
 
     demo_data = {}   # gid → fases_js_list
     cat_data  = []   # lista de {gid, name, due, kickoff, finReal}
-    curve_data = []  # lista de dicts para DATA
 
     for archivo in archivos:
         path = os.path.join(carpeta, archivo)
         print(f"[INFO] Procesando: {archivo}")
         try:
-            (nombre_proy, kickoff_str, due_str, contractual_str,
-             finReal_str, fases_js, tareas_flat) = leer_excel(path)
+            nombre_proy, kickoff_str, due_str, finReal_str, fases_js = leer_excel(path)
             pedido, gid = extraer_pedido_gid(archivo)
 
             if not pedido:
@@ -556,6 +295,7 @@ def procesar_carpeta(carpeta):
                 print(f"  [WARN] Sin fases/subtareas con fechas válidas")
                 continue
 
+            # Nombre display limpio
             if nombre_proy and pedido not in nombre_proy:
                 nombre_display = f"{pedido} - {nombre_proy}"
             elif nombre_proy:
@@ -576,25 +316,20 @@ def procesar_carpeta(carpeta):
                 'finReal': finReal_str,
             })
 
-            curva = calcular_curva(pedido, nombre_proy, kickoff_str, due_str,
-                                    contractual_str, finReal_str, tareas_flat)
-            if curva:
-                curve_data.append(curva)
-                print(f"     Curva S: EV={curva['pct_ev']}% SPI={curva['spit']} "
-                      f"Estado={curva['estado']}")
-            else:
-                print(f"  [WARN] No se pudo calcular curva S (sin kickoff válido)")
-
         except Exception as e:
             print(f"  [ERROR] {archivo}: {e}")
             import traceback; traceback.print_exc()
 
-    return demo_data, cat_data, curve_data
+    return demo_data, cat_data
 
 
 # ── REEMPLAZAR BLOQUE EN HTML ─────────────────────────────────────────────────
 
 def reemplazar_bloque(html, marca_ini, marca_fin, nuevo, nombre):
+    """
+    Reemplaza el bloque desde marca_ini hasta marca_fin (inclusive).
+    Si no lo encuentra, inserta antes de 'function lunEs' o al inicio del script.
+    """
     idx = html.find(marca_ini)
     if idx >= 0:
         idx_end = html.find(marca_fin, idx + len(marca_ini))
@@ -607,92 +342,37 @@ def reemplazar_bloque(html, marca_ini, marca_fin, nuevo, nombre):
     else:
         print(f"[WARN] {nombre}: marcador '{marca_ini}' no encontrado — insertando")
 
+    # Fallback: insertar antes de la primera función JS
     for anchor in ['function lunEs', 'function diasLab', '</script>']:
         idx_fn = html.find(anchor)
         if idx_fn >= 0:
             html = html[:idx_fn] + nuevo + '\n\n' + html[idx_fn:]
             return html
 
+    # Último recurso
     html = html.replace('<script', '<script>\n' + nuevo + '\n//', 1)
-    return html
-
-
-def reemplazar_data_bloque(html, nuevo_data):
-    """
-    Reemplaza 'const DATA = [ ... ];' haciendo tracking de brackets/strings
-    (los nombres de proyecto pueden contener '[' ']' ';' etc.)
-    """
-    idx = html.find('const DATA = [')
-    if idx == -1:
-        idx = html.find('const DATA=[')
-    if idx == -1:
-        print("[WARN] DATA: marcador 'const DATA = [' no encontrado — insertando al inicio del <script>")
-        return html.replace('<script>', f'<script>\n{nuevo_data}\n', 1)
-
-    depth, pos, in_str, str_char, found_end = 0, idx, False, None, -1
-    while pos < len(html):
-        c = html[pos]
-        if in_str:
-            if c == str_char and html[pos - 1] != '\\':
-                in_str = False
-        else:
-            if c in ('"', "'", '`'):
-                in_str, str_char = True, c
-            elif c == '[':
-                depth += 1
-            elif c == ']':
-                depth -= 1
-                if depth == 0:
-                    j = pos + 1
-                    while j < len(html) and html[j] in ' \n\r\t':
-                        j += 1
-                    found_end = j if (j < len(html) and html[j] == ';') else pos
-                    break
-        pos += 1
-
-    if found_end >= 0:
-        html = html[:idx] + nuevo_data + html[found_end + 1:]
-        print("[OK] DATA reemplazado")
-        return html
-
-    print("[WARN] DATA: no se encontró cierre — insertando al inicio del <script>")
-    return html.replace('<script>', f'<script>\n{nuevo_data}\n', 1)
-
-
-def actualizar_meta_visible(html, ahora_local):
-    """
-    Actualiza el texto visible '<div class="meta">Última actualización: ...</div>'
-    (además del comentario invisible <!-- updated: ... -->).
-    """
-    fecha_txt = ahora_local.strftime('%d/%m/%Y %H:%M')
-    patron = re.compile(r'(Última actualización:\s*)[\d/:\s]+( hrs \([^)]*\))')
-    nuevo_html, n = patron.subn(rf'\g<1>{fecha_txt}\g<2>', html)
-    if n > 0:
-        print(f"[OK] Texto visible de última actualización actualizado a {fecha_txt}")
-        return nuevo_html
-    print("[WARN] No se encontró el texto 'Última actualización:' visible para actualizar")
     return html
 
 
 # ── INYECTAR EN HTML ──────────────────────────────────────────────────────────
 
-def inyectar_html(template_path, output_path, demo_data, cat_data, curve_data):
+def inyectar_html(template_path, output_path, demo_data, cat_data):
     with open(template_path, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # 1. Bloque DATA (curva S: PV/EV/SPI/SV/filas semanales/tareas)
-    nuevo_data = 'const DATA = ' + json.dumps(curve_data, ensure_ascii=False, separators=(',', ':')) + ';'
-    html = reemplazar_data_bloque(html, nuevo_data)
-
-    # 2. Bloque DEMO
+    # 1. Bloque DEMO
     partes_demo = []
     for gid, fases in demo_data.items():
         partes_demo.append(f"  '{gid}':{{fases:{fases_to_js(fases)}}}")
     nuevo_demo = 'const DEMO={\n' + ',\n'.join(partes_demo) + '\n};'
-    html = reemplazar_bloque(html, marca_ini='const DEMO={', marca_fin='\n};',
-                              nuevo=nuevo_demo, nombre='DEMO')
 
-    # 3. Bloque CATALOGO
+    html = reemplazar_bloque(html,
+        marca_ini='const DEMO={',
+        marca_fin='\n};',
+        nuevo=nuevo_demo,
+        nombre='DEMO')
+
+    # 2. Bloque CATALOGO
     partes_cat = []
     for c in cat_data:
         nm = json.dumps(c['name'], ensure_ascii=False)
@@ -701,25 +381,24 @@ def inyectar_html(template_path, output_path, demo_data, cat_data, curve_data):
             f"due:'{c['due']}',kickoff:'{c['kickoff']}',finReal:'{c['finReal']}'}}"
         )
     nuevo_cat = 'const CATALOGO=[\n' + ',\n'.join(partes_cat) + '\n];'
-    html = reemplazar_bloque(html, marca_ini='const CATALOGO=[', marca_fin='\n];',
-                              nuevo=nuevo_cat, nombre='CATALOGO')
 
-    # 4. Timestamp invisible (para forzar commit git)
-    ahora_utc = datetime.now()
-    ahora_local = ahora_utc.astimezone(TZ_CHILE) if TZ_CHILE else ahora_utc
-    ahora_str = ahora_utc.strftime('%Y-%m-%d %H:%M:%S')
+    html = reemplazar_bloque(html,
+        marca_ini='const CATALOGO=[',
+        marca_fin='\n];',
+        nuevo=nuevo_cat,
+        nombre='CATALOGO')
+
+    # 3. Timestamp para forzar commit git
+    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if '<!-- updated:' in html:
-        html = re.sub(r'<!-- updated:.*?-->', f'<!-- updated: {ahora_str} -->', html)
+        html = re.sub(r'<!-- updated:.*?-->', f'<!-- updated: {ahora} -->', html)
     elif '</head>' in html:
-        html = html.replace('</head>', f'<!-- updated: {ahora_str} -->\n</head>', 1)
+        html = html.replace('</head>', f'<!-- updated: {ahora} -->\n</head>', 1)
     elif '<title>' in html:
-        html = html.replace('<title>', f'<!-- updated: {ahora_str} -->\n<title>', 1)
-    print(f"[OK] Timestamp: {ahora_str}")
+        html = html.replace('<title>', f'<!-- updated: {ahora} -->\n<title>', 1)
+    print(f"[OK] Timestamp: {ahora}")
 
-    # 5. Texto visible "Última actualización: ..."
-    html = actualizar_meta_visible(html, ahora_local)
-
-    # 6. Guardar
+    # 4. Guardar
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print(f"[OK] Guardado: {output_path}")
@@ -744,13 +423,12 @@ if __name__ == '__main__':
     print(f"  Output:   {output_path}")
     print(f"{'='*60}\n")
 
-    demo_data, cat_data, curve_data = procesar_carpeta(carpeta_data)
+    demo_data, cat_data = procesar_carpeta(carpeta_data)
 
     if not demo_data:
         print("[ERROR] Sin proyectos procesados. Revisa los .xlsx y el CATALOGO_MAP.")
         sys.exit(1)
 
-    inyectar_html(template_path, output_path, demo_data, cat_data, curve_data)
+    inyectar_html(template_path, output_path, demo_data, cat_data)
 
-    print(f"\n✅ Listo. {len(demo_data)} proyectos actualizados en el HTML "
-          f"({len(curve_data)} con curva S calculada).")
+    print(f"\n✅ Listo. {len(demo_data)} proyectos actualizados en el HTML.")
