@@ -328,17 +328,24 @@ def procesar_carpeta(carpeta):
 def reemplazar_bloque(html, marca_ini, marca_fin, nuevo, nombre):
     """
     Reemplaza el bloque desde marca_ini hasta marca_fin (inclusive).
-    Si no lo encuentra, inserta antes de 'function lunEs' o al inicio del script.
+    Maneja bloques de una sola línea como const DEMO={};
     """
     idx = html.find(marca_ini)
     if idx >= 0:
+        # Primero intentar con el cierre normal
         idx_end = html.find(marca_fin, idx + len(marca_ini))
         if idx_end >= 0:
             html = html[:idx] + nuevo + html[idx_end + len(marca_fin):]
             print(f"[OK] {nombre} reemplazado")
             return html
+        # Si no encuentra, buscar fin de línea (bloque de una sola línea como const DEMO={};)
+        idx_eol = html.find('\n', idx)
+        if idx_eol >= 0:
+            html = html[:idx] + nuevo + html[idx_eol:]
+            print(f"[OK] {nombre} reemplazado (una línea)")
+            return html
         else:
-            print(f"[WARN] {nombre}: no se encontró cierre '{marca_fin}'")
+            print(f"[WARN] {nombre}: no se encontró cierre \'{marca_fin}\'")
     else:
         print(f"[WARN] {nombre}: marcador '{marca_ini}' no encontrado — insertando")
 
