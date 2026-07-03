@@ -44,7 +44,7 @@ body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#0f172a;min-heigh
 .lerr{color:#dc2626;font-size:11px;margin-top:8px;min-height:16px}
 .empty{text-align:center;padding:40px;color:#94a3b8;font-size:13px;grid-column:1/-1}
 </style>
-<!-- updated: 2026-07-03 18:26:47 -->
+<!-- updated: 2026-07-03 18:54:52 -->
 </head>
 <body>
 
@@ -86,35 +86,6 @@ body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#0f172a;min-heigh
 
 <script>
 const PWD='zitron2026!';
-const DEMO={};
-const CATALOGO=[];
-
-var filtro='Todos';
-var _results=[];
-
-function login(){
-  var val=document.getElementById('pwd').value;
-  if(val===PWD){
-    document.getElementById('loginWrap').style.display='none';
-    document.getElementById('main').style.display='block';
-    init();
-  } else {
-    document.getElementById('lerr').textContent='Contraseña incorrecta';
-    document.getElementById('pwd').value='';
-  }
-}
-
-document.getElementById('pwd').addEventListener('keydown',function(e){
-  if(e.key==='Enter') login();
-});
-
-function setF(f,btn){
-  filtro=f;
-  document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('act');});
-  btn.classList.add('act');
-  renderCards();
-}
-
 const DEMO={
   '1213391072478428':{fases:[{fase:"Ingenieria Servicios",subtasks:[{name:"Ingenieria electrica",ini:'2025-11-11',fin:'2025-11-13',av:1.0},{name:"Revisiónx tableros pruebas",ini:'2026-03-16',fin:'2026-03-20',av:1.0}]},
     {fase:"Ingenieria Jefe de proyecto",subtasks:[{name:"Ingenieria Basica Motor",ini:'2025-11-11',fin:'2025-11-12',av:1.0},{name:"Ingenieria Basica Alabes",ini:'2025-11-11',fin:'2025-11-19',av:1.0},{name:"Ingenieria basica Rodete",ini:'2025-11-11',fin:'2025-11-19',av:1.0},{name:"Ingenieria Detalle",ini:'2025-11-11',fin:'2025-11-19',av:1.0},{name:"Analisis de costeo",ini:'2025-11-11',fin:'2025-11-19',av:1.0}]},
