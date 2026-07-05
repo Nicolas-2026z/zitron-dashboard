@@ -114,11 +114,13 @@ def leer_excel(path):
         if not name: continue
         if not parent:
             seccion=name.rstrip(':').strip(); continue
-        ini=fmt(row[ci_ini]); fin=fmt(row[ci_fin]) if row[ci_fin] else ini
+        fin=fmt(row[ci_fin]) if row[ci_fin] else ''
+        ini=fmt(row[ci_ini]) if row[ci_ini] else fin
         comp_raw=row[ci_comp]
         comp_str=fmt(comp_raw) if comp_raw else ''
-        if not ini: continue
-        fin=fin or ini
+        if not ini and not fin: continue
+        if not ini: ini=fin
+        if not fin: fin=ini
         try: av=round(min(max(float(row[ci_av] or 0),0.0),1.0),4)
         except: av=0.0
         hoy_str=HOY.strftime('%Y-%m-%d')
@@ -182,8 +184,9 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
 
     # Filtrar semanas relevantes: desde kickoff hasta fin_real + buffer
     end_date = fin_real_d or (HOY + timedelta(weeks=4))
+    # Buffer de 4 semanas extra para asegurar que PV llega a 100%
     semanas_rel = [s for s in SEMANAS_CAL
-                   if s['fin'] >= kickoff_d and s['ini'] <= end_date + timedelta(weeks=2)]
+                   if s['fin'] >= kickoff_d and s['ini'] <= end_date + timedelta(weeks=4)]
 
     # Si el kickoff está antes del S1, agregar semanas extra hacia atrás
     if kickoff_d < SEMANAS_CAL[0]['ini']:
@@ -233,12 +236,8 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     for idx_s, s in enumerate(semanas_rel):
         pv_a += pv_sem[s['ini']]
         if s['ini'] <= HOY: ev_a += ev_sem[s['ini']]
-        # pctPV: usar % del calendario fijo si la semana tiene número, si no calcular
-        if s.get('n') and s['n'] <= len(SEMANAS_CAL):
-            cal_entry = SEMANAS_CAL[s['n']-1]
-            pct_pv_cal = float(cal_entry.get('pv', round(pv_a/total_pv*100, 1)))
-        else:
-            pct_pv_cal = round(pv_a / total_pv * 100, 1)
+        # pctPV: calculado por horas reales del proyecto
+        pct_pv_cal = round(pv_a / total_pv * 100, 1)
         pct_ev = round(ev_a / total_pv * 100, 1)
         rows.append({
             'idx': idx_s + 1,
