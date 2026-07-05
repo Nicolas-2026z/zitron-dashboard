@@ -225,7 +225,14 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         if not ini_d: continue
         fin_d = fin_d or ini_d
         # Horas: kickoff=1.6 fijo, resto=días laborales × 8.3
-        h = 1.6 if t['kickoff'] else max(dias_lab(ini_d, fin_d), 1) * HORAS_DIA
+        # Si completada antes de la fecha inicio planificada → duración real = 1 día
+        comp_check = parse(t.get('completed_at',''))
+        if t['kickoff']:
+            h = 1.6
+        elif comp_check and ini_d and comp_check < ini_d:
+            h = HORAS_DIA  # completada antes del inicio → 1 día
+        else:
+            h = max(dias_lab(ini_d, fin_d), 1) * HORAS_DIA
         if h <= 0: continue
 
         # PV va TODO a la semana de fin_d (Due Date) — igual que tu Excel
@@ -276,11 +283,11 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     rows = []
     for idx_s, s in enumerate(semanas_rel):
         pv_a += pv_sem[s['ini']]
-        # EV: buscar en ev_sem por fecha de inicio de semana del calendario fijo
-        # La semana del proyecto puede tener fecha distinta a SEMANAS_CAL
-        # Buscar semana de SEMANAS_CAL que coincida con s['ini']
-        if s['ini'] <= HOY:
-            ev_a += ev_sem.get(s['ini'], 0.0)
+        # EV: sumar todo ev_sem cuya clave (fecha completada) <= HOY y <= fin de esta semana
+        # EV: sumar claves de ev_sem dentro del rango de esta semana y <= HOY
+        for ev_key, ev_val in ev_sem.items():
+            if s['ini'] <= ev_key <= s['fin'] and ev_key <= HOY:
+                ev_a += ev_val
         # pctPV: calculado por horas reales del proyecto
         pct_pv_cal = round(pv_a / total_pv * 100, 1)
         pct_ev = round(ev_a / total_pv * 100, 1)
