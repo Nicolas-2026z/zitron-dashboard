@@ -223,6 +223,8 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
             dias_x.append(max(dias_lab(d_ini, d_fin), 0))
         tot_d = sum(dias_x) or 1
 
+        # PV y EV: distribuidos por semana proporcional a días laborales
+        # EV = PV × % avance (misma distribución temporal que el PV)
         for s, dias in zip(sems_t, dias_x):
             frac = dias / tot_d
             h_s = h * frac
