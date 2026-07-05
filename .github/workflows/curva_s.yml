@@ -33,21 +33,23 @@ jobs:
           echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
           echo "auth.json: $(wc -c < auth.json) bytes"
 
-      - name: Guardar copia de seguridad de data
+      - name: Backup Excel en /tmp
         run: |
-          cp -r data data_backup
-          COUNT=$(find data_backup -name "*.xlsx" | wc -l)
-          echo "Backup: $COUNT Excel guardados"
+          mkdir -p /tmp/data_backup
+          cp data/*.xlsx /tmp/data_backup/ 2>/dev/null || true
+          COUNT=$(find /tmp/data_backup -name "*.xlsx" | wc -l)
+          echo "Backup en /tmp: $COUNT Excel"
 
       - name: Exportar datos desde Asana
         run: python3 scripts/asana_export.py
 
-      - name: Restaurar Excel faltantes desde backup
+      - name: Restaurar Excel faltantes desde /tmp
         run: |
           COUNT_NEW=$(find data -name "*.xlsx" 2>/dev/null | wc -l)
-          COUNT_BCK=$(find data_backup -name "*.xlsx" | wc -l)
+          COUNT_BCK=$(find /tmp/data_backup -name "*.xlsx" 2>/dev/null | wc -l)
           echo "Exportados: $COUNT_NEW | Backup: $COUNT_BCK"
-          for f in data_backup/*.xlsx; do
+          for f in /tmp/data_backup/*.xlsx; do
+            [ -f "$f" ] || continue
             nombre=$(basename "$f")
             if [ ! -f "data/$nombre" ]; then
               echo "Restaurando: $nombre"
