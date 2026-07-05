@@ -33,28 +33,27 @@ jobs:
           echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
           echo "auth.json: $(wc -c < auth.json) bytes"
 
-      - name: Contar Excel antes de exportar
-        run: |
-          COUNT=$(find data -name "*.xlsx" | wc -l)
-          echo "Excel antes: $COUNT"
-          echo "XLSX_ANTES=$COUNT" >> $GITHUB_ENV
-
       - name: Exportar datos desde Asana
         run: python3 scripts/asana_export.py
 
       - name: Verificar exportacion
         run: |
           COUNT=$(find data -name "*.xlsx" | wc -l)
-          echo "Excel después: $COUNT"
+          echo "Excel exportados: $COUNT"
           if [ "$COUNT" -lt "10" ]; then
-            echo "⚠️ Solo $COUNT Excel exportados — usando los existentes del repo"
+            echo "⚠️ Solo $COUNT Excel — restaurando desde repo"
             git checkout -- data/
+            COUNT=$(find data -name "*.xlsx" | wc -l)
+            echo "Excel restaurados: $COUNT"
           else
-            echo "✅ $COUNT Excel exportados correctamente"
+            echo "✅ $COUNT Excel OK"
           fi
 
       - name: Generar CURVAS.HTML
         run: python3 scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
+
+      - name: Asegurar .nojekyll
+        run: touch .nojekyll
 
       - name: Commit y Push
         run: |
