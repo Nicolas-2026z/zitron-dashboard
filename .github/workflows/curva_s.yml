@@ -39,14 +39,17 @@ jobs:
       - name: Generar CURVAS.HTML
         run: python3 scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
 
-      - name: Asegurar .nojekyll
-        run: touch .nojekyll
+      - name: Forzar timestamp en CURVAS.HTML
+        run: |
+          FECHA=$(TZ="America/Santiago" date '+%d/%m/%Y %H:%M')
+          sed -i "s|Última actualización:.*hrs (Chile)|Última actualización: ${FECHA} hrs (Chile)|g" CURVAS.HTML
+          echo "Timestamp forzado: ${FECHA}"
 
       - name: Commit y Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CURVAS.HTML data .nojekyll
-          git diff --staged --quiet || git commit -m "Curva S actualizada $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git diff --staged --quiet || git commit -m "Curva S actualizada $(TZ='America/Santiago' date '+%Y-%m-%d %H:%M') Chile"
           git pull --rebase origin main
           git push
