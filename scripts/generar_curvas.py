@@ -416,7 +416,8 @@ def inyectar(template,output,proyectos):
         html=html.replace('<script>','<script>\n'+nuevo_data+'\n',1)
 
     # Timestamp
-    ahora=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Guardar timestamp en UTC — el JS lo convierte a hora Chile
+    ahora=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     html=re.sub(r'<!-- updated:.*?-->',f'<!-- updated: {ahora} -->',html)
     if '<!-- updated:' not in html:
         html=html.replace('</head>',f'\n<!-- updated: {ahora} -->\n</head>',1)
