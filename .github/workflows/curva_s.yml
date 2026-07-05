@@ -33,27 +33,29 @@ jobs:
           echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
           echo "auth.json: $(wc -c < auth.json) bytes"
 
-      - name: Contar Excel antes de exportar
+      - name: Guardar copia de seguridad de data
         run: |
-          COUNT=$(find data -name "*.xlsx" 2>/dev/null | wc -l)
-          echo "Excel en repo: $COUNT"
-          echo "XLSX_ANTES=$COUNT" >> $GITHUB_ENV
+          cp -r data data_backup
+          COUNT=$(find data_backup -name "*.xlsx" | wc -l)
+          echo "Backup: $COUNT Excel guardados"
 
       - name: Exportar datos desde Asana
         run: python3 scripts/asana_export.py
 
-      - name: Verificar y restaurar si falló exportacion
+      - name: Restaurar Excel faltantes desde backup
         run: |
-          COUNT=$(find data -name "*.xlsx" 2>/dev/null | wc -l)
-          echo "Excel después de exportar: $COUNT"
-          if [ "$COUNT" -lt "$XLSX_ANTES" ] || [ "$COUNT" -lt "10" ]; then
-            echo "⚠️ Exportación incompleta ($COUNT vs $XLSX_ANTES) — restaurando desde git"
-            git restore data/
-            COUNT2=$(find data -name "*.xlsx" | wc -l)
-            echo "✅ Restaurados: $COUNT2 Excel"
-          else
-            echo "✅ Exportación OK: $COUNT Excel"
-          fi
+          COUNT_NEW=$(find data -name "*.xlsx" 2>/dev/null | wc -l)
+          COUNT_BCK=$(find data_backup -name "*.xlsx" | wc -l)
+          echo "Exportados: $COUNT_NEW | Backup: $COUNT_BCK"
+          for f in data_backup/*.xlsx; do
+            nombre=$(basename "$f")
+            if [ ! -f "data/$nombre" ]; then
+              echo "Restaurando: $nombre"
+              cp "$f" "data/$nombre"
+            fi
+          done
+          COUNT_FINAL=$(find data -name "*.xlsx" | wc -l)
+          echo "✅ Total final: $COUNT_FINAL Excel"
 
       - name: Generar CURVAS.HTML
         run: python3 scripts/generar_curvas.py data CURVAS.HTML CURVAS.HTML
