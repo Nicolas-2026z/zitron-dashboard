@@ -128,8 +128,25 @@ def leer_excel(path):
         # Si ini > fin (fechas invertidas), intercambiar
         if ini > fin:
             ini, fin = fin, ini
-        try: av=round(min(max(float(row[ci_av] or 0),0.0),1.0),4)
-        except: av=0.0
+        # Avance: si tiene Completed At → 1.0
+        # Si col av es numérico → usarlo
+        # Si col av es texto (Alta/Baja/Media) → 0.0
+        comp_check = row[ci_comp]
+        if comp_check:
+            av = 1.0
+        else:
+            try:
+                av_raw2 = row[ci_av]
+                if av_raw2 is None:
+                    av = 0.0
+                elif isinstance(av_raw2, (int, float)):
+                    av = round(min(max(float(av_raw2), 0.0), 1.0), 4)
+                elif isinstance(av_raw2, str) and av_raw2.replace('.','').replace(',','').isdigit():
+                    av = round(min(max(float(av_raw2.replace(',','.')), 0.0), 1.0), 4)
+                else:
+                    av = 0.0  # texto como Alta/Baja/Media
+            except:
+                av = 0.0
         hoy_str=HOY.strftime('%Y-%m-%d')
         ini_ef,fin_ef=ini,fin
         if av>=1.0 and fin>hoy_str: fin_ef=hoy_str; ini_ef=min(ini,hoy_str)
@@ -176,15 +193,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
             contractual_str=t['fin']
             break
 
-    # Total PV
-    total_pv=0.0
-    for t in tareas:
-        ini_d=parse(t['ini']); fin_d=parse(t['fin'])
-        if not ini_d: continue
-        fin_d=fin_d or ini_d
-        h=1.6 if t['kickoff'] else max(dias_lab(ini_d,fin_d),1)*HORAS_DIA
-        total_pv+=h
-    if total_pv<=0: return None
+    # total_pv se calculará después de distribuir PV por semanas
 
     # Usar calendario fijo SEMANAS_CAL (dom-sáb)
     if not kickoff_d: return None
@@ -207,69 +216,71 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         semanas_rel = extra + semanas_rel
 
     # PV y EV por semana del calendario
-    pv_sem = {s['ini']: 0.0 for s in semanas_rel}
-    ev_sem = {s['ini']: 0.0 for s in semanas_rel}
-    n_sem  = {s['ini']: 0   for s in semanas_rel}
+    pv_sem = {}
+    ev_sem = {}
+    n_sem  = {s['ini']: 0 for s in semanas_rel}
 
     for t in tareas:
         ini_d = parse(t['ini']); fin_d = parse(t['fin'])
         if not ini_d: continue
         fin_d = fin_d or ini_d
+        # Horas: kickoff=1.6 fijo, resto=días laborales × 8.3
         h = 1.6 if t['kickoff'] else max(dias_lab(ini_d, fin_d), 1) * HORAS_DIA
         if h <= 0: continue
 
-        sems_t = []
+        # PV va TODO a la semana de fin_d (Due Date) — igual que tu Excel
+        sem_pv = None
         for s in semanas_rel:
-            if s['ini'] <= fin_d and s['fin'] >= ini_d:
-                sems_t.append(s)
-        if not sems_t:
-            dists = [(abs((s['ini'] - ini_d).days), s) for s in semanas_rel]
-            sems_t = [min(dists, key=lambda x: x[0])[1]]
+            if s['ini'] <= fin_d <= s['fin']:
+                sem_pv = s['ini']
+                break
+        if sem_pv is None:
+            # Buscar semana más cercana al fin_d
+            dists = [(abs((s['ini'] - fin_d).days), s['ini']) for s in semanas_rel]
+            sem_pv = min(dists, key=lambda x: x[0])[1]
+        pv_sem[sem_pv] = pv_sem.get(sem_pv, 0.0) + h
+        n_sem[sem_pv] = n_sem.get(sem_pv, 0) + 1
 
-        dias_x = []
-        for s in sems_t:
-            d_ini = max(ini_d, s['ini']); d_fin = min(fin_d, s['fin'])
-            dias_x.append(max(dias_lab(d_ini, d_fin), 0))
-        tot_d = sum(dias_x) or 1
-
-        # PV: distribuido por semana proporcional a días laborales (semana planificada)
-        for s, dias in zip(sems_t, dias_x):
-            frac = dias / tot_d
-            h_s = h * frac
-            pv_sem[s['ini']] += h_s
-            n_sem[s['ini']]  += 1
-
-        # EV: va a la semana del completed_at si está completada
-        # Si no tiene completed_at, se distribuye igual que el PV
+        # EV va a la semana de completed_at usando SEMANAS_CAL fijo
         comp_d = parse(t.get('completed_at', ''))
         if t['av'] >= 1.0 and comp_d:
-            # Buscar semana de completed_at
-            sem_comp_ini = None
-            for sc in semanas_rel:
+            # Buscar en SEMANAS_CAL (calendario fijo dom-sáb)
+            sem_ev = None
+            for sc in SEMANAS_CAL:
                 if sc['ini'] <= comp_d <= sc['fin']:
-                    sem_comp_ini = sc['ini']
+                    sem_ev = sc['ini']
                     break
-            if sem_comp_ini is None:
-                # Fuera del rango — asignar a semana calculada
-                base = SEMANAS_CAL[0]['ini']
-                diff = (comp_d - base).days
-                semana_extra = base + timedelta(weeks=int(diff//7))
-                sem_comp_ini = semana_extra
-            if sem_comp_ini not in ev_sem:
-                ev_sem[sem_comp_ini] = 0.0
-            ev_sem[sem_comp_ini] += h * t['av']
-        else:
-            # Tarea no completada: EV proporcional por semana planificada
-            for s, dias in zip(sems_t, dias_x):
-                frac = dias / tot_d
-                ev_sem[s['ini']] += h * frac * t['av']
+            if sem_ev is None:
+                # Fuera del rango del calendario
+                diff = (comp_d - SEMANAS_CAL[0]['ini']).days
+                n = int(diff // 7)
+                sem_ev = SEMANAS_CAL[0]['ini'] + timedelta(weeks=n)
+            # Asegurar que sem_ev está en ev_sem
+            ev_sem[sem_ev] = ev_sem.get(sem_ev, 0.0) + h * t['av']
+        elif t['av'] > 0:
+            # Tarea en progreso: EV va a semana de fin_d × avance
+            ev_sem[sem_pv] = ev_sem.get(sem_pv, 0.0) + h * t['av']
 
-    # Construir rows usando pctPV del calendario fijo
+    # Rellenar semanas sin PV con 0
+    for s in semanas_rel:
+        if s['ini'] not in pv_sem: pv_sem[s['ini']] = 0.0
+        if s['ini'] not in ev_sem: ev_sem[s['ini']] = 0.0
+        if s['ini'] not in n_sem:  n_sem[s['ini']]  = 0
+
+    # total_pv = suma de todo el PV
+    total_pv = sum(pv_sem.values())
+    if total_pv <= 0: return None
+
+    # Construir rows
     pv_a = 0.0; ev_a = 0.0
     rows = []
     for idx_s, s in enumerate(semanas_rel):
         pv_a += pv_sem[s['ini']]
-        if s['ini'] <= HOY: ev_a += ev_sem[s['ini']]
+        # EV: buscar en ev_sem por fecha de inicio de semana del calendario fijo
+        # La semana del proyecto puede tener fecha distinta a SEMANAS_CAL
+        # Buscar semana de SEMANAS_CAL que coincida con s['ini']
+        if s['ini'] <= HOY:
+            ev_a += ev_sem.get(s['ini'], 0.0)
         # pctPV: calculado por horas reales del proyecto
         pct_pv_cal = round(pv_a / total_pv * 100, 1)
         pct_ev = round(ev_a / total_pv * 100, 1)
@@ -332,11 +343,19 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
 
     nombre_d=f"{pedido} - {nombre_proy}" if nombre_proy and pedido not in nombre_proy else (nombre_proy or pedido)
 
-    tareas_out=[{'name':t['name'],'section':t['section'],'ini':t['ini'],
-                 'fin':t['fin'],'av':t['av'],'kickoff':t['kickoff'],
-                 'completed_at':t.get('completed_at',''),
-                 'semana_ini':t.get('semana_ini'),
-                 'semana_fin':t.get('semana_fin')} for t in tareas]
+    tareas_out=[]
+    for t in tareas:
+        comp = t.get('completed_at','')
+        sem_comp = semana_de(comp) if comp else None
+        tareas_out.append({
+            'name':t['name'],'section':t['section'],
+            'ini':t['ini'],'fin':t['fin'],
+            'av':t['av'],'kickoff':t['kickoff'],
+            'completed_at':comp,
+            'semana_ini':t.get('semana_ini'),
+            'semana_fin':t.get('semana_fin'),
+            'semana_comp':sem_comp
+        })
 
     return {
         'nombre':nombre_d,
