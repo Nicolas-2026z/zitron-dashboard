@@ -102,8 +102,9 @@ def leer_excel(path):
         break
     def col(n,d): return headers.get(n,d)
     ci_name=col('Name',4); ci_parent=col('Parent task',13)
-    ci_ini=col('inicio ',col('Inicio',col('Start Date',16)))
-    ci_fin=col('Entrega ',col('Entrega',col('Due Date',17)))
+    # Fechas: SOLO Start Date (col i=8) y Due Date (col j=9)
+    ci_ini_asana = col('Start Date', 8)
+    ci_fin_asana = col('Due Date', 9)
     ci_av=col('Avance Tarea',None) or col('% Avance proyecto',None) or col('Avance',None) or 18
     ci_comp=col('Completed At',2)
 
@@ -114,13 +115,19 @@ def leer_excel(path):
         if not name: continue
         if not parent:
             seccion=name.rstrip(':').strip(); continue
-        fin=fmt(row[ci_fin]) if row[ci_fin] else ''
-        ini=fmt(row[ci_ini]) if row[ci_ini] else fin
+        # Usar Start Date y Due Date de Asana
+        ini_raw = row[ci_ini_asana] if ci_ini_asana is not None else None
+        fin_raw = row[ci_fin_asana] if ci_fin_asana is not None else None
+        fin=fmt(fin_raw) if fin_raw else ''
+        ini=fmt(ini_raw) if ini_raw else fin
         comp_raw=row[ci_comp]
         comp_str=fmt(comp_raw) if comp_raw else ''
         if not ini and not fin: continue
         if not ini: ini=fin
         if not fin: fin=ini
+        # Si ini > fin (fechas invertidas), intercambiar
+        if ini > fin:
+            ini, fin = fin, ini
         try: av=round(min(max(float(row[ci_av] or 0),0.0),1.0),4)
         except: av=0.0
         hoy_str=HOY.strftime('%Y-%m-%d')
@@ -175,7 +182,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         ini_d=parse(t['ini']); fin_d=parse(t['fin'])
         if not ini_d: continue
         fin_d=fin_d or ini_d
-        h=(HORAS_DIA/n_kof) if t['kickoff'] else dias_lab(ini_d,fin_d)*HORAS_DIA
+        h=1.6 if t['kickoff'] else max(dias_lab(ini_d,fin_d),1)*HORAS_DIA
         total_pv+=h
     if total_pv<=0: return None
 
@@ -206,7 +213,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         ini_d = parse(t['ini']); fin_d = parse(t['fin'])
         if not ini_d: continue
         fin_d = fin_d or ini_d
-        h = (HORAS_DIA / n_kof) if t['kickoff'] else dias_lab(ini_d, fin_d) * HORAS_DIA
+        h = 1.6 if t['kickoff'] else max(dias_lab(ini_d, fin_d), 1) * HORAS_DIA
         if h <= 0: continue
 
         sems_t = []
@@ -223,14 +230,37 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
             dias_x.append(max(dias_lab(d_ini, d_fin), 0))
         tot_d = sum(dias_x) or 1
 
-        # PV y EV: distribuidos por semana proporcional a días laborales
-        # EV = PV × % avance (misma distribución temporal que el PV)
+        # PV: distribuido por semana proporcional a días laborales (semana planificada)
         for s, dias in zip(sems_t, dias_x):
             frac = dias / tot_d
             h_s = h * frac
             pv_sem[s['ini']] += h_s
-            ev_sem[s['ini']] += h_s * t['av']
             n_sem[s['ini']]  += 1
+
+        # EV: va a la semana del completed_at si está completada
+        # Si no tiene completed_at, se distribuye igual que el PV
+        comp_d = parse(t.get('completed_at', ''))
+        if t['av'] >= 1.0 and comp_d:
+            # Buscar semana de completed_at
+            sem_comp_ini = None
+            for sc in semanas_rel:
+                if sc['ini'] <= comp_d <= sc['fin']:
+                    sem_comp_ini = sc['ini']
+                    break
+            if sem_comp_ini is None:
+                # Fuera del rango — asignar a semana calculada
+                base = SEMANAS_CAL[0]['ini']
+                diff = (comp_d - base).days
+                semana_extra = base + timedelta(weeks=int(diff//7))
+                sem_comp_ini = semana_extra
+            if sem_comp_ini not in ev_sem:
+                ev_sem[sem_comp_ini] = 0.0
+            ev_sem[sem_comp_ini] += h * t['av']
+        else:
+            # Tarea no completada: EV proporcional por semana planificada
+            for s, dias in zip(sems_t, dias_x):
+                frac = dias / tot_d
+                ev_sem[s['ini']] += h * frac * t['av']
 
     # Construir rows usando pctPV del calendario fijo
     pv_a = 0.0; ev_a = 0.0
