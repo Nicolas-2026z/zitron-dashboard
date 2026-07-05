@@ -41,6 +41,32 @@ KICKOFF_KW = {'apertura pedido','alcance del proyecto','definición técnica',
 DUE_KW = {'despacho','exw','coordinacion entrega','coordinación entrega'}
 HOY = date.today()
 
+# Calendario semanas dom-sáb (fijo 2026)
+SEMANAS_CAL = []
+_base_sem = date(2025, 12, 28)  # domingo 28 dic 2025
+_PV_SEMS = [0, 1, 3, 5, 7, 9, 11, 13, 15, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 85, 87, 89, 91, 93, 95, 97, 100]
+for _i in range(53):
+    _ini = _base_sem + timedelta(weeks=_i)
+    _fin = _ini + timedelta(days=6)
+    SEMANAS_CAL.append({'n': _i+1, 'ini': _ini, 'fin': _fin, 'pv': _PV_SEMS[_i]})
+
+def semana_de(d):
+    """Retorna número de semana del calendario fijo dom-sáb.
+    Si la fecha está fuera del rango, calcula la semana extendida."""
+    if not d: return None
+    if isinstance(d, str):
+        try: d = datetime.strptime(d[:10], '%Y-%m-%d').date()
+        except: return None
+    if isinstance(d, datetime): d = d.date()
+    for s in SEMANAS_CAL:
+        if s['ini'] <= d <= s['fin']:
+            return s['n']
+    # Fuera del rango: calcular semana relativa
+    base = SEMANAS_CAL[0]['ini']  # 2025-12-28
+    diff = (d - base).days
+    return int(diff // 7) + 1
+
+
 def es_kickoff(n): return any(kw in n.lower() for kw in KICKOFF_KW)
 def es_due(n):     return any(kw in n.lower() for kw in DUE_KW)
 
@@ -79,6 +105,7 @@ def leer_excel(path):
     ci_ini=col('inicio ',col('Inicio',col('Start Date',16)))
     ci_fin=col('Entrega ',col('Entrega',col('Due Date',17)))
     ci_av=col('Avance Tarea',None) or col('% Avance proyecto',None) or col('Avance',None) or 18
+    ci_comp=col('Completed At',2)
 
     tareas=[]; seccion=''; due_str=''
     for row in ws.iter_rows(min_row=4,values_only=True):
@@ -88,6 +115,8 @@ def leer_excel(path):
         if not parent:
             seccion=name.rstrip(':').strip(); continue
         ini=fmt(row[ci_ini]); fin=fmt(row[ci_fin]) if row[ci_fin] else ini
+        comp_raw=row[ci_comp]
+        comp_str=fmt(comp_raw) if comp_raw else ''
         if not ini: continue
         fin=fin or ini
         try: av=round(min(max(float(row[ci_av] or 0),0.0),1.0),4)
@@ -97,8 +126,11 @@ def leer_excel(path):
         if av>=1.0 and fin>hoy_str: fin_ef=hoy_str; ini_ef=min(ini,hoy_str)
         if es_due(name) and fin_ef:
             if not due_str or fin_ef>due_str: due_str=fin_ef
+        sem_ini=semana_de(ini_ef)
+        sem_fin=semana_de(fin_ef)
         tareas.append({'name':name,'section':seccion,'ini':ini_ef,'fin':fin_ef,
-                       'av':av,'kickoff':es_kickoff(name)})
+                       'av':av,'kickoff':es_kickoff(name),
+                       'completed_at':comp_str,'semana_ini':sem_ini,'semana_fin':sem_fin})
     wb.close()
     return nombre,due_str,tareas
 
@@ -145,72 +177,81 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         total_pv+=h
     if total_pv<=0: return None
 
-    # Semanas desde kickoff hasta fin_real
+    # Usar calendario fijo SEMANAS_CAL (dom-sáb)
     if not kickoff_d: return None
-    start_week=lunes(kickoff_d)
-    end_date=fin_real_d or (HOY+timedelta(weeks=4))
-    end_week=lunes(end_date)
 
-    semanas=[]
-    cur=start_week
-    while cur<=end_week+timedelta(weeks=1):
-        semanas.append(cur)
-        cur+=timedelta(weeks=1)
+    # Filtrar semanas relevantes: desde kickoff hasta fin_real + buffer
+    end_date = fin_real_d or (HOY + timedelta(weeks=4))
+    semanas_rel = [s for s in SEMANAS_CAL
+                   if s['fin'] >= kickoff_d and s['ini'] <= end_date + timedelta(weeks=2)]
 
-    # PV y EV por semana
-    pv_sem={s:0.0 for s in semanas}
-    ev_sem={s:0.0 for s in semanas}
-    n_sem={s:0 for s in semanas}
+    # Si el kickoff está antes del S1, agregar semanas extra hacia atrás
+    if kickoff_d < SEMANAS_CAL[0]['ini']:
+        extra = []
+        cur = SEMANAS_CAL[0]['ini'] - timedelta(weeks=1)
+        while cur + timedelta(days=6) >= kickoff_d:
+            extra.insert(0, {'n': None, 'ini': cur, 'fin': cur + timedelta(days=6)})
+            cur -= timedelta(weeks=1)
+        semanas_rel = extra + semanas_rel
+
+    # PV y EV por semana del calendario
+    pv_sem = {s['ini']: 0.0 for s in semanas_rel}
+    ev_sem = {s['ini']: 0.0 for s in semanas_rel}
+    n_sem  = {s['ini']: 0   for s in semanas_rel}
 
     for t in tareas:
-        ini_d=parse(t['ini']); fin_d=parse(t['fin'])
+        ini_d = parse(t['ini']); fin_d = parse(t['fin'])
         if not ini_d: continue
-        fin_d=fin_d or ini_d
-        h=(HORAS_DIA/n_kof) if t['kickoff'] else dias_lab(ini_d,fin_d)*HORAS_DIA
-        if h<=0: continue
+        fin_d = fin_d or ini_d
+        h = (HORAS_DIA / n_kof) if t['kickoff'] else dias_lab(ini_d, fin_d) * HORAS_DIA
+        if h <= 0: continue
 
-        # Semanas que cubre
-        sems_t=[]
-        for s in semanas:
-            w_end=s+timedelta(days=6)
-            if s<=fin_d and w_end>=ini_d: sems_t.append(s)
+        sems_t = []
+        for s in semanas_rel:
+            if s['ini'] <= fin_d and s['fin'] >= ini_d:
+                sems_t.append(s)
         if not sems_t:
-            dists=[(abs((s-lunes(ini_d)).days),s) for s in semanas]
-            sems_t=[min(dists)[1]]
+            dists = [(abs((s['ini'] - ini_d).days), s) for s in semanas_rel]
+            sems_t = [min(dists, key=lambda x: x[0])[1]]
 
-        dias_x=[]
+        dias_x = []
         for s in sems_t:
-            w_end=s+timedelta(days=6)
-            d_ini=max(ini_d,s); d_fin=min(fin_d,w_end)
-            dias_x.append(max(dias_lab(d_ini,d_fin),0))
-        tot_d=sum(dias_x) or 1
+            d_ini = max(ini_d, s['ini']); d_fin = min(fin_d, s['fin'])
+            dias_x.append(max(dias_lab(d_ini, d_fin), 0))
+        tot_d = sum(dias_x) or 1
 
-        for s,dias in zip(sems_t,dias_x):
-            frac=dias/tot_d
-            h_s=h*frac
-            pv_sem[s]+=h_s
-            ev_sem[s]+=h_s*t['av']
-            n_sem[s]+=1
+        for s, dias in zip(sems_t, dias_x):
+            frac = dias / tot_d
+            h_s = h * frac
+            pv_sem[s['ini']] += h_s
+            ev_sem[s['ini']] += h_s * t['av']
+            n_sem[s['ini']]  += 1
 
-    # Construir rows
-    pv_a=0.0; ev_a=0.0
-    rows=[]
-    for idx,s in enumerate(semanas):
-        w_end=s+timedelta(days=6)
-        pv_a+=pv_sem[s]
-        if s<=HOY: ev_a+=ev_sem[s]
-        pct_pv=round(pv_a/total_pv*100,1)
-        pct_ev=round(ev_a/total_pv*100,1)
-        rows.append({'idx':idx+1,
-                     'ws':s.strftime('%Y-%m-%d'),
-                     'we':w_end.strftime('%Y-%m-%d'),
-                     'n':n_sem[s],
-                     'pv':round(pv_sem[s],1),
-                     'ev':round(ev_sem[s] if s<=HOY else 0.0,1),
-                     'pvA':round(pv_a,1),
-                     'evA':round(ev_a,1),
-                     'pctPV':pct_pv,
-                     'pctEV':pct_ev})
+    # Construir rows usando pctPV del calendario fijo
+    pv_a = 0.0; ev_a = 0.0
+    rows = []
+    for idx_s, s in enumerate(semanas_rel):
+        pv_a += pv_sem[s['ini']]
+        if s['ini'] <= HOY: ev_a += ev_sem[s['ini']]
+        # pctPV: usar % del calendario fijo si la semana tiene número, si no calcular
+        if s.get('n') and s['n'] <= len(SEMANAS_CAL):
+            cal_entry = SEMANAS_CAL[s['n']-1]
+            pct_pv_cal = float(cal_entry.get('pv', round(pv_a/total_pv*100, 1)))
+        else:
+            pct_pv_cal = round(pv_a / total_pv * 100, 1)
+        pct_ev = round(ev_a / total_pv * 100, 1)
+        rows.append({
+            'idx': idx_s + 1,
+            'ws':  s['ini'].strftime('%Y-%m-%d'),
+            'we':  s['fin'].strftime('%Y-%m-%d'),
+            'n':   n_sem[s['ini']],
+            'pv':  round(pv_sem[s['ini']], 1),
+            'ev':  round(ev_sem[s['ini']] if s['ini'] <= HOY else 0.0, 1),
+            'pvA': round(pv_a, 1),
+            'evA': round(ev_a, 1),
+            'pctPV': pct_pv_cal,
+            'pctEV': pct_ev,
+        })
 
     # Métricas finales
     rows_pas=[r for r in rows if parse(r['ws'])<=HOY]
@@ -259,7 +300,10 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     nombre_d=f"{pedido} - {nombre_proy}" if nombre_proy and pedido not in nombre_proy else (nombre_proy or pedido)
 
     tareas_out=[{'name':t['name'],'section':t['section'],'ini':t['ini'],
-                 'fin':t['fin'],'av':t['av'],'kickoff':t['kickoff']} for t in tareas]
+                 'fin':t['fin'],'av':t['av'],'kickoff':t['kickoff'],
+                 'completed_at':t.get('completed_at',''),
+                 'semana_ini':t.get('semana_ini'),
+                 'semana_fin':t.get('semana_fin')} for t in tareas]
 
     return {
         'nombre':nombre_d,
