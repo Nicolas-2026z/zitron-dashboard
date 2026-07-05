@@ -192,8 +192,10 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     # Filtrar semanas relevantes: desde kickoff hasta fin_real + buffer
     end_date = fin_real_d or (HOY + timedelta(weeks=4))
     # Buffer de 4 semanas extra para asegurar que PV llega a 100%
+    # Solo semanas desde la semana del kickoff en adelante (sin semanas previas)
     semanas_rel = [s for s in SEMANAS_CAL
-                   if s['fin'] >= kickoff_d and s['ini'] <= end_date + timedelta(weeks=4)]
+                   if s['ini'] <= kickoff_d <= s['fin'] or  # semana del kickoff
+                   (s['ini'] > kickoff_d and s['ini'] <= end_date + timedelta(weeks=4))]
 
     # Si el kickoff está antes del S1, agregar semanas extra hacia atrás
     if kickoff_d < SEMANAS_CAL[0]['ini']:
