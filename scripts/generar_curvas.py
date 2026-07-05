@@ -291,17 +291,22 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         # pctPV: calculado por horas reales del proyecto
         pct_pv_cal = round(pv_a / total_pv * 100, 1)
         pct_ev = round(ev_a / total_pv * 100, 1)
+        # EV semanal = suma de ev_sem cuyas claves caen en esta semana
+        ev_sem_val = round(sum(v for k,v in ev_sem.items() if s['ini'] <= k <= s['fin'] and k <= HOY), 1)
+        # Semana del calendario fijo
+        cal_wk = s.get('n')
         rows.append({
             'idx': idx_s + 1,
             'ws':  s['ini'].strftime('%Y-%m-%d'),
             'we':  s['fin'].strftime('%Y-%m-%d'),
             'n':   n_sem[s['ini']],
             'pv':  round(pv_sem[s['ini']], 1),
-            'ev':  round(ev_sem[s['ini']] if s['ini'] <= HOY else 0.0, 1),
+            'ev':  ev_sem_val,
             'pvA': round(pv_a, 1),
             'evA': round(ev_a, 1),
             'pctPV': pct_pv_cal,
             'pctEV': pct_ev,
+            'cal_week': cal_wk,
         })
 
     # Métricas finales
