@@ -219,6 +219,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     pv_sem = {}
     ev_sem = {}
     n_sem  = {s['ini']: 0 for s in semanas_rel}
+    tareas_calc = []  # resultados de la 1ra pasada (PV), usados en la 2da pasada (EV)
 
     for t in tareas:
         ini_d = parse(t['ini']); fin_d = parse(t['fin'])
@@ -248,9 +249,19 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         pv_sem[sem_pv] = pv_sem.get(sem_pv, 0.0) + h
         n_sem[sem_pv] = n_sem.get(sem_pv, 0) + 1
 
+        tareas_calc.append({'h': h, 'sem_pv': sem_pv, 'comp_d': parse(t.get('completed_at', '')), 'av': t['av']})
+
+    # Última semana con PV real (planificación). Si el trabajo real se extendió más allá
+    # de lo planificado, todo el EV posterior se acumula en esta última semana en vez de
+    # seguir generando semanas nuevas — el proyecto "cierra" visualmente en su horizonte planificado.
+    last_pv_week = max(pv_sem.keys()) if pv_sem else None
+    if last_pv_week is not None:
+        semanas_rel = [s for s in semanas_rel if s['ini'] <= last_pv_week]
+
+    for tc in tareas_calc:
+        h, sem_pv, comp_d, av = tc['h'], tc['sem_pv'], tc['comp_d'], tc['av']
         # EV va a la semana de completed_at usando SEMANAS_CAL fijo
-        comp_d = parse(t.get('completed_at', ''))
-        if t['av'] >= 1.0 and comp_d:
+        if av >= 1.0 and comp_d:
             # Buscar en SEMANAS_CAL (calendario fijo dom-sáb)
             sem_ev = None
             for sc in SEMANAS_CAL:
@@ -262,11 +273,14 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
                 diff = (comp_d - SEMANAS_CAL[0]['ini']).days
                 n = int(diff // 7)
                 sem_ev = SEMANAS_CAL[0]['ini'] + timedelta(weeks=n)
-            # Asegurar que sem_ev está en ev_sem
-            ev_sem[sem_ev] = ev_sem.get(sem_ev, 0.0) + h * t['av']
-        elif t['av'] > 0:
+            # Clamp: si se completó después de la última semana planificada, se cuenta igual
+            # pero se acumula en esa última semana (no se generan semanas nuevas)
+            if last_pv_week is not None and sem_ev > last_pv_week:
+                sem_ev = last_pv_week
+            ev_sem[sem_ev] = ev_sem.get(sem_ev, 0.0) + h * av
+        elif av > 0:
             # Tarea en progreso: EV va a semana de fin_d × avance
-            ev_sem[sem_pv] = ev_sem.get(sem_pv, 0.0) + h * t['av']
+            ev_sem[sem_pv] = ev_sem.get(sem_pv, 0.0) + h * av
 
     # Rellenar semanas sin PV con 0
     for s in semanas_rel:
