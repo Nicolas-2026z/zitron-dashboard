@@ -102,7 +102,7 @@ tr:hover td{background:#f8fafc}
 .desp-banner span.icon{font-size:22px}
 .desp-banner span.txt{font-family:var(--mono);font-size:13px;font-weight:700;color:#7c3aed;letter-spacing:.5px}
 </style>
-<!-- updated: 2026-07-06 02:57:07 --></head>
+<!-- updated: 2026-07-06 03:12:21 --></head>
 <body>
 
 <div class="login-wrap" id="loginWrap">
@@ -257,8 +257,8 @@ function renderResumen() {
 
     const spit = m.spit === 99 ? '∞' : m.spit.toFixed(2);
     const svt = (m.svt >= 0 ? '+' : '') + m.svt.toFixed(1) + 'w';
-    const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—';
-    const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL') : '—';
+    const due = p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—';
+    const eac = p.eac_date ? new Date(p.eac_date).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—';
 
     const despBadge = p.despachado
       ? `<span class="pbadge" style="background:#ede9fe;color:#7c3aed;border:1.5px solid #c4b5fd;font-size:11px;padding:4px 12px;font-weight:700">🚢 Despachado</span>`
@@ -267,7 +267,7 @@ function renderResumen() {
     card.innerHTML = `
       <div class="pname">${p.nombre}</div>
       <div class="pmeta">
-        📅 KO: ${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'} &nbsp;·&nbsp;
+        📅 KO: ${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—'} &nbsp;·&nbsp;
         🏁 Contractual: ${due}<br>
         📊 EV: ${m.pctEv}% &nbsp;·&nbsp; SPI: ${spit} &nbsp;·&nbsp; SV: ${(m.svt>=0?'+':'')+m.svt.toFixed(1)}%<br>
         📆 EAC: ${eac} &nbsp;·&nbsp; Prob: ${p.prob}%
@@ -296,10 +296,10 @@ function abrirDash(idx, card) {
     : '';
 
   document.getElementById('dashMeta').innerHTML = `
-    📅 Kick Off: <b>${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL') : '—'}</b> &nbsp;·&nbsp;
-    🏁 Contractual: <b>${p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL') : '—'}</b> &nbsp;·&nbsp;
-    🚚 EXW: <b style="color:${p.exw ? '#d97706' : 'var(--muted)'}">${p.exw ? new Date(p.exw).toLocaleDateString('es-CL') : '—'}</b> &nbsp;·&nbsp;
-    🔚 Fin real: <b>${p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL') : '—'}</b><br>
+    📅 Kick Off: <b>${p.kickoff ? new Date(p.kickoff).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—'}</b> &nbsp;·&nbsp;
+    🏁 Contractual: <b>${p.contractual ? new Date(p.contractual).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—'}</b> &nbsp;·&nbsp;
+    🚚 EXW: <b style="color:${p.exw ? '#d97706' : 'var(--muted)'}">${p.exw ? new Date(p.exw).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—'}</b> &nbsp;·&nbsp;
+    🔚 Fin real: <b>${p.fin_real ? new Date(p.fin_real).toLocaleDateString('es-CL', {timeZone:'UTC'}) : '—'}</b><br>
     📋 PV total: <b>${p.total_pv.toFixed(0)} hrs</b> &nbsp;·&nbsp;
     ⏱ AT: <b>S${calcAT(p.kickoff, p.fin_real, p.rows).toFixed(1)}</b> &nbsp;·&nbsp;
 
@@ -330,7 +330,7 @@ function abrirDash(idx, card) {
       <div class="kv" style="font-size:16px">${Math.abs(Math.round(svtLive/100*p.total_pv))}h</div>
       <div class="ks" style="font-size:11px;font-weight:600">≈ ${Math.abs(Math.round(svtLive/100*p.total_pv/8.3))} días ${svtLive<0?'de atraso':'de adelanto'}</div>
     </div>
-    ${p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${new Date(p.exw).toLocaleDateString('es-CL')}</div><div class="ks">entrega prevista</div></div>` : ''}
+    ${p.exw ? `<div class="kpi" style="--c:var(--amarillo)"><div class="kl">🚚 EXW</div><div class="kv" style="font-size:12px">${new Date(p.exw).toLocaleDateString('es-CL', {timeZone:'UTC'})}</div><div class="ks">entrega prevista</div></div>` : ''}
   `;
 
   _proyActual = p;
@@ -347,16 +347,17 @@ function cerrarDash() {
 
 function fmts(isoStr) {
   const d = new Date(isoStr);
-  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+  return `${d.getUTCDate().toString().padStart(2,'0')}/${(d.getUTCMonth()+1).toString().padStart(2,'0')}`;
 }
 
 function isoWeek(isoStr) {
   // NUM.DE.SEMANA Excel tipo 1: semana empieza el domingo
   // Igual que =NUM.DE.SEMANA(fecha, 1) en Excel
+  // Usa UTC en todo el calculo para no correrse un dia en timezones negativos (Chile, etc.)
   const d = new Date(isoStr);
-  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const jan1 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   const dayOfYear = Math.floor((d - jan1) / 86400000);
-  const jan1Day = jan1.getDay(); // 0=domingo
+  const jan1Day = jan1.getUTCDay(); // 0=domingo
   return Math.floor((dayOfYear + jan1Day) / 7) + 1;
 }
 
@@ -471,7 +472,7 @@ function mostrarDetalleSemana(p, r) {
     <div style="background:white;border-radius:12px;max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div>
-          <div style="font-weight:600;font-size:14px">Tareas — S${isoWeek(r.ws)} (${wsDate.toLocaleDateString('es-CL')})</div>
+          <div style="font-weight:600;font-size:14px">Tareas — S${isoWeek(r.ws)} (${wsDate.toLocaleDateString('es-CL', {timeZone:'UTC'})})</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">${tareasSemana.length} tareas · ${totalHecho.toFixed(1)}h / ${totalPlan.toFixed(1)}h completadas (${pctTotal}%)</div>
         </div>
         <button onclick="this.closest('div[style*=fixed]').remove()" style="border:none;background:#f1f5f9;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px">✕ Cerrar</button>
@@ -528,7 +529,7 @@ function renderTabla(p) {
 
     tr.innerHTML = `
       <td class="mono">${esFutura ? '→' : ''} S${r.cal_week || isoWeek(r.ws)}</td>
-      <td class="mono" style="color:var(--muted);font-size:10px">${new Date(r.ws).toLocaleDateString('es-CL')}</td>
+      <td class="mono" style="color:var(--muted);font-size:10px">${new Date(r.ws).toLocaleDateString('es-CL', {timeZone:'UTC'})}</td>
       <td class="mono">${r.n || '—'}</td>
       <td class="mono" style="color:#2563eb">${r.pv.toFixed(1)}h</td>
       <td class="mono" style="color:#16a34a">${esFutura ? '—' : r.ev.toFixed(1) + 'h'}</td>
