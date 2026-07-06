@@ -310,12 +310,17 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         })
 
     # Métricas finales
+    # rows_pas: última fila cuyo inicio de semana ya llegó (incluye la semana en curso completa,
+    # aunque aún no haya terminado) — así el KPI se actualiza desde el día 1 de cada semana
     rows_pas=[r for r in rows if parse(r['ws'])<=HOY]
-    pct_ev_f=rows_pas[-1]['pctEV'] if rows_pas else 0.0
-    pct_pv_f=rows_pas[-1]['pctPV'] if rows_pas else 0.0
+    at_weeks=len(rows_pas)-1 if rows_pas else 0
+
+    ultima = rows_pas[-1] if rows_pas else None
+    pct_ev_f=ultima['pctEV'] if ultima else 0.0
+    pct_pv_f=ultima['pctPV'] if ultima else 0.0
+    semana_actual=ultima['cal_week'] if ultima else None
     spit=round(pct_ev_f/pct_pv_f,2) if pct_pv_f>0 else 0.0
     svt=round(pct_ev_f-pct_pv_f,1)
-    at_weeks=len(rows_pas)-1 if rows_pas else 0
 
     # ES
     es_weeks=0.0
@@ -341,10 +346,9 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     # Estado
     due_d=parse(due_str)
     if pct_ev_f>=100: estado='Terminado'
-    elif svt>2: estado='Adelantado'
     elif due_d and HOY>due_d and pct_ev_f<100: estado='Vencido'
-    elif svt<-2: estado='Atrasado'
-    else: estado='Adelantado'
+    elif svt>=0: estado='Adelantado'
+    else: estado='Atrasado'
 
     # Prob
     if pct_ev_f>=100: prob=100
@@ -384,6 +388,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
         'es_iso':round(es_weeks,1),
         'spit':spit,
         'svt':svt,
+        'semana_actual':semana_actual,
         'prob':prob,
         'estado':estado,
         'despachado':False,
