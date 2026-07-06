@@ -2,12 +2,14 @@ name: Actualizar Curva S
 
 on:
   schedule:
-    - cron: '5 13 * * 1-5'
-    - cron: '5 20 * * 1-5'
+    - cron: '5 13 * * *'
+    - cron: '5 20 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   actualizar-curvas:
@@ -73,3 +75,39 @@ jobs:
           git diff --staged --quiet || git commit -m "Curva S actualizada $(TZ='America/Santiago' date '+%Y-%m-%d %H:%M') Chile"
           git pull --rebase origin main
           git push
+
+      - name: Forzar GitHub Pages en modo GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" \
+            -d '{"build_type":"workflow"}' || true
+
+      - name: Preparar sitio estatico
+        run: |
+          mkdir -p _site
+          cp *.html _site/ 2>/dev/null || true
+          cp -r docs _site/ 2>/dev/null || true
+          touch _site/.nojekyll
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: actualizar-curvas
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
