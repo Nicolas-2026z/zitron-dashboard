@@ -1058,28 +1058,91 @@ function renderTareas() {
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="14"><i>Sin tareas</i></td></tr>';
 }
 
-// Orden canónico global de tareas
+// Orden canónico global — nombres exactos del Excel (sin cabeceras)
 const ORDEN_GLOBAL = [
-  "Kick off meeting","Definicion Jefe de proyecto","Apertura pedido","Alcance del proyecto",
-  "Definicion Tecnica de componentes principales","Plazo Contractual",
-  "Ingenieria electrica","Revision tableros pruebas",
-  "Ingenieria Basica Motor","Ingenieria basica Rodete","Ingenieria Detalle","Analisis de costeo",
-  "propuesta motor","propuesta alabes","propuesta tableros","propuesta nucleo rodete",
-  "Propuesta sensores y accesorios","propuesta compras a codigo",
-  "Generación OC Alabe","Fabricación Alabe",
-  "Generación OC Tableros","Fabricación Tablero",
-  "Generación OC Rodete","Fabricación Rodete",
-  "Generación OC motor OT","Fabricación motor OT","Planos motor proveedor OT",
-  "Generación OC materiales","Fabricacion a codigo y compras locales",
-  "Generación OC Sensores y accesorios","Fabricacion Sensores y accesorios",
-  "Planos Preliminar","Planos Definitivos","Check Planos","Check pruebas FAT",
-  "Recepcion materiales","Control de calidad compras",
-  "Generación OC FABRICACIÓN EXTERNA","Armado FABRICACIÓN EXTERNA","Control de calidad Armado",
-  "Recepcion Alabe","Recepcion Rodete","Recepcion Motor","Recepcion Tableros","Recepcion sensores",
-  "Revestimiento","Montaje motor","Montaje Alabe","Montaje Rodete","Montaje sensores","Pruebas FAT","RE-PINTADO",
-  "Coordinacion Entrega con Cliente","Embalaje","PACKING LIST","Despacho",
-  "Costos","Gestion","Puesta en Marcha","instalación Componentes","Pruebas de instalación"
+  "Kick off meeting",
+  "Definicion Jefe de proyecto",
+  "Apertura pedido",
+  "Alcance del proyecto",
+  "Definicion Tecnica de componentes principales",
+  "Plazo Contractual",
+  "Ingenieria electrica",
+  "Revision tableros pruebas",
+  "Ingenieria Basica Motor",
+  "Ingenieria basica Rodete",
+  "Ingenieria Detalle",
+  "Analisis de costeo",
+  "propuesta motor",
+  "propuesta alabes",
+  "propuesta tableros",
+  "propuesta nucleo rodete",
+  "Propuesta sensores y accesorios",
+  "propuesta compras a codigo",
+  "Generación OC Alabe",
+  "Fabricación Alabe",
+  "Generación OC Tableros",
+  "Fabricación Tablero",
+  "Generación OC Rodete",
+  "Fabricación Rodete",
+  "Generación OC motor OT",
+  "Fabricación motor OT",
+  "Planos motor proveedor OT",
+  "Materiales a codigo",
+  "Generación OC materiales",
+  "Fabricacion a codigo y compras locales",
+  "Generación OC Sensores y accesorios",
+  "Fabricacion Sensores y accesorios",
+  "Planos Preliminar",
+  "Planos Definitivos",
+  "Check Planos",
+  "Check pruebas FAT",
+  "Recepcion materiales a codigos",
+  "Control de calidad compras materiales",
+  "Generación OC FABRICACIÓN EXTERNA",
+  "Armado FABRICACIÓN EXTERNA",
+  "Control de calidad Armado",
+  "Recepcion Alabe",
+  "Recepcion Rodete",
+  "Recepcion Motor",
+  "Recepcion Tableros",
+  "Recepcion sensores y accesorios",
+  "Revestimiento",
+  "Montaje motor",
+  "Montaje Alabe",
+  "Montaje Rodete",
+  "Montaje sensores y accesorios",
+  "Pruebas FAT",
+  "RE-PINTADO",
+  "Coordinacion Entrega con Cliente",
+  "Embalaje",
+  "PACKING LIST",
+  "Despacho",
+  "Gestion",
+  "Puesta en Marcha Servicios",
+  "instalación Componentes",
+  "Pruebas de instalación Componentes"
 ];
+
+// Nombres exactos del Excel que corresponden a cabeceras de sección (se excluyen de la cascada)
+const CABECERAS_SECCION = [
+  "ingenieria de servicio:",
+  "ingenieria jefe de proyecto:",
+  "propuesta compras:",
+  "compras:",
+  "ingenieria y diseño:",
+  "bodega:",
+  "montaje:",
+  "logistica:",
+  "cierre proyecto:"
+];
+
+function esCabecera(nombre) {
+  const n = normStr(nombre);
+  return CABECERAS_SECCION.some(c => n === normStr(c) || n.endsWith(':'));
+}
+
+// Orden canónico global — nombres exactos del Excel (sin cabeceras)
+const ORDEN_GLOBAL_UNUSED = [];
 
 const SECCIONES_ORDEN = [
   { key: "kick_off",          label: "Kick off",             keywords: ["kick off"] },
@@ -1099,9 +1162,14 @@ function normStr(s) {
 
 function ordenGlobal(nombre) {
   const n = normStr(nombre);
+  // Primero busca coincidencia exacta
+  for (let i = 0; i < ORDEN_GLOBAL.length; i++) {
+    if (n === normStr(ORDEN_GLOBAL[i])) return i;
+  }
+  // Luego busca si empieza igual (para variantes con OT number)
   for (let i = 0; i < ORDEN_GLOBAL.length; i++) {
     const og = normStr(ORDEN_GLOBAL[i]);
-    if (n.startsWith(og) || og.startsWith(n) || n.includes(og) || og.includes(n)) return i;
+    if (n.startsWith(og) || og.startsWith(n)) return i;
   }
   return 999;
 }
@@ -1179,7 +1247,7 @@ function renderCascada() {
   let cadenas = Object.entries(porProyecto).map(([proyecto, tareas]) => ({
     proyecto,
     tareas: tareas
-      .filter(t => t.name && t.name.trim())
+      .filter(t => t.name && t.name.trim() && !esCabecera(t.name))
       .sort((a, b) => ordenGlobal(a.name) - ordenGlobal(b.name))
   })).filter(c => c.tareas.length > 0);
 
