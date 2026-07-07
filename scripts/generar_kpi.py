@@ -1058,109 +1058,117 @@ function renderTareas() {
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="14"><i>Sin tareas</i></td></tr>';
 }
 
-// Orden canónico de tareas en la cascada
-const SECCIONES_CASCADA = {
-  kick_off:         ["kick off meeting","definicion jefe de proyecto","apertura pedido","alcance del proyecto","definicion tecnica de componentes principales","plazo contractual"],
-  ingenieria:       ["ingenieria electrica","revision tableros pruebas","ingenieria basica motor","ingenieria basica rodete","ingenieria detalle","analisis de costeo"],
-  propuesta:        ["propuesta motor","propuesta alabes","propuesta tableros","propuesta nucleo rodete","propuesta sensores y accesorios","propuesta compras a codigo"],
-  compras:          ["alabe generacion oc","alabe fabricacion","tablero generacion oc","tableros fabricacion tablero","rodete generacion oc","rodete fabricacion rodete","motor ot","generacion oc motor","fabricacion motor","planos motor proveedor","materiales a codigo","generacion oc materiales","fabricacion a codigo y compras locales","sensores y accesorios generacion oc","sensores y accesorios fabricacion","sensores y accesorios"],
-  ingenieria_diseno:["planos preliminar","planos definitivos","check planos","check pruebas fat"],
-  bodega:           ["recepcion materiales","control de calidad compras","fabricacion externa","generacion oc fabricacion externa","armado fabricacion externa","control de calidad armado","recepcion alabe","recepcion rodete","recepcion motor","recepcion tableros","recepcion sensores"],
-  montaje:          ["revestimiento","montaje motor","montaje alabe","montaje rodete","montaje sensores","pruebas fat","re-pintado"],
-  logistica:        ["coordinacion entrega con cliente","embalaje","packing list","despacho"],
-  cierre:           ["costos","gestion puesta en marcha","servicios instalacion","componentes","pruebas de instalacion"]
-};
-
-function getSeccion(nombre) {
-  const n = (nombre||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  for (const [sec, nombres] of Object.entries(SECCIONES_CASCADA)) {
-    if (nombres.some(s => n.includes(s) || s.includes(n))) return sec;
-  }
-  return null;
-}
-
-// Orden canónico de tareas en la cascada
-const ORDEN_CASCADA = [
-  "kick off meeting","definicion jefe de proyecto","apertura pedido","alcance del proyecto",
-  "definicion tecnica de componentes principales","plazo contractual",
-  "ingenieria electrica","revision tableros pruebas",
-  "ingenieria basica motor","ingenieria basica rodete","ingenieria detalle","analisis de costeo",
+// Orden canónico global de tareas
+const ORDEN_GLOBAL = [
+  "Kick off meeting","Definicion Jefe de proyecto","Apertura pedido","Alcance del proyecto",
+  "Definicion Tecnica de componentes principales","Plazo Contractual",
+  "Ingenieria electrica","Revision tableros pruebas",
+  "Ingenieria Basica Motor","Ingenieria basica Rodete","Ingenieria Detalle","Analisis de costeo",
   "propuesta motor","propuesta alabes","propuesta tableros","propuesta nucleo rodete",
-  "propuesta sensores y accesorios","propuesta compras a codigo",
-  "alabe generacion oc","alabe fabricacion","alabe",
-  "tablero generacion oc","tableros fabricacion tablero","tablero",
-  "rodete generacion oc","rodete fabricacion rodete","rodete",
-  "motor ot","generacion oc motor","fabricacion motor","planos motor proveedor",
-  "materiales a codigo","generacion oc materiales","fabricacion a codigo y compras locales",
-  "sensores y accesorios generacion oc","sensores y accesorios fabricacion","sensores y accesorios",
-  "planos preliminar","planos definitivos","check planos","check pruebas fat",
-  "recepcion materiales","control de calidad compras","fabricacion externa",
-  "generacion oc fabricacion externa","armado fabricacion externa","control de calidad armado",
-  "recepcion alabe","recepcion rodete","recepcion motor","recepcion tableros","recepcion sensores",
-  "revestimiento","montaje motor","montaje alabe","montaje rodete","montaje sensores",
-  "pruebas fat","re-pintado",
-  "coordinacion entrega con cliente","embalaje","packing list","despacho",
-  "costos","gestion puesta en marcha","servicios instalacion","componentes","pruebas de instalacion"
+  "Propuesta sensores y accesorios","propuesta compras a codigo",
+  "Generación OC Alabe","Fabricación Alabe",
+  "Generación OC Tableros","Fabricación Tablero",
+  "Generación OC Rodete","Fabricación Rodete",
+  "Generación OC motor OT","Fabricación motor OT","Planos motor proveedor OT",
+  "Generación OC materiales","Fabricacion a codigo y compras locales",
+  "Generación OC Sensores y accesorios","Fabricacion Sensores y accesorios",
+  "Planos Preliminar","Planos Definitivos","Check Planos","Check pruebas FAT",
+  "Recepcion materiales","Control de calidad compras",
+  "Generación OC FABRICACIÓN EXTERNA","Armado FABRICACIÓN EXTERNA","Control de calidad Armado",
+  "Recepcion Alabe","Recepcion Rodete","Recepcion Motor","Recepcion Tableros","Recepcion sensores",
+  "Revestimiento","Montaje motor","Montaje Alabe","Montaje Rodete","Montaje sensores","Pruebas FAT","RE-PINTADO",
+  "Coordinacion Entrega con Cliente","Embalaje","PACKING LIST","Despacho",
+  "Costos","Gestion","Puesta en Marcha","instalación Componentes","Pruebas de instalación"
 ];
 
-function ordenCascada(nombre) {
-  const n = (nombre||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  for (let i = 0; i < ORDEN_CASCADA.length; i++) {
-    if (n.includes(ORDEN_CASCADA[i]) || ORDEN_CASCADA[i].includes(n)) return i;
+const SECCIONES_ORDEN = [
+  { key: "kick_off",          label: "Kick off",             keywords: ["kick off"] },
+  { key: "ingenieria",        label: "Ingeniería",           keywords: ["ingenieria de servicio","ingeniería de servicio","ingenieria jefe","ingeniería jefe"] },
+  { key: "propuesta",         label: "Propuesta compras",    keywords: ["propuesta compra","propuesta de compra"] },
+  { key: "compras",           label: "Compras",              keywords: ["compras"] },
+  { key: "ingenieria_diseno", label: "Ingeniería y diseño",  keywords: ["ingenieria y diseño","ingeniería y diseño","ingenieria y diseno"] },
+  { key: "bodega",            label: "Bodega",               keywords: ["bodega"] },
+  { key: "montaje",           label: "Montaje",              keywords: ["montaje"] },
+  { key: "logistica",         label: "Logística",            keywords: ["logistica","logística"] },
+  { key: "cierre",            label: "Cierre proyecto",      keywords: ["cierre proyecto","cierre de proyecto"] },
+];
+
+function normStr(s) {
+  return (s||'').toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+}
+
+function ordenGlobal(nombre) {
+  const n = normStr(nombre);
+  for (let i = 0; i < ORDEN_GLOBAL.length; i++) {
+    const og = normStr(ORDEN_GLOBAL[i]);
+    if (n.startsWith(og) || og.startsWith(n) || n.includes(og) || og.includes(n)) return i;
   }
   return 999;
+}
+
+function getSeccionLabel(section) {
+  const sec = normStr(section||'');
+  for (const s of SECCIONES_ORDEN) {
+    if (s.keywords.some(k => sec.includes(normStr(k)))) return s.label;
+  }
+  return section || '';
+}
+
+function diasHabilesJSCascada(d1str, d2str) {
+  if (!d1str || !d2str) return null;
+  const feriados = new Set([
+    '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
+    '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
+    '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
+    '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
+    '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
+  ]);
+  let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
+  const sign = d2 >= d1 ? 1 : -1;
+  if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
+  let count = 0, cur = new Date(d1);
+  cur.setDate(cur.getDate()+1);
+  while (cur <= d2) {
+    const iso = cur.toISOString().slice(0,10);
+    if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count * sign;
+}
+
+function toggleSelectorSecciones() {
+  document.getElementById('selectorSeccionesCascada').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const sel = document.getElementById('selectorSeccionesCascada');
+  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
+});
+
+function seleccionarTodasSecciones(valor) {
+  document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').forEach(cb => cb.checked = valor);
+  actualizarLabelSecciones();
+  renderCascada();
+}
+
+function actualizarLabelSecciones() {
+  const checks = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked');
+  const total = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').length;
+  const label = document.getElementById('labelSeccionesCascada');
+  if (!label) return;
+  label.textContent = (checks.length === 0 || checks.length === total) ? 'Todas' : checks.length + ' seleccionadas';
+}
+
+function getSeccionesSeleccionadas() {
+  return Array.from(document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked')).map(cb => cb.value);
 }
 
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
+  const seccionesSeleccionadas = getSeccionesSeleccionadas();
+  actualizarLabelSecciones();
 
-
-  const byName = {};
-  tasks.forEach(t => {
-    const key = (t.project||'') + '||' + t.name.trim();
-    const keyClean = (t.project||'') + '||' + t.name.trim().replace(/:$/, '').trim();
-    byName[key] = t;
-    byName[keyClean] = t;
-    byName[t.name.trim()] = t;
-    byName[t.name.trim().replace(/:$/, '').trim()] = t;
-  });
-
-  function findTask(nombre, proyecto) {
-    const n = nombre.trim().replace(/:$/, '').trim();
-    if (proyecto) {
-      const keyP = proyecto + '||' + n;
-      if (byName[keyP]) return byName[keyP];
-    }
-    if (byName[n]) return byName[n];
-    const nl = n.toLowerCase();
-    const enProyecto = proyecto ? tasks.filter(t => t.project === proyecto) : tasks;
-    return enProyecto.find(t => t.name.toLowerCase().startsWith(nl) || nl.startsWith(t.name.toLowerCase())) || null;
-  }
-
-  function diasHabilesJSLocal(d1str, d2str) {
-    if (!d1str || !d2str) return null;
-    const feriados = new Set([
-      '2025-04-18','2025-04-19','2025-05-01','2025-05-21','2025-06-20','2025-06-29',
-      '2025-07-16','2025-08-15','2025-09-18','2025-09-19','2025-10-12','2025-10-31',
-      '2025-11-01','2025-12-08','2025-12-25','2026-01-01','2026-04-03','2026-04-04',
-      '2026-05-01','2026-05-21','2026-06-20','2026-06-29','2026-07-16','2026-08-15',
-      '2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-12-08','2026-12-25'
-    ]);
-    let d1 = new Date(d1str + 'T12:00:00'), d2 = new Date(d2str + 'T12:00:00');
-    const sign = d2 >= d1 ? 1 : -1;
-    if (sign < 0) { let tmp=d1; d1=d2; d2=tmp; }
-    let count = 0, cur = new Date(d1);
-    cur.setDate(cur.getDate()+1);
-    while (cur <= d2) {
-      const iso = cur.toISOString().slice(0,10);
-      if (cur.getDay()!==0 && cur.getDay()!==6 && !feriados.has(iso)) count++;
-      cur.setDate(cur.getDate()+1);
-    }
-    return count * sign;
-  }
-
-  // Agrupar tareas por proyecto y ordenar según ORDEN_CASCADA
+  // Agrupar por proyecto y ordenar
   const porProyecto = {};
   tasks.forEach(t => {
     if (!t.project) return;
@@ -1168,91 +1176,90 @@ function renderCascada() {
     porProyecto[t.project].push(t);
   });
 
-  // Para cada proyecto, ordenar tareas por ORDEN_CASCADA
-  const cadenas = Object.entries(porProyecto).map(([proyecto, tareas]) => {
-    return tareas
+  let cadenas = Object.entries(porProyecto).map(([proyecto, tareas]) => ({
+    proyecto,
+    tareas: tareas
       .filter(t => t.name && t.name.trim())
-      .sort((a, b) => ordenCascada(a.name) - ordenCascada(b.name));
-  }).filter(c => c.length > 1);
+      .sort((a, b) => ordenGlobal(a.name) - ordenGlobal(b.name))
+  })).filter(c => c.tareas.length > 0);
 
-  let filtradas = cadenas;
-  if (soloAtraso) filtradas = filtradas.filter(c => c.some(t => t.estado_general === 'Vencida'));
-  const seccionesSeleccionadas = getSeccionesSeleccionadas();
-  actualizarLabelSecciones();
+  if (soloAtraso) cadenas = cadenas.filter(c => c.tareas.some(t => t.estado_general === 'Vencida'));
+
   if (seccionesSeleccionadas.length > 0) {
-    const SECCION_KEYWORDS = {
-      kick_off:          ["kick off"],
-      ingenieria:        ["ingenieria de servicio","ingenieria jefe","ingeniería de servicio","ingeniería jefe"],
-      propuesta:         ["propuesta compra","propuesta de compra"],
-      compras:           ["compras"],
-      ingenieria_diseno: ["ingenieria y diseño","ingeniería y diseño","ingenieria y diseno"],
-      bodega:            ["bodega"],
-      montaje:           ["montaje"],
-      logistica:         ["logistica","logística"],
-      cierre:            ["cierre proyecto","cierre de proyecto"]
-    };
-    filtradas = filtradas.map(c => c.filter(t => {
-      const sec = (t.section||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-      return seccionesSeleccionadas.some(sel => {
-        const keywords = SECCION_KEYWORDS[sel] || [];
-        return keywords.some(k => sec.includes(k));
-      });
-    })).filter(c => c.length > 0);
+    cadenas = cadenas.map(c => ({
+      proyecto: c.proyecto,
+      tareas: c.tareas.filter(t => {
+        const sec = normStr(t.section||'');
+        return seccionesSeleccionadas.some(sel => {
+          const found = SECCIONES_ORDEN.find(s => s.key === sel);
+          return found && found.keywords.some(k => sec.includes(normStr(k)));
+        });
+      })
+    })).filter(c => c.tareas.length > 0);
   }
 
-  if (filtradas.length === 0) {
+  if (cadenas.length === 0) {
     document.getElementById('cascadaContainer').innerHTML =
-      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>';
+      '<p style="color:#9aa0a6;padding:16px;">No se encontraron tareas que coincidan con los filtros.</p>';
     return;
   }
 
-  // Colores: verde=completada, rojo=vencida, azul=en curso
-  const COLORS = {
-    completada: { bg: '#1e8e3e', border: '#14532d', text: '#fff', label: '✓ Completada' },
-    vencida:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff', label: '⚠ Vencida' },
-    encurso:    { bg: '#1a73e8', border: '#1558b0', text: '#fff', label: '● En curso' },
-  };
+  function getColor(t) {
+    if (t.estado_general === 'Completada') return { bg: '#1e8e3e', border: '#14532d', text: '#fff', label: '✓ Completada' };
+    if (t.estado_general === 'Vencida')    return { bg: '#b3261e', border: '#7f1d1d', text: '#fff', label: '⚠ Vencida' };
+    return { bg: '#1a73e8', border: '#1558b0', text: '#fff', label: '● En curso' };
+  }
 
   let html = '';
-  filtradas.forEach((chain, ci) => {
-    const proyecto = chain[0].project || '';
+  cadenas.forEach(({ proyecto, tareas }) => {
     html += `<div style="margin-bottom:32px;">
       <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
-        🔗 ${proyecto} — ${chain.length} tareas
+        📁 ${proyecto} — ${tareas.length} tareas
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">`;
+      <div style="display:flex;flex-direction:column;gap:4px;">`;
 
-    chain.forEach((t, i) => {
-      const diasReales = (t.completed && t.start_iso)
-        ? diasHabilesJSLocal(t.start_iso, t.completed) : null;
-
-      let colKey = 'encurso';
-      if (t.estado_general === 'Completada') colKey = 'completada';
-      else if (t.estado_general === 'Vencida') colKey = 'vencida';
-      const col = COLORS[colKey];
+    tareas.forEach((t, i) => {
+      const col = getColor(t);
+      const diasReales = (t.completed && t.start_iso) ? diasHabilesJSCascada(t.start_iso, t.completed) : null;
+      const antecesoras = (t.blocked_by && t.blocked_by.length > 0) ? t.blocked_by.join(' · ') : null;
+      const secLabel = getSeccionLabel(t.section);
 
       if (i > 0) {
-        html += `<div style="padding:2px 0;font-size:18px;color:#9aa0a6;padding-left:16px;">↓</div>`;
+        html += `<div style="padding:1px 0 1px 16px;font-size:18px;color:#9aa0a6;">↓</div>`;
       }
 
-      // Buscar antecesora
-      const antecesora = (t.blocked_by && t.blocked_by.length > 0) ? t.blocked_by[0] : (i > 0 ? chain[i-1].name : null);
-
       html += `
-      <div style="border-left:5px solid ${col.border};background:${col.bg};
-                  border-radius:10px;padding:12px 16px;color:${col.text};box-sizing:border-box;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
-          <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
-          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${col.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;">
+        <!-- Columna izquierda: tarea -->
+        <div style="border-left:5px solid ${col.border};background:${col.bg};
+                    border-radius:10px;padding:12px 16px;color:${col.text};box-sizing:border-box;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;flex-wrap:wrap;">
+            <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
+            <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${col.label}</div>
+          </div>
+          ${secLabel ? `<div style="font-size:11px;opacity:0.75;margin-top:3px;">📂 ${secLabel}</div>` : ''}
+          <div style="font-size:12px;margin-top:6px;opacity:0.9;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <span>👤 ${t.assignee}</span>
+            <span>🏢 ${t.area}</span>
+          </div>
+          <div style="font-size:12px;margin-top:4px;opacity:0.9;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <span>📅 ${t.start_fmt} → ${t.due_fmt}</span>
+            ${t.duracion_prevista !== null && t.duracion_prevista !== undefined ? `<span>⏳ ${t.duracion_prevista}d prev.</span>` : ''}
+          </div>
+          <div style="font-size:12px;margin-top:4px;opacity:0.9;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            ${t.completed_fmt !== '--' ? `<span>✅ ${t.completed_fmt}</span>` : ''}
+            ${diasReales !== null ? `<span style="font-weight:700;">⏱ ${diasReales}d reales</span>` : ''}
+            ${t.atraso_dias > 0 ? `<span style="font-weight:700;background:rgba(0,0,0,0.2);padding:1px 8px;border-radius:8px;">+${t.atraso_dias}d atraso</span>` : ''}
+          </div>
         </div>
-        ${antecesora ? `<div style="font-size:11px;margin-top:3px;opacity:0.7;">⬆ Antecesora: ${antecesora}</div>` : ''}
-        <div style="font-size:12px;margin-top:4px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
-          <span>👤 ${t.assignee}</span>
-          <span>🏢 ${t.area}</span>
-          <span>📅 ${t.start_fmt} → ${t.due_fmt}</span>
-          ${t.completed_fmt !== '--' ? `<span>✅ ${t.completed_fmt}</span>` : ''}
-          ${diasReales !== null ? `<span>⏱ ${diasReales}d reales</span>` : ''}
-          ${t.atraso_dias > 0 ? `<span style="font-weight:700;">+${t.atraso_dias}d atraso</span>` : ''}
+        <!-- Columna derecha: antecesoras -->
+        <div style="border-left:3px solid #e6e3dc;background:#f8f8f6;
+                    border-radius:10px;padding:12px 16px;box-sizing:border-box;">
+          <div style="font-size:11px;font-weight:700;color:#5f6368;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">⬆ Bloqueada por</div>
+          ${antecesoras
+            ? antecesoras.split(' · ').map(a => `<div style="font-size:12px;color:#202124;padding:3px 0;border-bottom:1px solid #e6e3dc;">${a.trim()}</div>`).join('')
+            : '<div style="font-size:12px;color:#9aa0a6;font-style:italic;">Sin antecesoras</div>'
+          }
         </div>
       </div>`;
     });
