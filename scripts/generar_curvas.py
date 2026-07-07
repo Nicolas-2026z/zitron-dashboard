@@ -10,6 +10,15 @@ from openpyxl import load_workbook
 
 HORAS_DIA = 8.3
 
+# Secciones de Asana que NO deben contar para PV/EV de la Curva S (siguen apareciendo
+# en el detalle de tareas, solo no afectan el cálculo). Comparación normalizada
+# (minúsculas, espacios colapsados) porque el mismo nombre viene con mayúsculas
+# inconsistentes entre proyectos ("Puesta en Marcha Servicios" / "Puesta en marcha Servicios").
+SECCIONES_EXCLUIDAS_CURVA = {'cierre proyecto', 'puesta en marcha servicios'}
+
+def normalizar_seccion(s):
+    return ' '.join(str(s or '').strip().lower().split())
+
 CATALOGO_MAP = {
     '50001566':'1215922055649550','50001563':'1215727332551578',
     '50001559':'1215504785832997','50001558':'1215137857526702',
@@ -222,6 +231,8 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     tareas_calc = []  # resultados de la 1ra pasada (PV), usados en la 2da pasada (EV)
 
     for t in tareas:
+        if normalizar_seccion(t['section']) in SECCIONES_EXCLUIDAS_CURVA:
+            continue
         ini_d = parse(t['ini']); fin_d = parse(t['fin'])
         if not ini_d: continue
         fin_d = fin_d or ini_d
