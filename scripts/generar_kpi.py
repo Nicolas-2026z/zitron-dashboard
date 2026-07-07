@@ -225,6 +225,10 @@ def process_file(path, today):
         if section and "cierre de proyecto" in str(section).strip().lower():
             continue
 
+        # Excluir tareas llamadas "Costos"
+        if name and str(name).strip().lower() == "costos":
+            continue
+
         start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
@@ -491,7 +495,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 
 <h1>Dashboard Desempeño de Equipos</h1>
 <div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
-<div class="subt2">Días calculados en días hábiles Chile · Última actualización: __FECHA__</div>
+<div class="subt2">Días calculados en días hábiles Chile · Última actualización: __FECHA__ · <span id="horaActual"></span></div>
 
 <div class="selector-multi" id="selectorMulti">
   <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
@@ -582,6 +586,22 @@ TEMPLATE = r"""<!DOCTYPE html>
 </div>
 
 <script>
+// Mostrar hora actual de Chile
+(function() {
+  function actualizarHora() {
+    const ahora = new Date();
+    const opciones = { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false };
+    const hora = ahora.toLocaleTimeString('es-CL', opciones);
+    const fecha = ahora.toLocaleDateString('es-CL', { timeZone: 'America/Santiago', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+    const el = document.getElementById('horaActual');
+    if (el) el.textContent = '· Hora actual: ' + fecha + ' ' + hora + ' hrs';
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    actualizarHora();
+    setInterval(actualizarHora, 60000);
+  });
+})();
+
 const CLAVE = "zitron2026!";
 function checkPass() {
   const val = document.getElementById('gatePass').value;
