@@ -198,7 +198,7 @@
 
 <h1>Dashboard Desempeño de Equipos</h1>
 <div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
-<div class="subt2">Días calculados en días hábiles Chile · Última actualización: martes 07/07/2026 15:25 hrs (Chile) · <span id="horaActual"></span></div>
+<div class="subt2">Días calculados en días hábiles Chile · Última actualización: martes 07/07/2026 15:50 hrs (Chile) · <span id="horaActual"></span></div>
 
 <div class="selector-multi" id="selectorMulti">
   <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
@@ -273,23 +273,29 @@
 </div>
 
 <div class="tabcontent" id="tab-cascada">
-  <div class="filtros">
+  <div class="filtros" style="align-items:flex-start;flex-wrap:wrap;gap:10px;">
     <select id="fCascadaEstado" onchange="renderCascada()">
       <option value="">Todas las cadenas</option>
       <option value="con_atraso">Solo con atraso</option>
     </select>
-    <select id="fCascadaSeccion" onchange="renderCascada()">
-      <option value="">Etapa: Todas</option>
-      <option value="kick_off">Kick off</option>
-      <option value="ingenieria">Ingeniería</option>
-      <option value="propuesta">Propuesta compras</option>
-      <option value="compras">Compras</option>
-      <option value="ingenieria_diseno">Ingeniería y diseño</option>
-      <option value="bodega">Bodega</option>
-      <option value="montaje">Montaje</option>
-      <option value="logistica">Logística</option>
-      <option value="cierre">Cierre proyecto</option>
-    </select>
+    <div class="selector-multi" id="selectorSeccionesCascada">
+      <div class="selector-btn" onclick="toggleSelectorSecciones()">🏷️ Etapas: <span id="labelSeccionesCascada">Todas</span> ▾</div>
+      <div class="panel" id="panelSeccionesCascada">
+        <div class="acciones">
+          <a onclick="seleccionarTodasSecciones(true)">Marcar todas</a>
+          <a onclick="seleccionarTodasSecciones(false)">Desmarcar todas</a>
+        </div>
+        <label><input type="checkbox" value="kick_off" onchange="renderCascada()"> Kick off</label>
+        <label><input type="checkbox" value="ingenieria" onchange="renderCascada()"> Ingeniería</label>
+        <label><input type="checkbox" value="propuesta" onchange="renderCascada()"> Propuesta compras</label>
+        <label><input type="checkbox" value="compras" onchange="renderCascada()"> Compras</label>
+        <label><input type="checkbox" value="ingenieria_diseno" onchange="renderCascada()"> Ingeniería y diseño</label>
+        <label><input type="checkbox" value="bodega" onchange="renderCascada()"> Bodega</label>
+        <label><input type="checkbox" value="montaje" onchange="renderCascada()"> Montaje</label>
+        <label><input type="checkbox" value="logistica" onchange="renderCascada()"> Logística</label>
+        <label><input type="checkbox" value="cierre" onchange="renderCascada()"> Cierre proyecto</label>
+      </div>
+    </div>
   </div>
   <div id="cascadaContainer"></div>
 </div>
@@ -345,6 +351,37 @@ function cambiarTab(tab) {
   document.querySelector(`.tab:nth-child(${idx})`).classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'cascada') renderCascada();
+}
+
+function toggleSelectorSecciones() {
+  document.getElementById('selectorSeccionesCascada').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const sel = document.getElementById('selectorSeccionesCascada');
+  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
+});
+
+function seleccionarTodasSecciones(valor) {
+  document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').forEach(cb => cb.checked = valor);
+  actualizarLabelSecciones();
+  renderCascada();
+}
+
+function actualizarLabelSecciones() {
+  const checks = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked');
+  const total = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').length;
+  const label = document.getElementById('labelSeccionesCascada');
+  if (!label) return;
+  if (checks.length === 0 || checks.length === total) {
+    label.textContent = 'Todas';
+  } else {
+    label.textContent = checks.length + ' seleccionadas';
+  }
+}
+
+function getSeccionesSeleccionadas() {
+  const checks = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked');
+  return Array.from(checks).map(cb => cb.value);
 }
 
 function toggleSelector() {
@@ -780,7 +817,7 @@ function ordenCascada(nombre) {
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
-  const filtroSeccion = document.getElementById('fCascadaSeccion') ? document.getElementById('fCascadaSeccion').value : '';
+
 
   const byName = {};
   tasks.forEach(t => {
@@ -843,7 +880,28 @@ function renderCascada() {
 
   let filtradas = cadenas;
   if (soloAtraso) filtradas = filtradas.filter(c => c.some(t => t.estado_general === 'Vencida'));
-  if (filtroSeccion) filtradas = filtradas.map(c => c.filter(t => getSeccion(t.name) === filtroSeccion)).filter(c => c.length > 0);
+  const seccionesSeleccionadas = getSeccionesSeleccionadas();
+  actualizarLabelSecciones();
+  if (seccionesSeleccionadas.length > 0) {
+    const SECCION_KEYWORDS = {
+      kick_off:          ["kick off"],
+      ingenieria:        ["ingenieria de servicio","ingenieria jefe","ingeniería de servicio","ingeniería jefe"],
+      propuesta:         ["propuesta compra","propuesta de compra"],
+      compras:           ["compras"],
+      ingenieria_diseno: ["ingenieria y diseño","ingeniería y diseño","ingenieria y diseno"],
+      bodega:            ["bodega"],
+      montaje:           ["montaje"],
+      logistica:         ["logistica","logística"],
+      cierre:            ["cierre proyecto","cierre de proyecto"]
+    };
+    filtradas = filtradas.map(c => c.filter(t => {
+      const sec = (t.section||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+      return seccionesSeleccionadas.some(sel => {
+        const keywords = SECCION_KEYWORDS[sel] || [];
+        return keywords.some(k => sec.includes(k));
+      });
+    })).filter(c => c.length > 0);
+  }
 
   if (filtradas.length === 0) {
     document.getElementById('cascadaContainer').innerHTML =
