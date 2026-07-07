@@ -13,11 +13,19 @@ HORAS_DIA = 8.3
 # Secciones de Asana que NO deben contar para PV/EV de la Curva S (siguen apareciendo
 # en el detalle de tareas, solo no afectan el cálculo). Comparación normalizada
 # (minúsculas, espacios colapsados) porque el mismo nombre viene con mayúsculas
-# inconsistentes entre proyectos ("Puesta en Marcha Servicios" / "Puesta en marcha Servicios").
-SECCIONES_EXCLUIDAS_CURVA = {'cierre proyecto', 'puesta en marcha servicios'}
+# inconsistentes entre proyectos, y "Puesta en marcha" a veces viene sin el sufijo
+# "Servicios" ("Puesta en marcha" / "Puesta en Marcha Servicios" / etc. — todas se excluyen).
+SECCIONES_EXCLUIDAS_EXACTAS = {'cierre proyecto'}
+SECCIONES_EXCLUIDAS_PREFIJO = ('puesta en marcha',)
 
 def normalizar_seccion(s):
     return ' '.join(str(s or '').strip().lower().split())
+
+def seccion_excluida(s):
+    n = normalizar_seccion(s)
+    if n in SECCIONES_EXCLUIDAS_EXACTAS:
+        return True
+    return any(n.startswith(p) for p in SECCIONES_EXCLUIDAS_PREFIJO)
 
 CATALOGO_MAP = {
     '50001566':'1215922055649550','50001563':'1215727332551578',
@@ -231,7 +239,7 @@ def calcular_proyecto(pedido,nombre_proy,due_str,tareas):
     tareas_calc = []  # resultados de la 1ra pasada (PV), usados en la 2da pasada (EV)
 
     for t in tareas:
-        if normalizar_seccion(t['section']) in SECCIONES_EXCLUIDAS_CURVA:
+        if seccion_excluida(t['section']):
             continue
         ini_d = parse(t['ini']); fin_d = parse(t['fin'])
         if not ini_d: continue
