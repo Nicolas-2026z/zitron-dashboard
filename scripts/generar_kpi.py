@@ -221,6 +221,10 @@ def process_file(path, today):
         if assignee and str(assignee).strip().lower() in ("nicolás", "nicolas"):
             continue
 
+        # Excluir tareas de la sección "Cierre de proyecto"
+        if section and "cierre de proyecto" in str(section).strip().lower():
+            continue
+
         start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
