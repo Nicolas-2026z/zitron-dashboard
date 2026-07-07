@@ -198,7 +198,7 @@
 
 <h1>Dashboard Desempeño de Equipos</h1>
 <div class="subt">Indicador ejecutivo basado en tareas Asana — nivel 2 únicamente (subtareas, sin cabeceras de sección)</div>
-<div class="subt2">Días calculados en días hábiles Chile · Última actualización: martes 07/07/2026 15:07 hrs (Chile) · <span id="horaActual"></span></div>
+<div class="subt2">Días calculados en días hábiles Chile · Última actualización: martes 07/07/2026 15:25 hrs (Chile) · <span id="horaActual"></span></div>
 
 <div class="selector-multi" id="selectorMulti">
   <div class="selector-btn" onclick="toggleSelector()">📁 Proyectos: <span id="selectorLabel"></span> ▾</div>
@@ -277,6 +277,18 @@
     <select id="fCascadaEstado" onchange="renderCascada()">
       <option value="">Todas las cadenas</option>
       <option value="con_atraso">Solo con atraso</option>
+    </select>
+    <select id="fCascadaSeccion" onchange="renderCascada()">
+      <option value="">Etapa: Todas</option>
+      <option value="kick_off">Kick off</option>
+      <option value="ingenieria">Ingeniería</option>
+      <option value="propuesta">Propuesta compras</option>
+      <option value="compras">Compras</option>
+      <option value="ingenieria_diseno">Ingeniería y diseño</option>
+      <option value="bodega">Bodega</option>
+      <option value="montaje">Montaje</option>
+      <option value="logistica">Logística</option>
+      <option value="cierre">Cierre proyecto</option>
     </select>
   </div>
   <div id="cascadaContainer"></div>
@@ -713,6 +725,27 @@ function renderTareas() {
 }
 
 // Orden canónico de tareas en la cascada
+const SECCIONES_CASCADA = {
+  kick_off:         ["kick off meeting","definicion jefe de proyecto","apertura pedido","alcance del proyecto","definicion tecnica de componentes principales","plazo contractual"],
+  ingenieria:       ["ingenieria electrica","revision tableros pruebas","ingenieria basica motor","ingenieria basica rodete","ingenieria detalle","analisis de costeo"],
+  propuesta:        ["propuesta motor","propuesta alabes","propuesta tableros","propuesta nucleo rodete","propuesta sensores y accesorios","propuesta compras a codigo"],
+  compras:          ["alabe generacion oc","alabe fabricacion","tablero generacion oc","tableros fabricacion tablero","rodete generacion oc","rodete fabricacion rodete","motor ot","generacion oc motor","fabricacion motor","planos motor proveedor","materiales a codigo","generacion oc materiales","fabricacion a codigo y compras locales","sensores y accesorios generacion oc","sensores y accesorios fabricacion","sensores y accesorios"],
+  ingenieria_diseno:["planos preliminar","planos definitivos","check planos","check pruebas fat"],
+  bodega:           ["recepcion materiales","control de calidad compras","fabricacion externa","generacion oc fabricacion externa","armado fabricacion externa","control de calidad armado","recepcion alabe","recepcion rodete","recepcion motor","recepcion tableros","recepcion sensores"],
+  montaje:          ["revestimiento","montaje motor","montaje alabe","montaje rodete","montaje sensores","pruebas fat","re-pintado"],
+  logistica:        ["coordinacion entrega con cliente","embalaje","packing list","despacho"],
+  cierre:           ["costos","gestion puesta en marcha","servicios instalacion","componentes","pruebas de instalacion"]
+};
+
+function getSeccion(nombre) {
+  const n = (nombre||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  for (const [sec, nombres] of Object.entries(SECCIONES_CASCADA)) {
+    if (nombres.some(s => n.includes(s) || s.includes(n))) return sec;
+  }
+  return null;
+}
+
+// Orden canónico de tareas en la cascada
 const ORDEN_CASCADA = [
   "kick off meeting","definicion jefe de proyecto","apertura pedido","alcance del proyecto",
   "definicion tecnica de componentes principales","plazo contractual",
@@ -747,6 +780,7 @@ function ordenCascada(nombre) {
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
+  const filtroSeccion = document.getElementById('fCascadaSeccion') ? document.getElementById('fCascadaSeccion').value : '';
 
   const byName = {};
   tasks.forEach(t => {
@@ -807,9 +841,9 @@ function renderCascada() {
       .sort((a, b) => ordenCascada(a.name) - ordenCascada(b.name));
   }).filter(c => c.length > 1);
 
-  let filtradas = soloAtraso
-    ? cadenas.filter(c => c.some(t => t.estado_general === 'Vencida'))
-    : cadenas;
+  let filtradas = cadenas;
+  if (soloAtraso) filtradas = filtradas.filter(c => c.some(t => t.estado_general === 'Vencida'));
+  if (filtroSeccion) filtradas = filtradas.map(c => c.filter(t => getSeccion(t.name) === filtroSeccion)).filter(c => c.length > 0);
 
   if (filtradas.length === 0) {
     document.getElementById('cascadaContainer').innerHTML =
@@ -846,6 +880,9 @@ function renderCascada() {
         html += `<div style="padding:2px 0;font-size:18px;color:#9aa0a6;padding-left:16px;">↓</div>`;
       }
 
+      // Buscar antecesora
+      const antecesora = (t.blocked_by && t.blocked_by.length > 0) ? t.blocked_by[0] : (i > 0 ? chain[i-1].name : null);
+
       html += `
       <div style="border-left:5px solid ${col.border};background:${col.bg};
                   border-radius:10px;padding:12px 16px;color:${col.text};box-sizing:border-box;">
@@ -853,6 +890,7 @@ function renderCascada() {
           <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
           <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${col.label}</div>
         </div>
+        ${antecesora ? `<div style="font-size:11px;margin-top:3px;opacity:0.7;">⬆ Antecesora: ${antecesora}</div>` : ''}
         <div style="font-size:12px;margin-top:4px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
