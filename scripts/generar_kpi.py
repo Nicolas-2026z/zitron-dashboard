@@ -1009,6 +1009,38 @@ function renderTareas() {
   document.getElementById('tareasBody').innerHTML = html || '<tr><td colspan="14"><i>Sin tareas</i></td></tr>';
 }
 
+// Orden canónico de tareas en la cascada
+const ORDEN_CASCADA = [
+  "kick off meeting","definicion jefe de proyecto","apertura pedido","alcance del proyecto",
+  "definicion tecnica de componentes principales","plazo contractual",
+  "ingenieria electrica","revision tableros pruebas",
+  "ingenieria basica motor","ingenieria basica rodete","ingenieria detalle","analisis de costeo",
+  "propuesta motor","propuesta alabes","propuesta tableros","propuesta nucleo rodete",
+  "propuesta sensores y accesorios","propuesta compras a codigo",
+  "alabe generacion oc","alabe fabricacion","alabe",
+  "tablero generacion oc","tableros fabricacion tablero","tablero",
+  "rodete generacion oc","rodete fabricacion rodete","rodete",
+  "motor ot","generacion oc motor","fabricacion motor","planos motor proveedor",
+  "materiales a codigo","generacion oc materiales","fabricacion a codigo y compras locales",
+  "sensores y accesorios generacion oc","sensores y accesorios fabricacion","sensores y accesorios",
+  "planos preliminar","planos definitivos","check planos","check pruebas fat",
+  "recepcion materiales","control de calidad compras","fabricacion externa",
+  "generacion oc fabricacion externa","armado fabricacion externa","control de calidad armado",
+  "recepcion alabe","recepcion rodete","recepcion motor","recepcion tableros","recepcion sensores",
+  "revestimiento","montaje motor","montaje alabe","montaje rodete","montaje sensores",
+  "pruebas fat","re-pintado",
+  "coordinacion entrega con cliente","embalaje","packing list","despacho",
+  "costos","gestion puesta en marcha","servicios instalacion","componentes","pruebas de instalacion"
+];
+
+function ordenCascada(nombre) {
+  const n = (nombre||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  for (let i = 0; i < ORDEN_CASCADA.length; i++) {
+    if (n.includes(ORDEN_CASCADA[i]) || ORDEN_CASCADA[i].includes(n)) return i;
+  }
+  return 999;
+}
+
 function renderCascada() {
   const tasks = tareasSeleccionadas();
   const soloAtraso = document.getElementById('fCascadaEstado').value === 'con_atraso';
@@ -1057,73 +1089,36 @@ function renderCascada() {
     return count * sign;
   }
 
-  const visitadas = new Set();
-  const cadenas = [];
-
-  function findRaiz(task, seen) {
-    seen = seen || new Set();
-    const key = (task.project||'') + '||' + task.name;
-    if (seen.has(key)) return task;
-    seen.add(key);
-    const prevs = (task.blocked_by||[]).map(b => findTask(b, task.project)).filter(Boolean);
-    if (prevs.length === 0) return task;
-    return findRaiz(prevs[0], seen);
-  }
-
+  // Agrupar tareas por proyecto y ordenar según ORDEN_CASCADA
+  const porProyecto = {};
   tasks.forEach(t => {
-    if (!t.name || !t.name.trim()) return;
-    const raiz = findRaiz(t);
-    const raizKey = (raiz.project||'') + '||' + raiz.name;
-    if (!visitadas.has(raizKey)) {
-      visitadas.add(raizKey);
-      const arbol = { task: raiz, hijos: [] };
-      const visitadasArbol = new Set([raizKey]);
-
-      function buildTree(nodo) {
-        const t = nodo.task;
-        (t.blocking||[]).forEach(nextName => {
-          const next = findTask(nextName, t.project);
-          if (!next) return;
-          const nextKey = (next.project||'') + '||' + next.name;
-          if (visitadasArbol.has(nextKey)) return;
-          visitadasArbol.add(nextKey);
-          const hijo = { task: next, hijos: [] };
-          nodo.hijos.push(hijo);
-          buildTree(hijo);
-        });
-        nodo.hijos.sort((a,b) => (a.task.start_iso||a.task.due_iso||'9999').localeCompare(b.task.start_iso||b.task.due_iso||'9999'));
-      }
-
-      buildTree(arbol);
-
-      const chain = [];
-      function flatten(nodo) {
-        chain.push(nodo.task);
-        nodo.hijos.forEach(flatten);
-      }
-      flatten(arbol);
-
-      const chainValida = chain.filter(c => c.name && c.name.trim());
-      if (chainValida.length > 1) cadenas.push(chainValida);
-    }
+    if (!t.project) return;
+    porProyecto[t.project] = porProyecto[t.project] || [];
+    porProyecto[t.project].push(t);
   });
 
+  // Para cada proyecto, ordenar tareas por ORDEN_CASCADA
+  const cadenas = Object.entries(porProyecto).map(([proyecto, tareas]) => {
+    return tareas
+      .filter(t => t.name && t.name.trim())
+      .sort((a, b) => ordenCascada(a.name) - ordenCascada(b.name));
+  }).filter(c => c.length > 1);
+
   let filtradas = soloAtraso
-    ? cadenas.filter(c => c.some(t => t.atraso_dias > 0))
+    ? cadenas.filter(c => c.some(t => t.estado_general === 'Vencida'))
     : cadenas;
 
   if (filtradas.length === 0) {
     document.getElementById('cascadaContainer').innerHTML =
-      cadenas.length === 0
-        ? '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>'
-        : '<p style="color:#9aa0a6;padding:16px;">No hay cadenas que coincidan con los filtros.</p>';
+      '<p style="color:#9aa0a6;padding:16px;">No se encontraron cadenas de dependencias.</p>';
     return;
   }
 
+  // Colores: verde=completada, rojo=vencida, azul=en curso
   const COLORS = {
-    rojo:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff' },
-    verde:   { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
-    encurso: { bg: '#1e8e3e', border: '#14532d', text: '#fff' },
+    completada: { bg: '#1e8e3e', border: '#14532d', text: '#fff', label: '✓ Completada' },
+    vencida:    { bg: '#b3261e', border: '#7f1d1d', text: '#fff', label: '⚠ Vencida' },
+    encurso:    { bg: '#1a73e8', border: '#1558b0', text: '#fff', label: '● En curso' },
   };
 
   let html = '';
@@ -1131,80 +1126,37 @@ function renderCascada() {
     const proyecto = chain[0].project || '';
     html += `<div style="margin-bottom:32px;">
       <div style="font-size:13px;font-weight:700;color:#5f6368;margin-bottom:12px;">
-        🔗 Cadena ${ci+1} — ${chain.length} tareas &nbsp;<span style="font-weight:400;">${proyecto}</span>
+        🔗 ${proyecto} — ${chain.length} tareas
       </div>
-      <div style="position:relative;">`;
+      <div style="display:flex;flex-direction:column;gap:6px;">`;
 
     chain.forEach((t, i) => {
       const diasReales = (t.completed && t.start_iso)
         ? diasHabilesJSLocal(t.start_iso, t.completed) : null;
 
-      const todasAntecesoras = (t.blocked_by && t.blocked_by.length > 0)
-        ? t.blocked_by.map(b => findTask(b, t.project)).filter(Boolean)
-        : (i > 0 ? [chain[i-1]] : []);
-
-      const antecReal = todasAntecesoras
-        .filter(a => a.completed)
-        .sort((a,b) => (b.completed||'').localeCompare(a.completed||''))[0]
-        || todasAntecesoras[0] || null;
-
-      let atrasoHeredado = null;
-      if (antecReal) {
-        if (antecReal.completed && t.start_iso) {
-          atrasoHeredado = diasHabilesJSLocal(t.start_iso, antecReal.completed);
-        }
-      }
-
-      const enAtraso = t.atraso_dias > 0;
-      const col = enAtraso ? COLORS.rojo : (t.estado_general === 'En curso' ? COLORS.encurso : COLORS.verde);
-      const estadoTxt = enAtraso
-        ? `⚠ ${t.atraso_dias}d de atraso`
-        : t.estado_general === 'En curso' ? '● En curso' : '✓ A tiempo';
+      let colKey = 'encurso';
+      if (t.estado_general === 'Completada') colKey = 'completada';
+      else if (t.estado_general === 'Vencida') colKey = 'vencida';
+      const col = COLORS[colKey];
 
       if (i > 0) {
-        const heredadoHtml = atrasoHeredado !== null && atrasoHeredado > 0
-          ? `<div style="padding:6px 0;font-size:12px;color:#b3261e;font-weight:700;display:flex;align-items:center;gap:6px;">
-               <span style="font-size:20px;">↓</span>
-               <span>Recibe con <b>-${atrasoHeredado}d hábiles</b> menos para completar</span>
-             </div>`
-          : `<div style="padding:4px 0;font-size:20px;color:#9aa0a6;">↓</div>`;
-        html += heredadoHtml;
+        html += `<div style="padding:2px 0;font-size:18px;color:#9aa0a6;padding-left:16px;">↓</div>`;
       }
 
       html += `
       <div style="border-left:5px solid ${col.border};background:${col.bg};
-                  border-radius:10px;padding:14px 18px;color:${col.text};width:100%;box-sizing:border-box;">
+                  border-radius:10px;padding:12px 16px;color:${col.text};box-sizing:border-box;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
           <div style="font-weight:700;font-size:14px;flex:1;">${t.name}</div>
-          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${estadoTxt}</div>
+          <div style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.2);padding:2px 10px;border-radius:10px;white-space:nowrap;">${col.label}</div>
         </div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:12px;margin-top:4px;opacity:0.85;display:flex;gap:16px;flex-wrap:wrap;">
           <span>👤 ${t.assignee}</span>
           <span>🏢 ${t.area}</span>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Previsto</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.start_fmt} → ${t.due_fmt}</div>
-            <div style="font-size:11px;opacity:.8;">${t.duracion_prevista}d hábiles</div>
-          </div>
-          <div style="background:rgba(0,0,0,0.15);border-radius:6px;padding:6px 10px;flex:1;min-width:130px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Real</div>
-            <div style="font-size:12px;font-weight:600;margin-top:2px;">${t.completed_fmt !== '--' ? t.completed_fmt : 'Sin completar'}</div>
-            <div style="font-size:11px;opacity:.8;">${diasReales !== null ? diasReales + 'd hábiles reales' : '—'}</div>
-          </div>
-          ${t.atraso_dias > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Atraso propio</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">+${t.atraso_dias}d</div>
-            <div style="font-size:11px;opacity:.8;">${t.estado_general === 'Vencida' ? 'Vencida' : 'Completada tarde'}</div>
-          </div>` : ''}
-          ${atrasoHeredado !== null && atrasoHeredado > 0 ? `
-          <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:6px 10px;flex:1;min-width:100px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Recibida con</div>
-            <div style="font-size:13px;font-weight:700;margin-top:2px;">-${atrasoHeredado}d</div>
-            <div style="font-size:11px;opacity:.8;">Menos tiempo</div>
-          </div>` : ''}
+          <span>📅 ${t.start_fmt} → ${t.due_fmt}</span>
+          ${t.completed_fmt !== '--' ? `<span>✅ ${t.completed_fmt}</span>` : ''}
+          ${diasReales !== null ? `<span>⏱ ${diasReales}d reales</span>` : ''}
+          ${t.atraso_dias > 0 ? `<span style="font-weight:700;">+${t.atraso_dias}d atraso</span>` : ''}
         </div>
       </div>`;
     });
@@ -1214,7 +1166,6 @@ function renderCascada() {
 
   document.getElementById('cascadaContainer').innerHTML = html;
 }
-
 refrescarSelector();
 render();
 </script>
