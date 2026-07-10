@@ -19,6 +19,8 @@ REGLAS DE ESTADO / COLOR
 - Color: 0-49% rojo, 50-75% amarillo patito (#EAB308), 76-100% verde
 - "Completado" SOLO si fase Logistica/Despacho esta al 100%
 - Fecha EXW: se lee del Excel de fabricacion, fecha maxima por pedido
+- Descripcion del pedido: se lee de la tarea "Apertura pedido" (columna
+  Notes/Notas del export de Asana) dentro de la fase "Kick Off meeting"
 
 USO
 ---
@@ -73,6 +75,10 @@ SECTION_COLORS = {
 DEFAULT_SECTION_COLOR = "#378ADD"
 
 PASSWORD = "zitron2026!"
+
+# Nombre (normalizado) de la tarea cuya descripcion queremos mostrar en el
+# modal de detalle del portafolio.
+DESC_TASK_NAME = "apertura pedido"
 
 # ---------------------------------------------------------------------
 # UTILIDADES
@@ -199,17 +205,40 @@ def process_project(path):
     if not all(r in col for r in required):
         return None
 
+    # Columna de descripcion/notas: Asana la exporta como "Notes" (o "Notas"
+    # si el export quedo localizado). Es opcional: si no existe, desc queda "".
+    # Deteccion tolerante a mayusculas/acentos/espacios extra en el encabezado.
+    headers_norm = {_norm(h): idx for idx, h in enumerate(headers) if h is not None}
+    col_notes = None
+    for cand in ("notes", "notas", "description", "descripcion"):
+        if cand in headers_norm:
+            col_notes = headers_norm[cand]
+            break
+
     rows = []
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         name = row[col["Name"]]
         if name in (None, ""):
             continue
+        notes = ""
+        if col_notes is not None and col_notes < len(row) and row[col_notes] not in (None, ""):
+            notes = str(row[col_notes]).strip()
         rows.append({
             "name": str(name).strip(),
             "parent": (str(row[col["Parent task"]]).strip()
                        if row[col["Parent task"]] not in (None, "") else None),
             "completed": to_date(row[col["Completed At"]]) is not None,
+            "notes": notes,
         })
+
+    # --- Descripcion del pedido: buscar la tarea "Apertura pedido" en
+    # cualquier nivel y tomar su columna de notas/descripcion. ---
+    desc = ""
+    for r in rows:
+        if DESC_TASK_NAME in _norm(r["name"]):
+            if r["notes"]:
+                desc = r["notes"]
+                break
 
     nivel1 = [r for r in rows if r["parent"] is None]
     nivel1_names = {r["name"] for r in nivel1}
@@ -276,6 +305,7 @@ def process_project(path):
         "pct": pct,
         "ph": ph,
         "exw": "",   # se rellena despues con el cruce
+        "desc": desc,  # descripcion de la tarea "Apertura pedido"
     }
 
 
@@ -434,6 +464,21 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .p-baja{background:#D1FAE5;color:#065F46;}
 .exw-tag{font-size:10px;color:#1A3A5C;padding:2px 7px;border-radius:8px;background:#EEF4FF;border:1px solid #C7D9F5;white-space:nowrap;font-weight:600;}
 .exw-tag.vencida{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
+.info-btn{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid #C7D9F5;background:#EEF4FF;color:#1A3A5C;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.info-btn:hover{background:#DCE9FB;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,25,40,.55);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden;}
+.modal-head{background:var(--hdr);color:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.modal-head-title{font-size:14px;font-weight:700;}
+.modal-head-sub{font-size:11px;opacity:.7;margin-top:2px;}
+.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0;}
+.modal-close:hover{background:rgba(255,255,255,.28);}
+.modal-body{padding:20px 22px;max-height:65vh;overflow-y:auto;}
+.modal-label{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.modal-desc{font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;word-wrap:break-word;}
+.modal-desc.empty{color:var(--sub);font-style:italic;}
+.modal-foot{padding:12px 22px 18px;font-size:11px;color:var(--sub);border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -498,6 +543,22 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   <div class="svc-tasks"><h3>Tareas activas</h3><div class="stabs" id="svc-tabs"></div><div id="svc-tasklist"></div></div>
   <div class="footer" id="footer"></div>
 </div>
+<div class="modal-overlay" id="descModal" onclick="if(event.target===this)closeDescModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title" id="descModalTitle">Detalle del pedido</div>
+        <div class="modal-head-sub" id="descModalSub">Tarea Asana: Apertura pedido</div>
+      </div>
+      <button class="modal-close" onclick="closeDescModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-label">Descripcion</div>
+      <div class="modal-desc" id="descModalBody"></div>
+    </div>
+    <div class="modal-foot" id="descModalFoot"></div>
+  </div>
+</div>
 <script>
 var PM={mx:"Mexico",pe:"Peru",cl:"Chile",co:"Colombia"};
 var filt="all";
@@ -537,7 +598,6 @@ function getF(){
   else if(s==="pa")d.sort(function(a,b){return a.pct-b.pct;});
   else if(s==="ct")d.sort(function(a,b){return a.p.localeCompare(b.p);});
   else if(s==="exwa"){
-    // Mas antigua primero; sin fecha al final
     d.sort(function(a,b){
       var da=parseExw(a.exw),db=parseExw(b.exw);
       if(!da&&!db)return 0;
@@ -587,9 +647,11 @@ function toggle(i){
   if(card)card.classList.toggle("open",!open);
 }
 
+var lastRenderData=[];
 function render(){
   rKPIs();
   var data=getF();
+  lastRenderData=data;
   document.getElementById("plist").innerHTML=data.map(function(x,i){
     var c=col(x.pct);
     var desp=isDespachado(x);
@@ -614,6 +676,7 @@ function render(){
       +'<span class="pcountry">'+x.p+'</span>'
       +'<span class="pbadge" style="background:'+b.c+'22;color:'+b.c+'">'+b.t+'</span>'
       +exwTag
+      +'<button class="info-btn" onclick="event.stopPropagation();showDesc('+i+')" title="Ver detalle del pedido (Apertura pedido)">&#9432; Detalle</button>'
       +'<span class="ppct" style="color:'+c+'">'+x.pct+'%</span>'
       +db+'<span class="pchev">&#9662;</span></div>'
       +'<div class="pbar-row"><div class="pbar-bg"><div class="pbar-fill" style="width:'+x.pct+'%;background:'+c+';"></div></div>'
@@ -623,6 +686,29 @@ function render(){
   document.getElementById("footer").textContent=data.length+" proyectos · "+P.length+" total · __FECHA__ · Consolidado Asana";
 }
 function setF(f,btn){filt=f;document.querySelectorAll(".pill").forEach(function(b){b.classList.remove("act");});btn.classList.add("act");render();}
+
+function escHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function showDesc(i){
+  var x=lastRenderData[i];
+  if(!x)return;
+  document.getElementById("descModalTitle").textContent=x.n;
+  document.getElementById("descModalSub").textContent="Tarea Asana: Kick Off meeting \u2192 Apertura pedido";
+  var body=document.getElementById("descModalBody");
+  var txt=(x.desc||"").trim();
+  if(txt){
+    body.classList.remove("empty");
+    body.textContent=txt;
+  } else {
+    body.classList.add("empty");
+    body.textContent="Sin descripcion registrada en Asana para la tarea \"Apertura pedido\" de este proyecto.";
+  }
+  document.getElementById("descModalFoot").textContent=x.p+" \u00b7 "+x.pct+"% de avance \u00b7 "+x.d+"/"+x.t+" subtareas";
+  document.getElementById("descModal").classList.add("show");
+}
+function closeDescModal(){document.getElementById("descModal").classList.remove("show");}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDescModal();});
+
 render();
 
 var SVC_TASKS = __SVC_JSON__;
