@@ -838,6 +838,37 @@ def main():
     print(f"Servicios: {svc['total']} tareas ({len(svc['tasks'])} activas)")
     print(f"HTML generado en: {salida}")
 
+    # -------------------------------------------------------------
+    # DIAGNOSTICO: descripcion de "Apertura pedido" por proyecto.
+    # Se imprime siempre en el log (aparece en el log de GitHub
+    # Actions del paso "Generar index.html") para poder ver, sin
+    # entrar al sitio, que proyectos trajeron o no su descripcion.
+    # -------------------------------------------------------------
+    con_desc = [x["n"] for x in P if x["desc"].strip()]
+    sin_desc = [x["n"] for x in P if not x["desc"].strip()]
+
+    print("\n" + "=" * 60)
+    print(f"  DIAGNOSTICO 'Apertura pedido': {len(con_desc)}/{len(P)} proyectos con descripcion")
+    print("=" * 60)
+    if sin_desc:
+        print(f"  Sin descripcion ({len(sin_desc)}):")
+        for n in sin_desc:
+            print(f"    - {n}")
+
+    # Deteccion de descripciones duplicadas entre proyectos DISTINTOS
+    # (senal de que en Asana se copio el texto de un pedido a otro sin editarlo).
+    from collections import defaultdict as _dd
+    por_desc = _dd(list)
+    for x in P:
+        if x["desc"].strip():
+            por_desc[x["desc"]].append(x["n"])
+    duplicados = {d: ns for d, ns in por_desc.items() if len(ns) > 1}
+    if duplicados:
+        print(f"\n  [ALERTA] Descripciones IDENTICAS en mas de un proyecto (revisar en Asana):")
+        for _, nombres in duplicados.items():
+            print(f"    - Compartida por {len(nombres)} proyectos: {nombres}")
+    print("=" * 60)
+
 
 if __name__ == "__main__":
     main()
