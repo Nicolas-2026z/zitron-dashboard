@@ -466,44 +466,99 @@ def process_servicios(path):
             if n in col: return col[n]
         return None
 
-    c_name     = col.get("Name")
-    c_section  = getcol("Section/Column", "Section")
-    c_assignee = col.get("Assignee")
-    c_due      = col.get("Due Date")
-    c_completed= col.get("Completed At")
-    c_taskid   = col.get("Task ID")
-    c_country  = getcol("Pais", "País", "Country")
-    c_priority = getcol("Prioridad", "Priority")
+    c_name      = col.get("Name")
+    c_section   = getcol("Section/Column", "Section")
+    c_assignee  = col.get("Assignee")
+    c_due       = col.get("Due Date")
+    c_completed = col.get("Completed At")
+    c_created   = col.get("Created At")
+    c_taskid    = col.get("Task ID")
+    c_country   = getcol("Pais", "País", "Country")
+    c_priority  = getcol("Prioridad", "Priority")
+    c_parent    = col.get("Parent task")
 
-    total = completadas = 0
-    tasks_activas = []
-    secciones = {}
-
+    filas = []
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         if c_name is None or row[c_name] in (None, ""):
             continue
-        total += 1
-        name    = str(row[c_name]).strip()
-        section = str(row[c_section]).strip() if c_section is not None and row[c_section] else "Sin seccion"
-        secciones[section] = secciones.get(section, 0) + 1
-
-        if c_completed is not None and to_date(row[c_completed]) is not None:
-            completadas += 1
-            continue
-
-        assignee = str(row[c_assignee]).strip() if c_assignee is not None and row[c_assignee] else "(sin asignar)"
-        due      = to_date(row[c_due]) if c_due is not None else None
-        country  = str(row[c_country]).strip() if c_country is not None and row[c_country] else ""
-        priority = str(row[c_priority]).strip() if c_priority is not None and row[c_priority] else ""
-        taskid   = str(row[c_taskid]).strip() if c_taskid is not None and row[c_taskid] else ""
-        url      = (f"https://app.asana.com/1/{WORKSPACE_GID}/project/{SERVICIOS_PROJECT_GID}/task/{taskid}"
-                    if taskid else "")
-
-        tasks_activas.append({
-            "name": name, "section": section, "assignee": assignee,
-            "due": due.strftime("%Y-%m-%d") if due else "",
-            "pais": country, "prioridad": priority, "url": url,
+        filas.append({
+            "name": str(row[c_name]).strip(),
+            "section": (str(row[c_section]).strip() if c_section is not None and row[c_section] else "Sin seccion"),
+            "assignee": (str(row[c_assignee]).strip() if c_assignee is not None and row[c_assignee] else "(sin asignar)"),
+            "due": to_date(row[c_due]) if c_due is not None else None,
+            "created": to_date(row[c_created]) if c_created is not None else None,
+            "completed_at": to_date(row[c_completed]) if c_completed is not None else None,
+            "pais": (str(row[c_country]).strip() if c_country is not None and row[c_country] else ""),
+            "prioridad": (str(row[c_priority]).strip() if c_priority is not None and row[c_priority] else ""),
+            "taskid": (str(row[c_taskid]).strip() if c_taskid is not None and row[c_taskid] else ""),
+            "parent": (str(row[c_parent]).strip() if c_parent is not None and row[c_parent] not in (None, "") else None),
         })
+
+    if not filas:
+        return {"total": 0, "en_curso": 0, "finalizadas": 0, "avance": 0, "secciones": {}, "tasks": []}
+
+    # --- Agrupar OT (hijas, "Parent task") dentro de su pedido. Una tarea
+    # con "parent" que no matchea ninguna fila de este export se trata igual
+    # como pedido propio (para no perderla), pero queda marcada como
+    # "huerfana" en el log para revisar manualmente. ---
+    nombres = {f["name"] for f in filas}
+    pedidos = []
+    hijos_por_pedido = {}
+    huerfanas = []
+
+    for f in filas:
+        if f["parent"] is None:
+            pedidos.append(f)
+        elif f["parent"] in nombres and f["parent"] != f["name"]:
+            hijos_por_pedido.setdefault(f["parent"], []).append(f)
+        else:
+            pedidos.append(f)
+            huerfanas.append(f)
+
+    total = len(pedidos)
+    completadas = sum(1 for p in pedidos if p["completed_at"] is not None)
+
+    tasks = []
+    secciones = {}
+    for p in pedidos:
+        secciones[p["section"]] = secciones.get(p["section"], 0) + 1
+        hijos = hijos_por_pedido.get(p["name"], [])
+        url = (f"https://app.asana.com/1/{WORKSPACE_GID}/project/{SERVICIOS_PROJECT_GID}/task/{p['taskid']}"
+               if p["taskid"] else "")
+
+        tasks.append({
+            "name": p["name"],
+            "section": p["section"],
+            "assignee": p["assignee"],
+            "due": p["due"].strftime("%Y-%m-%d") if p["due"] else "",
+            "created": p["created"].strftime("%Y-%m-%d") if p["created"] else "",
+            "completed": p["completed_at"] is not None,
+            "completed_at": p["completed_at"].strftime("%Y-%m-%d") if p["completed_at"] else "",
+            "pais": p["pais"],
+            "prioridad": p["prioridad"],
+            "url": url,
+            "n_ot": len(hijos),
+            "n_ot_completadas": sum(1 for h in hijos if h["completed_at"] is not None),
+        })
+
+    # --- Diagnostico en el log, para verificar en cada corrida que el
+    # agrupamiento pedido/OT esta funcionando como se espera. ---
+    total_hijos = sum(len(v) for v in hijos_por_pedido.values())
+    print(f"  Servicios: {len(filas)} filas leidas -> {total} pedidos, {total_hijos} OT agrupadas dentro de su pedido")
+    if c_parent is None:
+        print("  [AVISO] La columna 'Parent task' no existe en este export; no se pudo agrupar OT bajo su pedido (se cuenta todo plano, como antes).")
+    if c_created is None:
+        print("  [AVISO] La columna 'Created At' no existe en este export; 'antiguedad' y 'tareas mas antiguas' quedaran vacios.")
+    if huerfanas:
+        print(f"  [AVISO] {len(huerfanas)} filas con 'Parent task' que no matchea ningun pedido de este export (se cuentan como pedido propio), ejemplos:")
+        for h in huerfanas[:5]:
+            print(f"    - '{h['name']}' (parent: '{h['parent']}')")
+    ejemplos = list(hijos_por_pedido.items())[:3]
+    if ejemplos:
+        print("  Ejemplos de agrupamiento pedido -> OT:")
+        for nombre_pedido, hijos in ejemplos:
+            muestra = ", ".join(h["name"] for h in hijos[:3])
+            print(f"    - {nombre_pedido}: {len(hijos)} OT ({muestra}{'...' if len(hijos) > 3 else ''})")
 
     return {
         "total": total,
@@ -511,7 +566,7 @@ def process_servicios(path):
         "finalizadas": completadas,
         "avance": round(completadas / total * 100) if total else 0,
         "secciones": secciones,
-        "tasks": tasks_activas,
+        "tasks": tasks,
     }
 
 
@@ -584,6 +639,12 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .skpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center;}
 .skpi .kl{font-size:10px;color:var(--sub);margin-bottom:4px;}
 .skpi .kv{font-size:22px;font-weight:700;}
+.svc-maintabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1.5px solid var(--border);}
+.svc-maintab{border:none;background:none;padding:9px 4px;margin-right:22px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;}
+.svc-maintab.act{color:var(--hdr);border-bottom-color:var(--hdr);}
+.ot-badge{font-size:10px;color:var(--sub);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1px 6px;margin-left:5px;white-space:nowrap;}
+.throughput-row{display:flex;align-items:flex-end;gap:6px;height:80px;padding-top:10px;}
+.throughput-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;}
 .svc-tasks{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
 .svc-tasks h3{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
 .stabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
@@ -670,18 +731,40 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
   </div>
   <div class="plist" id="plist"></div>
   <div class="sec-title">Tablero Servicios y Mantencion</div>
-  <div class="sec-sub">Carpeta Servicios · __SVC_TOTAL__ tareas totales · Actualizado __FECHA__</div>
-  <div class="svc-kpis">
-    <div class="skpi"><div class="kl">Total tareas</div><div class="kv" style="color:#378ADD">__SVC_TOTAL__</div></div>
-    <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#EAB308">__SVC_CURSO__</div></div>
-    <div class="skpi"><div class="kl">Finalizadas</div><div class="kv" style="color:#1D9E75">__SVC_FIN__</div></div>
-    <div class="skpi"><div class="kl">Avance global</div><div class="kv" style="color:#1A3A5C">__SVC_AVANCE__%</div></div>
+  <div class="sec-sub">Carpeta Servicios · __SVC_TOTAL__ pedidos (OT agrupadas dentro de su pedido) · Actualizado __FECHA__</div>
+  <div class="svc-maintabs">
+    <button class="svc-maintab act" id="svcTabResumen" onclick="setSvcMainTab('resumen')">Resumen</button>
+    <button class="svc-maintab" id="svcTabIndicadores" onclick="setSvcMainTab('indicadores')">Indicadores</button>
   </div>
-  <div class="svc-grid">
-    <div class="svc-card"><h3>Tareas por seccion</h3><div id="svc-sections"></div></div>
-    <div class="svc-card"><h3>Distribucion por pais</h3><div id="svc-countries"></div></div>
+  <div id="svcPanelResumen">
+    <div class="svc-kpis">
+      <div class="skpi"><div class="kl">Total pedidos</div><div class="kv" style="color:#378ADD">__SVC_TOTAL__</div></div>
+      <div class="skpi"><div class="kl">En curso</div><div class="kv" style="color:#EAB308">__SVC_CURSO__</div></div>
+      <div class="skpi"><div class="kl">Finalizados</div><div class="kv" style="color:#1D9E75">__SVC_FIN__</div></div>
+      <div class="skpi"><div class="kl">Avance global</div><div class="kv" style="color:#1A3A5C">__SVC_AVANCE__%</div></div>
+    </div>
+    <div class="svc-grid">
+      <div class="svc-card"><h3>Pedidos por seccion</h3><div id="svc-sections"></div></div>
+      <div class="svc-card"><h3>Distribucion por pais</h3><div id="svc-countries"></div></div>
+    </div>
+    <div class="svc-tasks"><h3>Pedidos activos</h3><div class="stabs" id="svc-tabs"></div><div id="svc-tasklist"></div></div>
   </div>
-  <div class="svc-tasks"><h3>Tareas activas</h3><div class="stabs" id="svc-tabs"></div><div id="svc-tasklist"></div></div>
+  <div id="svcPanelIndicadores" style="display:none">
+    <div class="svc-kpis" style="grid-template-columns:repeat(3,1fr);">
+      <div class="skpi"><div class="kl">Pedidos atrasados</div><div class="kv" style="color:#E24B4A" id="ind-atrasadas">-</div></div>
+      <div class="skpi"><div class="kl">Antiguedad promedio</div><div class="kv" style="color:#EAB308" id="ind-antiguedad">-</div></div>
+      <div class="skpi"><div class="kl">Completados, 7 dias</div><div class="kv" style="color:#1D9E75" id="ind-semana">-</div></div>
+    </div>
+    <div class="svc-card" style="margin-bottom:12px;">
+      <h3>Throughput semanal, pedidos completados</h3>
+      <div class="throughput-row" id="ind-throughput"></div>
+    </div>
+    <div class="svc-grid">
+      <div class="svc-card"><h3>Carga por responsable</h3><div id="ind-responsable"></div></div>
+      <div class="svc-card"><h3>Antiguedad promedio por etapa</h3><div id="ind-etapa"></div></div>
+    </div>
+    <div class="svc-tasks"><h3>Pedidos mas antiguos sin avanzar</h3><div id="ind-antiguas"></div></div>
+  </div>
   <div class="footer" id="footer"></div>
 </div>
 <div class="modal-overlay" id="descModal" onclick="if(event.target===this)closeDescModal()">
@@ -869,10 +952,63 @@ function sbarHtml(lbl,v,mx,clr){var p=mx>0?Math.round(v/mx*100):0;return '<div c
 var SECTION_COLOR_MAP=__SECTION_COLORS_JSON__;
 function colorForSection(name){var k=name.toLowerCase();for(var key in SECTION_COLOR_MAP){if(k.indexOf(key)>=0)return SECTION_COLOR_MAP[key];}return "__SECTION_DEFAULT__";}
 function renderSvcSections(){var entries=Object.entries(SVC_SECTION_COUNTS).sort(function(a,b){return b[1]-a[1];});var mx=entries.length?entries[0][1]:1;document.getElementById("svc-sections").innerHTML=entries.map(function(r){return sbarHtml(r[0],r[1],mx,colorForSection(r[0]));}).join("");}
-function renderSvcCountries(){var cc={};SVC_TASKS.forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);if(!sorted.length){document.getElementById("svc-countries").innerHTML='<i style="font-size:12px;color:#6B7280">Sin datos</i>';return;}var mx=sorted[0][1];document.getElementById("svc-countries").innerHTML=sorted.map(function(r){return sbarHtml(r[0],r[1],mx,"#378ADD");}).join("");}
-function renderSvcTabs(){document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){var cnt=SVC_TASKS.filter(function(t){return t.section===s;}).length;return '<button class="stab'+(s===SVC_SECTION?" act":"")+'" onclick="setSvcSec(\''+s+'\',this)">'+s+' ('+cnt+')</button>';}).join("");}
+function renderSvcCountries(){var cc={};SVC_TASKS.filter(function(t){return !t.completed;}).forEach(function(t){var p=t.pais||"Sin pais";cc[p]=(cc[p]||0)+1;});var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,7);if(!sorted.length){document.getElementById("svc-countries").innerHTML='<i style="font-size:12px;color:#6B7280">Sin datos</i>';return;}var mx=sorted[0][1];document.getElementById("svc-countries").innerHTML=sorted.map(function(r){return sbarHtml(r[0],r[1],mx,"#378ADD");}).join("");}
+function renderSvcTabs(){document.getElementById("svc-tabs").innerHTML=SVC_SECTIONS.map(function(s){var cnt=SVC_TASKS.filter(function(t){return t.section===s&&!t.completed;}).length;return '<button class="stab'+(s===SVC_SECTION?" act":"")+'" onclick="setSvcSec(\''+s+'\',this)">'+s+' ('+cnt+')</button>';}).join("");}
 function setSvcSec(s,btn){SVC_SECTION=s;document.querySelectorAll(".stab").forEach(function(b){b.classList.remove("act");});btn.classList.add("act");renderSvcList();}
-function renderSvcList(){var po={Alta:0,Media:1,Baja:2,"":3};var tasks=SVC_TASKS.filter(function(t){return t.section===SVC_SECTION;}).sort(function(a,b){return(po[a.prioridad]||3)-(po[b.prioridad]||3);});if(!tasks.length){document.getElementById("svc-tasklist").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin tareas.</p>';return;}document.getElementById("svc-tasklist").innerHTML=tasks.map(function(t){var over=t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;var dt=t.due?new Date(t.due+"T00:00:00").toLocaleDateString("es-CL",{day:"2-digit",month:"short"}):"";var pill=t.prioridad?'<span class="stpill p-'+t.prioridad.toLowerCase()+'">'+t.prioridad+"</span>":'';var nameHtml=t.url?('<a href="'+t.url+'" target="_blank">'+t.name+'</a>'):t.name;return '<div class="strow"><span class="stname">'+nameHtml+'</span>'+pill+'<span class="stassign">'+t.assignee+'</span><span class="stdate'+(over?" ov":"")+'">'+dt+(over?" ⚠":"")+"</span></div>";}).join("");}
+function renderSvcList(){var po={Alta:0,Media:1,Baja:2,"":3};var tasks=SVC_TASKS.filter(function(t){return t.section===SVC_SECTION&&!t.completed;}).sort(function(a,b){return(po[a.prioridad]||3)-(po[b.prioridad]||3);});if(!tasks.length){document.getElementById("svc-tasklist").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin pedidos.</p>';return;}document.getElementById("svc-tasklist").innerHTML=tasks.map(function(t){var over=t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;var dt=t.due?new Date(t.due+"T00:00:00").toLocaleDateString("es-CL",{day:"2-digit",month:"short"}):"";var pill=t.prioridad?'<span class="stpill p-'+t.prioridad.toLowerCase()+'">'+t.prioridad+"</span>":'';var otBadge=t.n_ot?('<span class="ot-badge">'+t.n_ot_completadas+"/"+t.n_ot+" OT</span>"):'';var nameHtml=t.url?('<a href="'+t.url+'" target="_blank">'+t.name+'</a>'):t.name;return '<div class="strow"><span class="stname">'+nameHtml+otBadge+'</span>'+pill+'<span class="stassign">'+t.assignee+'</span><span class="stdate'+(over?" ov":"")+'">'+dt+(over?" ⚠":"")+"</span></div>";}).join("");}
+
+function setSvcMainTab(tab){
+  document.getElementById("svcPanelResumen").style.display=tab==="resumen"?"block":"none";
+  document.getElementById("svcPanelIndicadores").style.display=tab==="indicadores"?"block":"none";
+  document.getElementById("svcTabResumen").classList.toggle("act",tab==="resumen");
+  document.getElementById("svcTabIndicadores").classList.toggle("act",tab==="indicadores");
+  if(tab==="indicadores")renderIndicadores();
+}
+
+function svcDaysBetween(a,b){return Math.round((b-a)/86400000);}
+
+function renderIndicadores(){
+  var activos=SVC_TASKS.filter(function(t){return !t.completed;});
+  var completados=SVC_TASKS.filter(function(t){return t.completed;});
+
+  var atrasadas=activos.filter(function(t){return t.due&&new Date(t.due+"T00:00:00")<SVC_TODAY;}).length;
+  document.getElementById("ind-atrasadas").textContent=atrasadas;
+
+  var conCreado=activos.filter(function(t){return t.created;});
+  var antigProm=conCreado.length?Math.round(conCreado.reduce(function(s,t){return s+svcDaysBetween(new Date(t.created+"T00:00:00"),SVC_TODAY);},0)/conCreado.length):0;
+  document.getElementById("ind-antiguedad").textContent=conCreado.length?(antigProm+" dias"):"Sin datos";
+
+  var hace7=new Date(SVC_TODAY.getTime()-7*86400000);
+  var compSemana=completados.filter(function(t){if(!t.completed_at)return false;var d=new Date(t.completed_at+"T00:00:00");return d>=hace7&&d<=SVC_TODAY;}).length;
+  document.getElementById("ind-semana").textContent=compSemana;
+
+  var semanas=[];
+  for(var i=7;i>=0;i--){
+    var fin=new Date(SVC_TODAY.getTime()-i*7*86400000);
+    var inicio=new Date(fin.getTime()-6*86400000);
+    var cnt=completados.filter(function(t){if(!t.completed_at)return false;var d=new Date(t.completed_at+"T00:00:00");return d>=inicio&&d<=fin;}).length;
+    semanas.push(cnt);
+  }
+  var maxSem=Math.max.apply(null,semanas.concat([1]));
+  document.getElementById("ind-throughput").innerHTML=semanas.map(function(c){var h=Math.max(Math.round(c/maxSem*56),c>0?4:1);return '<div class="throughput-bar"><span style="font-size:10px;color:#6B7280;">'+c+'</span><div style="width:70%;height:'+h+'px;background:#1D9E75;border-radius:3px 3px 0 0;"></div></div>';}).join("");
+
+  var porResp={};
+  activos.forEach(function(t){porResp[t.assignee]=(porResp[t.assignee]||0)+1;});
+  var respSorted=Object.entries(porResp).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
+  if(!respSorted.length){document.getElementById("ind-responsable").innerHTML='<i style="font-size:12px;color:#6B7280">Sin datos</i>';}
+  else{var maxResp=respSorted[0][1];document.getElementById("ind-responsable").innerHTML=respSorted.map(function(r){return sbarHtml(r[0],r[1],maxResp,"#534AB7");}).join("");}
+
+  var porEtapa={};
+  activos.forEach(function(t){if(!t.created)return;var d=svcDaysBetween(new Date(t.created+"T00:00:00"),SVC_TODAY);(porEtapa[t.section]=porEtapa[t.section]||[]).push(d);});
+  var etapaProm=Object.entries(porEtapa).map(function(e){var a=e[1];return [e[0],Math.round(a.reduce(function(s,v){return s+v;},0)/a.length)];}).sort(function(a,b){return b[1]-a[1];});
+  if(!etapaProm.length){document.getElementById("ind-etapa").innerHTML='<i style="font-size:12px;color:#6B7280">Sin datos (falta columna Created At)</i>';}
+  else{var maxEtapa=etapaProm[0][1]||1;document.getElementById("ind-etapa").innerHTML=etapaProm.map(function(e){return sbarHtml(e[0],e[1],maxEtapa,"#EAB308");}).join("");}
+
+  var antiguas=conCreado.slice().sort(function(a,b){return new Date(a.created)-new Date(b.created);}).slice(0,6);
+  if(!antiguas.length){document.getElementById("ind-antiguas").innerHTML='<p style="font-size:12px;color:#6B7280;padding:8px 0">Sin datos de antiguedad (falta columna Created At en el export).</p>';}
+  else{document.getElementById("ind-antiguas").innerHTML=antiguas.map(function(t){var d=svcDaysBetween(new Date(t.created+"T00:00:00"),SVC_TODAY);var nameHtml=t.url?('<a href="'+t.url+'" target="_blank">'+t.name+'</a>'):t.name;return '<div class="strow"><span class="stname">'+nameHtml+'</span><span class="stassign">'+t.section+'</span><span class="stassign">'+t.assignee+'</span><span class="stdate ov">'+d+' d</span></div>';}).join("");}
+}
+
 renderSvcSections();renderSvcCountries();renderSvcTabs();renderSvcList();
 </script>
 </body>
