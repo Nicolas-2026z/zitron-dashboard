@@ -188,6 +188,109 @@ def leer_fechas_exw(path):
 
 
 # ---------------------------------------------------------------------
+# LEER EXCEL DE FECHAS DE ENTREGA DEL PORTAFOLIO
+# (exportado desde la vista de portafolio de Asana, no desde el excel de
+# fabricacion). Devuelve {pedido: [(nombre_fila, "DD/MM/YYYY"), ...]}
+# porque un mismo pedido puede tener varios proyectos (variantes A/B, OTs).
+# ---------------------------------------------------------------------
+
+def leer_fechas_entrega_portafolio(path):
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = wb.active
+
+    header_row = None
+    col_name = col_fecha = None
+    for r in range(1, 15):
+        values = [str(c.value or "").strip() for c in ws[r]]
+        for i, v in enumerate(values):
+            vn = _norm(v)
+            if vn in ("name", "nombre", "project name", "nombre del proyecto"):
+                col_name = i
+            if "entrega" in vn or "vencimiento" in vn or "due date" in vn or vn == "due":
+                col_fecha = i
+        if col_name is not None and col_fecha is not None:
+            header_row = r
+            break
+
+    if header_row is None:
+        print("  [AVISO] No se encontro encabezado (Name + Fecha de entrega) en el Excel del portafolio")
+        return {}
+
+    resultado = {}
+    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
+        raw_name = row[col_name] if col_name < len(row) else None
+        raw_fecha = row[col_fecha] if col_fecha < len(row) else None
+        if raw_name in (None, ""):
+            continue
+        nombre_fila = str(raw_name).strip()
+        m = _re.search(r'(\d{7,8})', nombre_fila)
+        if not m:
+            continue
+        pedido = m.group(1)
+
+        fecha_date = None
+        if raw_fecha not in (None, ""):
+            if isinstance(raw_fecha, (datetime.datetime, datetime.date)):
+                fecha_date = to_date(raw_fecha)
+            else:
+                s = str(raw_fecha).strip()
+                for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+                    try:
+                        fecha_date = datetime.datetime.strptime(s, fmt).date()
+                        break
+                    except Exception:
+                        pass
+        if fecha_date is None:
+            continue
+
+        resultado.setdefault(pedido, []).append((nombre_fila, fecha_date.strftime("%d/%m/%Y")))
+
+    total_filas = sum(len(v) for v in resultado.values())
+    print(f"  Fechas de entrega (portafolio) leidas: {total_filas} filas, {len(resultado)} pedidos distintos")
+    return resultado
+
+
+def emparejar_fecha_entrega(nombre_proyecto, entrega_por_pedido):
+    """
+    Empareja un proyecto del dashboard con su fecha de entrega leida del
+    portafolio. Un mismo numero de pedido puede repetirse en varios
+    proyectos (variantes A/B, distintas OT); se desambigua por palabras en
+    comun con el nombre de fila del portafolio. Si sigue habiendo empate y
+    las fechas candidatas difieren, se prefiere dejarlo vacio antes que
+    arriesgar una fecha incorrecta.
+    """
+    m = _re.search(r'(\d{7,8})', nombre_proyecto)
+    if not m:
+        return ""
+    candidatas = entrega_por_pedido.get(m.group(1))
+    if not candidatas:
+        return ""
+    if len(candidatas) == 1:
+        return candidatas[0][1]
+
+    def tokens(s):
+        return {t for t in _re.split(r'[\s\-_/]+', _norm(s)) if len(t) >= 2 and not t.isdigit()}
+
+    tok_proyecto = tokens(nombre_proyecto)
+    mejor = None
+    mejor_score = -1
+    empate = False
+    for nombre_fila, fecha in candidatas:
+        score = len(tok_proyecto & tokens(nombre_fila))
+        if score > mejor_score:
+            mejor_score, mejor, empate = score, fecha, False
+        elif score == mejor_score:
+            empate = True
+
+    if empate:
+        fechas_unicas = {f for _, f in candidatas}
+        if len(fechas_unicas) == 1:
+            return fechas_unicas.pop()
+        return ""
+    return mejor
+
+
+# ---------------------------------------------------------------------
 # PROCESAR UN PROYECTO (xlsx) -> entrada del array P
 # ---------------------------------------------------------------------
 
@@ -305,6 +408,7 @@ def process_project(path):
         "pct": pct,
         "ph": ph,
         "exw": "",   # se rellena despues con el cruce
+        "entrega": "",  # fecha de entrega del portafolio, se rellena despues
         "desc": desc,  # descripcion de la tarea "Apertura pedido"
     }
 
@@ -464,6 +568,8 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .p-baja{background:#D1FAE5;color:#065F46;}
 .exw-tag{font-size:10px;color:#1A3A5C;padding:2px 7px;border-radius:8px;background:#EEF4FF;border:1px solid #C7D9F5;white-space:nowrap;font-weight:600;}
 .exw-tag.vencida{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
+.entrega-tag{font-size:10px;color:#065F46;padding:2px 7px;border-radius:8px;background:#ECFDF5;border:1px solid #A7F3D0;white-space:nowrap;font-weight:600;}
+.entrega-tag.vencida{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
 .info-btn{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid #C7D9F5;background:#EEF4FF;color:#1A3A5C;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
 .info-btn:hover{background:#DCE9FB;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,25,40,.55);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
@@ -671,11 +777,19 @@ function render(){
       var vencida=exwDate&&exwDate<TODAY&&!desp;
       exwTag='<span class="exw-tag'+(vencida?' vencida':'')+'">📦 EXW '+(vencida?'⚠ ':'')+x.exw+'</span>';
     }
+    // Tag Fecha de entrega (desde el portafolio de Asana)
+    var entregaTag='';
+    if(x.entrega){
+      var entregaDate=parseExw(x.entrega);
+      var entregaVencida=entregaDate&&entregaDate<TODAY&&!desp;
+      entregaTag='<span class="entrega-tag'+(entregaVencida?' vencida':'')+'">🗓️ Entrega '+(entregaVencida?'⚠ ':'')+x.entrega+'</span>';
+    }
     return '<div class="pcard" id="c'+i+'" onclick="toggle('+i+')">'
       +'<div class="ptop"><span class="pname" title="'+x.n+'">'+x.n+'</span>'
       +'<span class="pcountry">'+x.p+'</span>'
       +'<span class="pbadge" style="background:'+b.c+'22;color:'+b.c+'">'+b.t+'</span>'
       +exwTag
+      +entregaTag
       +'<button class="info-btn" onclick="event.stopPropagation();showDesc('+i+')" title="Ver detalle del pedido (Apertura pedido)">&#9432; Detalle</button>'
       +'<span class="ppct" style="color:'+c+'">'+x.pct+'%</span>'
       +db+'<span class="pchev">&#9662;</span></div>'
@@ -743,16 +857,26 @@ def main():
 
     # --- Leer fechas EXW ---
     fechas_exw = {}
-    exw_files = sorted([f for f in glob.glob(os.path.join(dir_exw, "*.xlsx")) if any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte"])])
+    exw_files = sorted([f for f in glob.glob(os.path.join(dir_exw, "*.xlsx")) if any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte"]) and "portafolio" not in os.path.basename(f).lower()])
     exw_files = [f for f in exw_files if not os.path.basename(f).startswith("~$")]
     if exw_files:
         fechas_exw = leer_fechas_exw(exw_files[0])
     else:
         print(f"  [AVISO] No se encontro Excel EXW en {dir_exw}")
 
+    # --- Leer fechas de entrega del portafolio (columna "Fecha de entrega"
+    # de la vista de portafolio de Asana, exportada por asana_exporter.py) ---
+    entrega_por_pedido = {}
+    entrega_files = sorted([f for f in glob.glob(os.path.join(dir_proyectos, "*.xlsx")) if "portafolio" in os.path.basename(f).lower()])
+    entrega_files = [f for f in entrega_files if not os.path.basename(f).startswith("~$")]
+    if entrega_files:
+        entrega_por_pedido = leer_fechas_entrega_portafolio(entrega_files[0])
+    else:
+        print(f"  [AVISO] No se encontro Excel de fechas de entrega del portafolio en {dir_proyectos}")
+
     # --- Leer proyectos ---
     files = sorted(glob.glob(os.path.join(dir_proyectos, "*.xlsx")))
-    files = [f for f in files if not os.path.basename(f).startswith("~$") and not any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte"])]
+    files = [f for f in files if not os.path.basename(f).startswith("~$") and not any(k in os.path.basename(f).lower() for k in ["exw","fabricacion","entrega","reporte","portafolio"])]
     if not files:
         print(f"No se encontraron .xlsx en {dir_proyectos}")
         import sys as _sys; _sys.exit(1)
@@ -785,6 +909,7 @@ def main():
             m = _re.search(r'(\d{8})', r["n"])
             if m:
                 r["exw"] = fechas_exw.get(m.group(1), "")
+            r["entrega"] = emparejar_fecha_entrega(r["n"], entrega_por_pedido)
             P.append(r)
         except Exception as e:
             errores.append((f, str(e)))
