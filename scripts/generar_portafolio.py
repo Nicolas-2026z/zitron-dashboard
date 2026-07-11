@@ -194,14 +194,47 @@ def leer_fechas_exw(path):
 # porque un mismo pedido puede tener varios proyectos (variantes A/B, OTs).
 # ---------------------------------------------------------------------
 
-def leer_fechas_entrega_portafolio(path):
-    wb = openpyxl.load_workbook(path, data_only=True)
-    ws = wb.active
+# ---------------------------------------------------------------------
+# LEER FECHAS DE ENTREGA DEL PORTAFOLIO
+# (exportado desde la vista de portafolio de Asana). OJO: a diferencia de
+# los proyectos, Asana exporta portafolios solo en CSV (no ofrece XLSX),
+# asi que esta lectura soporta ambos formatos.
+# Devuelve {pedido: [(nombre_fila, "DD/MM/YYYY"), ...]} porque un mismo
+# pedido puede tener varios proyectos (variantes A/B, distintas OT).
+# ---------------------------------------------------------------------
 
-    header_row = None
+def _cargar_filas_tabla(path):
+    """Devuelve una lista de filas (cada una lista de valores), leyendo
+    .xlsx con openpyxl o .csv con el modulo csv, sin importar la extension."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".csv":
+        import csv as _csv
+        for enc in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                with open(path, newline="", encoding=enc) as fh:
+                    sample = fh.read(4096)
+                    fh.seek(0)
+                    try:
+                        dialecto = _csv.Sniffer().sniff(sample, delimiters=",;\t")
+                    except Exception:
+                        dialecto = _csv.excel
+                    return [row for row in _csv.reader(fh, dialecto)]
+            except UnicodeDecodeError:
+                continue
+        return []
+    else:
+        wb = openpyxl.load_workbook(path, data_only=True)
+        ws = wb.active
+        return [[c for c in row] for row in ws.iter_rows(values_only=True)]
+
+
+def leer_fechas_entrega_portafolio(path):
+    filas = _cargar_filas_tabla(path)
+
+    header_idx = None
     col_name = col_fecha = None
-    for r in range(1, 15):
-        values = [str(c.value or "").strip() for c in ws[r]]
+    for ridx in range(min(15, len(filas))):
+        values = [str(v or "").strip() for v in filas[ridx]]
         for i, v in enumerate(values):
             vn = _norm(v)
             if vn in ("name", "nombre", "project name", "nombre del proyecto"):
@@ -209,15 +242,15 @@ def leer_fechas_entrega_portafolio(path):
             if "entrega" in vn or "vencimiento" in vn or "due date" in vn or vn == "due":
                 col_fecha = i
         if col_name is not None and col_fecha is not None:
-            header_row = r
+            header_idx = ridx
             break
 
-    if header_row is None:
-        print("  [AVISO] No se encontro encabezado (Name + Fecha de entrega) en el Excel del portafolio")
+    if header_idx is None:
+        print("  [AVISO] No se encontro encabezado (Name + Fecha de entrega) en el archivo del portafolio")
         return {}
 
     resultado = {}
-    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
+    for row in filas[header_idx + 1:]:
         raw_name = row[col_name] if col_name < len(row) else None
         raw_fecha = row[col_fecha] if col_fecha < len(row) else None
         if raw_name in (None, ""):
@@ -234,7 +267,9 @@ def leer_fechas_entrega_portafolio(path):
                 fecha_date = to_date(raw_fecha)
             else:
                 s = str(raw_fecha).strip()
-                for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+                # CSV de Asana suele traer fecha ISO (YYYY-MM-DD); XLSX puede
+                # traer DD/MM/YYYY. Se prueban ambos formatos.
+                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%m/%d/%Y"):
                     try:
                         fecha_date = datetime.datetime.strptime(s, fmt).date()
                         break
@@ -867,7 +902,10 @@ def main():
     # --- Leer fechas de entrega del portafolio (columna "Fecha de entrega"
     # de la vista de portafolio de Asana, exportada por asana_exporter.py) ---
     entrega_por_pedido = {}
-    entrega_files = sorted([f for f in glob.glob(os.path.join(dir_proyectos, "*.xlsx")) if "portafolio" in os.path.basename(f).lower()])
+    entrega_files = sorted(
+        [f for f in glob.glob(os.path.join(dir_proyectos, "*.xlsx")) + glob.glob(os.path.join(dir_proyectos, "*.csv"))
+         if "portafolio" in os.path.basename(f).lower()]
+    )
     entrega_files = [f for f in entrega_files if not os.path.basename(f).startswith("~$")]
     if entrega_files:
         entrega_por_pedido = leer_fechas_entrega_portafolio(entrega_files[0])
