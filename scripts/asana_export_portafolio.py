@@ -20,6 +20,10 @@ DATA_SERVICIOS.mkdir(parents=True, exist_ok=True)
 SERVICIOS_URL    = "https://app.asana.com/1/402967058777498/project/1213595645392940/board/1213596118449101"
 SERVICIOS_NOMBRE = "Servicios y Mantencion"
 
+# Portafolio "Consolidado proyectos" (vista con columna Fecha de entrega por proyecto)
+PORTAFOLIO_URL    = "https://app.asana.com/0/portfolio/1213511928397658/1213532266045644"
+PORTAFOLIO_NOMBRE = "PORTAFOLIO_dashboard_fechas"
+
 # ── Lista de los 42 proyectos del portafolio consolidado ──────────────────────
 PROYECTOS = [
     ("50001559 - FERROVIAL",                               "https://app.asana.com/1/402967058777498/project/1215504785832997"),
@@ -130,6 +134,109 @@ def exportar_proyecto(page, nombre: str, url: str, carpeta: Path,
         return False
 
 
+def exportar_portafolio(page, nombre: str, url: str, carpeta: Path) -> bool:
+    """
+    Exporta el portafolio (vista con columna 'Fecha de entrega') a XLSX.
+    El menu de export de un portafolio puede estar en un lugar distinto al
+    de un proyecto normal, asi que se prueban varias rutas conocidas de Asana
+    antes de rendirse. Si ninguna funciona, se guarda screenshot + HTML de
+    debug igual que exportar_proyecto(), para poder ajustar el selector.
+    """
+    print(f"\n[Portafolio] {nombre}")
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=45000)
+        page.wait_for_timeout(4000)
+
+        # Intento 1: mismo boton "Acciones" que usan los proyectos.
+        menu = page.locator('[role="button"][aria-label="Acciones"]')
+        abierto = False
+        if menu.count() > 0:
+            try:
+                menu.first.wait_for(state="visible", timeout=8000)
+                menu.first.click(timeout=8000)
+                abierto = True
+            except Exception:
+                abierto = False
+
+        # Intento 2: boton de opciones "..." generico (mas comun en portafolios).
+        if not abierto:
+            for sel in ['[aria-label="Mas opciones"]', '[aria-label="More actions"]',
+                        '[aria-label="Opciones"]', 'button:has-text("...")']:
+                loc = page.locator(sel)
+                if loc.count() > 0:
+                    try:
+                        loc.first.click(timeout=8000)
+                        abierto = True
+                        break
+                    except Exception:
+                        continue
+
+        if not abierto:
+            raise RuntimeError("No se encontro el boton de menu/acciones del portafolio")
+
+        time.sleep(0.8)
+
+        # Buscar la opcion de exportar (puede llamarse distinto en portafolio vs proyecto)
+        export_opcion = None
+        for texto in ["Exportar o sincronizar", "Exportar", "Export"]:
+            loc = page.get_by_text(texto, exact=False)
+            if loc.count() > 0:
+                export_opcion = loc.first
+                break
+        if export_opcion is None:
+            raise RuntimeError("No se encontro la opcion 'Exportar' en el menu del portafolio")
+
+        export_opcion.hover(timeout=10000)
+        time.sleep(1.0)
+        export_opcion.hover(timeout=10000)
+        time.sleep(0.8)
+
+        # Submenu: preferir CSV/XLSX; si el portafolio solo ofrece CSV, tomar esa.
+        opcion_csv = None
+        for texto in ["formato CSV/XLSX", "CSV/XLSX", "Exportar como CSV", "CSV"]:
+            loc = page.get_by_text(texto, exact=False)
+            if loc.count() > 0:
+                opcion_csv = loc.first
+                break
+        if opcion_csv is not None:
+            opcion_csv.click(timeout=15000)
+            time.sleep(0.8)
+
+        xlsx_radio = page.get_by_text("XLSX", exact=True)
+        if xlsx_radio.count() > 0:
+            xlsx_radio.first.click(timeout=5000)
+            time.sleep(0.3)
+
+        with page.expect_download(timeout=30000) as download_info:
+            boton_exportar = page.get_by_role("button", name="Exportar", exact=True)
+            if boton_exportar.count() > 0:
+                boton_exportar.first.click(timeout=15000)
+            elif opcion_csv is not None:
+                pass  # el click a la opcion de CSV ya pudo haber disparado la descarga
+            else:
+                raise RuntimeError("No se encontro boton 'Exportar' para confirmar la descarga")
+
+        download = download_info.value
+        sufijo = Path(download.suggested_filename).suffix or ".xlsx"
+        nombre_archivo = limpiar_nombre(nombre) + sufijo
+        ruta_destino = carpeta / nombre_archivo
+        download.save_as(ruta_destino)
+        print(f"  OK -> {ruta_destino.name}")
+        return True
+
+    except Exception as e:
+        print(f"  ERROR exportando portafolio: {e}")
+        debug_dir = BASE / "debug_portafolio"
+        debug_dir.mkdir(exist_ok=True)
+        try:
+            page.screenshot(path=str(debug_dir / "fallo_portafolio_fechas.png"), full_page=True)
+            debug_dir.joinpath("fallo_portafolio_fechas.html").write_text(page.content(), encoding="utf-8")
+            print(f"  Debug guardado en {debug_dir} (revisar para ajustar el selector)")
+        except Exception:
+            pass
+        return False
+
+
 def main():
     if not AUTH_FILE.exists():
         raise SystemExit(f"No se encontro {AUTH_FILE}.")
@@ -163,6 +270,14 @@ def main():
             ok_count += 1
         else:
             err_count += 1
+
+        ok = exportar_portafolio(page, PORTAFOLIO_NOMBRE, PORTAFOLIO_URL, DATA_PROYECTOS)
+        if ok:
+            ok_count += 1
+        else:
+            err_count += 1
+            print("  [AVISO] No se pudo exportar el portafolio con fechas de entrega.")
+            print("  El resto del portafolio se genera igual, solo faltaran esas fechas.")
 
         browser.close()
 
