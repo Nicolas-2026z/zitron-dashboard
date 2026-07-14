@@ -62,5 +62,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data_ofertas/ ofertas2026.html
-          git diff --staged --quiet || git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Siempre hacemos un commit para mantener el cron activo en GitHub
+          git diff --staged --quiet && echo "Sin cambios en dashboard" >> .github/keepalive.txt && git add .github/keepalive.txt
+          git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')" || true
           git push
