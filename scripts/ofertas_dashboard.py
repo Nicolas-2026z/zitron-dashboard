@@ -171,6 +171,7 @@ def build_offers(path):
     col_section = "Section/Column" if "Section/Column" in idx else find_column(headers_norm, "section")
     col_assignee = "Assignee" if "Assignee" in idx else (find_column(headers_norm, "assignee") or find_column(headers_norm, "asignad"))
     col_due = "Due Date" if "Due Date" in idx else find_column(headers_norm, "due", "date")
+    col_start = "Start Date" if "Start Date" in idx else find_column(headers_norm, "start", "date")
     col_completed = "Completed" if "Completed" in idx else find_column(headers_norm, "completad")
     col_completed_at = ("Completed At" if "Completed At" in idx
                          else find_column(headers_norm, "completed", "at")
@@ -190,7 +191,7 @@ def build_offers(path):
 
     print("Columnas detectadas:")
     print(f"  Name={col_name!r} Parent={col_parent!r} Section={col_section!r}")
-    print(f"  Assignee={col_assignee!r} Due={col_due!r} Completed={col_completed!r} CompletedAt={col_completed_at!r}")
+    print(f"  Assignee={col_assignee!r} Due={col_due!r} Start={col_start!r} Completed={col_completed!r} CompletedAt={col_completed_at!r}")
     print(f"  FechaEntrega={col_f_ent!r} FechaFinaliza={col_f_sal!r}")
     print(f"  Cliente={col_cliente!r} Pais={col_pais!r} Responsable={col_responsable!r}")
     print(f"  NumeroOferta={col_nro!r} Notas={col_notas!r} Estado={col_estado!r}")
@@ -213,23 +214,36 @@ def build_offers(path):
     # "Fecha de entrega", "Cliente", "PAIS", etc. (heredados).
     # Agrupamos por ese numero, preservando el orden de aparicion.
     # ------------------------------------------------------------
-    grupos = {}      # nro_norm -> lista de rows
-    orden = []        # orden de aparicion de cada nro_norm
-    nro_display = {}  # nro_norm -> primer valor visto (para mostrar)
+    # ------------------------------------------------------------
+    # Este export NO trae una fila para la tarea principal: trae
+    # solo las 3 subtareas (Analisis Departamento ingenieria/proyecto,
+    # Consolidado Ofertas), todas con el mismo "Numero de oferta",
+    # "Fecha de entrega", "Cliente", "PAIS", etc. (heredados).
+    #
+    # Cuando el mismo "Numero oferta" se repite para varios clientes
+    # distintos (ej. 26CL0059 -> Aura / Ossa / DMC), agrupamos por
+    # (Numero oferta + Cliente) para no mezclarlos.
+    # ------------------------------------------------------------
+    grupos = {}      # key -> lista de rows
+    orden = []        # orden de aparicion de cada key
+    nro_display = {}  # key -> nro (para mostrar)
 
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         name = str_val(get(row, col_name))
         if not name:
             continue
         nro_raw = str_val(get(row, col_nro))
+        cli_raw = str_val(get(row, col_cliente))
         if not nro_raw:
-            continue
-        nro_key = nro_raw.strip().upper()
-        if nro_key not in grupos:
-            grupos[nro_key] = []
-            orden.append(nro_key)
-            nro_display[nro_key] = nro_raw
-        grupos[nro_key].append(row)
+            if not cli_raw:
+                continue
+            nro_raw = cli_raw  # respaldo: usar Cliente como identificador
+        key = nro_raw.strip().upper() + "|" + normalize(cli_raw)
+        if key not in grupos:
+            grupos[key] = []
+            orden.append(key)
+            nro_display[key] = nro_raw
+        grupos[key].append(row)
 
     def first_nonempty(rows_, col):
         if not col:
@@ -268,17 +282,17 @@ def build_offers(path):
             if "ingenier" in name_n:
                 ing = bool(ing) or completed
                 if f_ent_d is None:
-                    f_ent_d = to_date(get(r, col_due))
+                    f_ent_d = (to_date(get(r, col_start)) if col_start else None) or to_date(get(r, col_due))
             elif "proyecto" in name_n:
                 proy = bool(proy) or completed
                 if f_ent_d is None:
-                    f_ent_d = to_date(get(r, col_due))
+                    f_ent_d = (to_date(get(r, col_start)) if col_start else None) or to_date(get(r, col_due))
+                if asignee_r:
+                    cons_responsable = asignee_r
             elif "consolidado" in name_n or name_n in ("ofertas", "ofert", "oferta"):
                 cons = bool(cons) or completed
                 if f_fin_d:
                     f_sal_d = f_fin_d
-                if asignee_r:
-                    cons_responsable = asignee_r
 
         # Respaldo: si ninguna subtarea de ingenieria/proyecto tenia Due Date,
         # usar "Fecha de entrega" (campo personalizado) de cualquier fila del grupo.
@@ -363,47 +377,29 @@ def build_aggregates(offers, today):
             eventos[fs]["sal"] += 1
 
     if not eventos:
-        return [], [], [], [], [], [], 0, 0
+        return [], [], [], [], [], []
 
     fechas = sorted(eventos.keys())
     min_fecha, max_fecha = fechas[0], fechas[-1]
-    cutoff = today - datetime.timedelta(days=today.weekday() + 21)
     DOW = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
     day_rows = []
-    day_rows_chart = []
-    pre_ent = 0
-    pre_sal = 0
 
     cur = min_fecha
     while cur <= max_fecha:
-        ev = eventos.get(cur, {"ent": 0, "sal": 0})
-        if cur < cutoff:
-            pre_ent += ev["ent"]
-            pre_sal += ev["sal"]
-        else:
-            if cur in eventos:
-                day_rows_chart.append({
-                    "date": cur.isoformat(),
-                    "label": cur.strftime("%d-%m"),
-                    "dow": DOW[cur.weekday()],
-                    "ent": ev["ent"],
-                    "sal": ev["sal"],
-                    "week": iso_week_label(cur),
-                })
+        if cur in eventos:
+            ev = eventos[cur]
+            day_rows.append({
+                "date": cur.isoformat(),
+                "label": cur.strftime("%d-%m"),
+                "dow": DOW[cur.weekday()],
+                "ent": ev["ent"],
+                "sal": ev["sal"],
+                "week": iso_week_label(cur),
+            })
         cur += datetime.timedelta(days=1)
 
-    if pre_ent or pre_sal:
-        first_week = day_rows_chart[0]["week"] if day_rows_chart else iso_week_label(min_fecha)
-        day_rows.append({
-            "date": min_fecha.isoformat(),
-            "label": f"Sem <={first_week}",
-            "dow": "-",
-            "ent": pre_ent,
-            "sal": pre_sal,
-            "week": first_week,
-        })
-    day_rows.extend(day_rows_chart)
+    day_rows_chart = day_rows
 
     semanas = {}
     for r in day_rows:
@@ -438,7 +434,7 @@ def build_aggregates(offers, today):
     pais_rows = sorted(pais_acc.items(), key=lambda kv: kv[1]["total"], reverse=True)
     asig_rows = sorted(asig_acc.items(), key=lambda kv: kv[1]["total"], reverse=True)
 
-    return day_rows, day_rows_chart, week_rows, week_rows_chart, pais_rows, asig_rows, pre_ent, pre_sal
+    return day_rows, day_rows_chart, week_rows, week_rows_chart, pais_rows, asig_rows
 
 
 def build_stats(offers):
@@ -467,6 +463,7 @@ TODAY_RE = re.compile(r"var TODAY='[^']*';")
 ACTUALIZADO_RE = re.compile(r"(Actualizado: )\d{2}/\d{2}/\d{4}(?: \d{2}:\d{2})?")
 ASANA_FECHA_RE = re.compile(r"(Asana \+ Excel . )\d{2}/\d{2}/\d{4}(?: \d{2}:\d{2})?")
 HBADGE_RE = re.compile(r"(<span class=\"hbadge\">)\d+( entradas . )\d+( enviadas</span>)")
+KPI_ENTRADAS_RE = re.compile(r"(Entradas</div><div class=\"kpi-val\")(>)\d+(</div>)")
 
 
 def replace_data(html, D, today_str_iso, today_str_disp, hora_str):
@@ -477,6 +474,7 @@ def replace_data(html, D, today_str_iso, today_str_disp, hora_str):
     html = ACTUALIZADO_RE.sub(rf"\g<1>{fecha_hora}", html)
     html = ASANA_FECHA_RE.sub(rf"\g<1>{fecha_hora}", html)
     html = HBADGE_RE.sub(rf"\g<1>{D['stats']['entradas']}\g<2>{D['stats']['enviadas']}\g<3>", html)
+    html = KPI_ENTRADAS_RE.sub(rf"\g<1>\g<2>{D['stats']['entradas']}\g<3>", html)
     return html
 
 
@@ -504,7 +502,7 @@ def main():
     offers = build_offers(xlsx_path)
     print(f"  {len(offers)} ofertas (tareas principales) detectadas")
 
-    day_rows, day_rows_chart, week_rows, week_rows_chart, pais_rows, asig_rows, pre_ent, pre_sal = \
+    day_rows, day_rows_chart, week_rows, week_rows_chart, pais_rows, asig_rows = \
         build_aggregates(offers, today)
 
     D = {
@@ -516,8 +514,8 @@ def main():
         "stats": build_stats(offers),
         "day_rows_chart": day_rows_chart,
         "week_rows_chart": week_rows_chart,
-        "pre_sal_offset": pre_sal,
-        "pre_ent_offset": pre_ent,
+        "pre_sal_offset": 0,
+        "pre_ent_offset": 0,
     }
 
     with open(html_path, "r", encoding="utf-8") as f:
