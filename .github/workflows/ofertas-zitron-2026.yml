@@ -3,15 +3,16 @@ name: Actualizar dashboard Oferta Zitron 2026
 on:
   schedule:
     # Lunes a Jueves 06:00 y 16:00 hora Chile / Viernes 06:00 y 13:00 hora Chile
-    # (se incluyen horarios CLST y CLT porque GitHub Actions usa UTC)
-    - cron: "0 9 * * 1-4"   # Lun-Jue 06:00 CLST (UTC-3)
-    - cron: "0 10 * * 1-4"  # Lun-Jue 06:00 CLT (UTC-4)
-    - cron: "0 19 * * 1-4"  # Lun-Jue 16:00 CLST
-    - cron: "0 20 * * 1-4"  # Lun-Jue 16:00 CLT
-    - cron: "0 9 * * 5"     # Vie 06:00 CLST
-    - cron: "0 10 * * 5"    # Vie 06:00 CLT
-    - cron: "0 16 * * 5"    # Vie 13:00 CLST
-    - cron: "0 17 * * 5"    # Vie 13:00 CLT
+    - cron: "0 9 * * 1-4"    # Lun-Jue 06:00 CLST (UTC-3)
+    - cron: "0 10 * * 1-4"   # Lun-Jue 06:00 CLT  (UTC-4)
+    - cron: "0 19 * * 1-4"   # Lun-Jue 16:00 CLST
+    - cron: "0 20 * * 1-4"   # Lun-Jue 16:00 CLT
+    - cron: "0 9 * * 5"      # Vie    06:00 CLST
+    - cron: "0 10 * * 5"     # Vie    06:00 CLT
+    - cron: "0 16 * * 5"     # Vie    13:00 CLST
+    - cron: "0 17 * * 5"     # Vie    13:00 CLT
+
+  # También se puede ejecutar manualmente desde la pestaña Actions
   workflow_dispatch: {}
 
 permissions:
@@ -31,38 +32,32 @@ jobs:
         with:
           python-version: "3.11"
 
+      # ── CAMBIO PRINCIPAL: msal en vez de playwright ──────────
       - name: Instalar dependencias
-        run: |
-          pip install playwright openpyxl
-          playwright install chromium --with-deps
+        run: pip install msal requests openpyxl
+      # ─────────────────────────────────────────────────────────
 
-      - name: Restaurar sesion de Asana
-        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
-
-      - name: Exportar proyecto Oferta Zitron 2026
-        run: python scripts/asana_export_ofertas.py
-
-      - name: Subir diagnostico (si hubo fallos)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-ofertas
-          path: debug_ofertas/
-          if-no-files-found: ignore
-
-      - name: Borrar sesion (no dejar rastro en el runner)
-        if: always()
-        run: rm -f auth.json
+      # ── CAMBIO PRINCIPAL: OneDrive en vez de Asana ───────────
+      - name: Descargar Excel desde OneDrive
+        env:
+          MS_TENANT_ID:     ${{ secrets.MS_TENANT_ID }}
+          MS_CLIENT_ID:     ${{ secrets.MS_CLIENT_ID }}
+          MS_CLIENT_SECRET: ${{ secrets.MS_CLIENT_SECRET }}
+          EXCEL_FILE_ID:    ${{ secrets.EXCEL_FILE_ID }}
+          EXCEL_OWNER:      ${{ secrets.EXCEL_OWNER }}
+        run: python scripts/onedrive_export_ofertas.py
+      # ─────────────────────────────────────────────────────────
 
       - name: Generar ofertas2026.html
         run: python scripts/ofertas_dashboard.py data_ofertas ofertas2026.html
 
       - name: Commit y push si hay cambios
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data_ofertas/ ofertas2026.html
-          # Siempre hacemos un commit para mantener el cron activo en GitHub
-          git diff --staged --quiet && echo "Sin cambios en dashboard" >> .github/keepalive.txt && git add .github/keepalive.txt
+          git diff --staged --quiet \
+            && echo "Sin cambios en dashboard" >> .github/keepalive.txt \
+            && git add .github/keepalive.txt
           git commit -m "Actualizar dashboard Oferta Zitron 2026 $(date -u +'%Y-%m-%d %H:%M UTC')" || true
           git push
