@@ -78,17 +78,14 @@ ASSIGNEE_AREA = {
     "Sergio de la Fuente Fernandez": "Equipo Proyecto",
     "David Blazquez": "Equipo Proyecto",
     "DAVID BLAZQUEZ": "Equipo Proyecto",
-    # Producción
-    "Benjamín Bustos": "Producción",
-    "benjamin.bustos@zitron.com": "Producción",
-    "Benjamin Bustos": "Producción",
+  # Producción
     "Benjamin Umaña": "Producción",
-    "Hugo Isla": "Producción",
-    "hugo isla martinez": "Producción",
     "Nicolás Mol": "Producción",
     "Nicolas Mol": "Producción",
     "Nicolás López": "Producción",
     "Nicolas Lopez": "Producción",
+    "nespinoza@zitron.com": "Producción",
+    "Natalia Espinoza": "Producción",
     # Compras
     "Eliana": "Compras",
     "Yerlia": "Compras",
