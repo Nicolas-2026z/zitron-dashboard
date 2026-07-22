@@ -70,9 +70,9 @@ PROYECTOS = [
     ("50001563 - ZITRON COLOMBIA ANTIOQUIA",              "https://app.asana.com/1/402967058777498/project/1215727332551578"),
     ("50001566 - XEMORTIZ",                               "https://app.asana.com/1/402967058777498/project/1215922055649550"),
     ("50001569 - EUROHINCA",                              "https://app.asana.com/1/402967058777498/project/1216208608300132"),
-    ("50001579- "XEMORTIZ C. MEXICANA",                   "https://app.asana.com/1/402967058777498/project/1216769310026482"),
-    ("50001577- "XEMORTIZ LA CANTERA",                    "https://app.asana.com/1/402967058777498/project/1216769310026176"),
-    ("50001576- "XEMORTIZ FIRST MAJESTIC",                "https://app.asana.com/1/402967058777498/project/1216730497556427"),
+    ("50001579- XEMORTIZ C. MEXICANA",                    "https://app.asana.com/1/402967058777498/project/1216769310026482"),
+    ("50001577- XEMORTIZ LA CANTERA",                     "https://app.asana.com/1/402967058777498/project/1216769310026176"),
+    ("50001576- XEMORTIZ FIRST MAJESTIC",                 "https://app.asana.com/1/402967058777498/project/1216730497556427"),
 ]
 
 
