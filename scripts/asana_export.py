@@ -64,7 +64,7 @@ PROYECTOS = [
     ("50001579-  XEMORTIZ C. MEXICANA",                        "https://app.asana.com/1/402967058777498/project/1216769310026482"),
     ("50001577-  XEMORTIZ LA CANTERA",                         "https://app.asana.com/1/402967058777498/project/1216769310026176"),
     ("50001576-  XEMORTIZ FIRST MAJESTIC",                     "https://app.asana.com/1/402967058777498/project/1216730497556427"),
-    ("50001580- CIA. RIO MINERALES"",                          "https://app.asana.com/1/402967058777498/project/1216769310026525"),
+    ("50001580- CIA. RIO MINERALES",                          "https://app.asana.com/1/402967058777498/project/1216769310026525"),
     
     
 ]
