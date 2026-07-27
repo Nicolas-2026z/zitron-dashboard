@@ -86,6 +86,8 @@ ASSIGNEE_AREA = {
     "Nicolas Lopez": "Producción",
     "nespinoza@zitron.com": "Producción",
     "Natalia Espinoza": "Producción",
+    "NATALYA ESPINOZA": "Producción",
+  
     # Compras
     "Eliana": "Compras",
     "Yerlia": "Compras",
