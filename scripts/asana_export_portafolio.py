@@ -74,6 +74,11 @@ PROYECTOS = [
     ("50001577- XEMORTIZ LA CANTERA",                     "https://app.asana.com/1/402967058777498/project/1216769310026176"),
     ("50001576- XEMORTIZ FIRST MAJESTIC",                 "https://app.asana.com/1/402967058777498/project/1216730497556427"),
     ("50001580- CIA. RIO MINERALES",                     "https://app.asana.com/1/402967058777498/project/1216769310026525"),
+    ("50001582 - XEMORTIZ LA CANTERA",                     "https://app.asana.com/1/402967058777498/project/1216769310026827"),
+    ("50001583 - xemortiz stock ",                         "https://app.asana.com/1/402967058777498/project/1216916625315570"),
+    ("50001585 - TENIENTE - CODELCO ",                    "https://app.asana.com/1/402967058777498/project/1216987148813468"),
+    ("50001591 - ZITRON COLOMBIA  ARIS MARAMTO ",         "https://app.asana.com/1/402967058777498/project/1217117619809514"),
+    
 ]
 
 
