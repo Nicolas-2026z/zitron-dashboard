@@ -1,10 +1,13 @@
 name: Actualizar Portafolio
+
 on:
   schedule:
-    - cron: "0 13 * * 1-5"   # lunes a viernes 13:00 UTC (~9am Chile UTC-4)
+    - cron: "0 13 * * 1-5"   # lunes a viernes 13:00 UTC (~9am Chile)
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   actualizar:
     runs-on: ubuntu-latest
@@ -27,7 +30,12 @@ jobs:
           ASANA_AUTH_PORTAFOLIO: ${{ secrets.ASANA_AUTH_PORTAFOLIO }}
         run: |
           echo "$ASANA_AUTH_PORTAFOLIO" > auth.json
-          echo "Tamano auth.json: $(wc -c < auth.json) bytes"
+          BYTES=$(wc -c < auth.json)
+          echo "Tamano auth.json: $BYTES bytes"
+          if [ "$BYTES" -lt 100 ]; then
+            echo "::error::auth.json quedo vacio o muy chico. Revisar el secret ASANA_AUTH_PORTAFOLIO."
+            exit 1
+          fi
 
       - name: Limpiar carpeta data anterior
         run: |
@@ -42,6 +50,21 @@ jobs:
 
       - name: Generar index.html
         run: python3 scripts/generar_portafolio.py data data/servicios index.html
+
+      # ── PASO NUEVO ────────────────────────────────────────────────────────
+      # Agrega la fecha de despacho (fase Logistica) y el pronostico de
+      # termino en dias habiles de Chile. Va DESPUES de generar el HTML,
+      # porque parchea el archivo que acaba de crear el generador.
+      - name: Agregar despacho y pronostico
+        run: |
+          python3 scripts/enriquecer.py --data data --html index.html | tee enriquecer.log
+          if grep -q "datos inyectados en 0/" enriquecer.log; then
+            echo "::error::No se cruzo ningun proyecto entre los XLSX y el index.html"
+            exit 1
+          fi
+          if grep -q "no esta en feriados_chile.json" enriquecer.log; then
+            echo "::warning::Hay anios sin feriados cargados. Revisar scripts/feriados_chile.json"
+          fi
 
       - name: Commit y push de los cambios
         run: |
