@@ -1,0 +1,51 @@
+{
+  "_nota": [
+    "Feriados legales de Chile usados para el calculo de dias habiles.",
+    "Formato: 'AAAA-MM-DD': 'nombre'. Editable a mano.",
+    "Las fechas ya incluyen los traslados de la Ley 20.215 (San Pedro y San Pablo,",
+    "Encuentro de Dos Mundos) y de la Ley 20.299 (Iglesias Evangelicas).",
+    "Los anios que no esten en esta lista se calculan de forma automatica y se",
+    "avisa por consola: conviene verificarlos contra el calendario oficial y",
+    "agregarlos aca, sobre todo si hay feriados por elecciones o leyes nuevas.",
+    "IMPORTANTE: agregar aca los feriados de elecciones y los feriados regionales",
+    "que apliquen a la planta, no son parte del calculo automatico."
+  ],
+
+  "2026": {
+    "2026-01-01": "Anio Nuevo",
+    "2026-04-03": "Viernes Santo",
+    "2026-04-04": "Sabado Santo",
+    "2026-05-01": "Dia del Trabajo",
+    "2026-05-21": "Glorias Navales",
+    "2026-06-21": "Dia de los Pueblos Indigenas",
+    "2026-06-29": "San Pedro y San Pablo",
+    "2026-07-16": "Virgen del Carmen",
+    "2026-08-15": "Asuncion de la Virgen",
+    "2026-09-18": "Independencia Nacional",
+    "2026-09-19": "Glorias del Ejercito",
+    "2026-10-12": "Encuentro de Dos Mundos",
+    "2026-10-31": "Iglesias Evangelicas",
+    "2026-11-01": "Todos los Santos",
+    "2026-12-08": "Inmaculada Concepcion",
+    "2026-12-25": "Navidad"
+  },
+
+  "2027": {
+    "2027-01-01": "Anio Nuevo",
+    "2027-03-26": "Viernes Santo",
+    "2027-03-27": "Sabado Santo",
+    "2027-05-01": "Dia del Trabajo",
+    "2027-05-21": "Glorias Navales",
+    "2027-06-21": "Dia de los Pueblos Indigenas",
+    "2027-06-28": "San Pedro y San Pablo (trasladado del martes 29)",
+    "2027-07-16": "Virgen del Carmen",
+    "2027-08-15": "Asuncion de la Virgen",
+    "2027-09-18": "Independencia Nacional",
+    "2027-09-19": "Glorias del Ejercito",
+    "2027-10-11": "Encuentro de Dos Mundos (trasladado del martes 12)",
+    "2027-10-31": "Iglesias Evangelicas",
+    "2027-11-01": "Todos los Santos",
+    "2027-12-08": "Inmaculada Concepcion",
+    "2027-12-25": "Navidad"
+  }
+}
