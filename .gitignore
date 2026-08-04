@@ -1,0 +1,19 @@
+# ─── NUNCA SUBIR ────────────────────────────────────────────────
+# Sesion de Asana: quien la tenga entra al workspace sin contrasena
+# (en GitHub Actions se recrea desde el secret ASANA_AUTH_PORTAFOLIO)
+auth.json
+ 
+# ─── Temporales del workflow ────────────────────────────────────
+enriquecer.log
+debug_portafolio/
+ 
+# ─── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.venv/
+venv/
+ 
+# ─── Sistema ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+~$*
