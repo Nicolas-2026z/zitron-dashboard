@@ -134,7 +134,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
 </script>
 <header class="header">
   <div class="hleft"><div class="hlogo">Z</div><div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2/3</div></div></div>
-  <div class="hright"><div>Actualizado: 04/08/2026 10:57 hrs</div><div style="color:#86EFAC" id="hdrTotal">52 proyectos</div></div>
+  <div class="hright"><div>Actualizado: 04/08/2026 11:19 hrs</div><div style="color:#86EFAC" id="hdrTotal">52 proyectos</div></div>
 </header>
 <div style="max-width:1080px;margin:0 auto;padding:22px 18px;">
   <div class="kpis" id="kpis"></div>
@@ -349,7 +349,7 @@ function render(){
     if(x.entrega){
       var entregaDate=parseExw(x.entrega);
       var entregaVencida=entregaDate&&entregaDate<TODAY&&!desp;
-      entregaTag='<span class="entrega-tag'+(entregaVencida?' vencida':'')+'">🗓️ Entrega '+(entregaVencida?'⚠ ':'')+x.entrega+'</span>';
+      entregaTag='<span class="entrega-tag'+(entregaVencida?' vencida':'')+'">🗓️ Fecha entrega cliente '+(entregaVencida?'⚠ ':'')+x.entrega+'</span>';
     }
 
     // Fecha de despacho tomada de la fase Logistica en Asana
@@ -358,7 +358,7 @@ function render(){
       var dDesp=parseExw(x.despacho);
       var despVenc=dDesp&&dDesp<TODAY&&!desp;
       despTag='<span class="desp-tag"'+(despVenc?' style="background:#FEE2E2;border-color:#FECACA;color:#991B1B"':'')
-        +' title="Tarea Despacho (Logistica)">\uD83D\uDE9A Despacho '+x.despacho+'</span>';
+        +' title="Tarea Despacho (Logistica)">\uD83D\uDE9A Fecha despacho Asana '+x.despacho+'</span>';
     }
     // Pronostico de termino segun velocidad real de cierre de subtareas
     var pronTag='';
@@ -371,7 +371,7 @@ function render(){
         extra=difDias>0?(' +'+difDias+'d'):(difDias<0?(' '+difDias+'d'):' en fecha');
       }
       pronTag='<span class="pron-tag '+clase+'" title="Pronostico por velocidad. Confianza: '
-        +(x.conf||'baja')+'. '+(x.nota||'')+'">\uD83D\uDD2E '+x.pron+extra+'</span>';
+        +(x.conf||'baja')+'. '+(x.nota||'')+'">\uD83D\uDD2E Pronostico de entrega '+x.pron+extra+'</span>';
     }
     return '<div class="pcard" id="c'+i+'" onclick="toggle('+i+')">'
       +'<div class="ptop"><span class="pname" title="'+x.n+'">'+x.n+'</span>'
