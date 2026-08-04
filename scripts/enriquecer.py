@@ -29,7 +29,7 @@ import unicodedata
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from openpyxl import load_workbook
+import openpyxl
 
 import calendario_cl as cal
 
@@ -43,6 +43,13 @@ PESO_RECIENTE    = 0.70    # cuanto pesa la velocidad reciente vs la historica
 MIN_CIERRES_ALTA = 12      # cierres en la ventana para considerar confianza alta
 MIN_CIERRES_MEDIA = 5
 TOPE_HABILES     = 500     # si el pronostico se dispara mas alla, se marca asi
+
+# Palabras que identifican la tarea de despacho dentro de la fase Logistica.
+# Si en Asana se llama distinto, agregar la palabra aca (en minusculas, sin tildes).
+PALABRAS_DESPACHO = ("despach", "embarq", "envio", "entrega a obra", "shipping")
+
+# Palabras que identifican la fase de logistica
+PALABRAS_LOGISTICA = ("logist", "despacho")
 
 
 # ── Utilidades ───────────────────────────────────────────────────────────────
@@ -106,42 +113,61 @@ def mapear_columnas(encabezados):
                 m[clave] = i
                 break
         else:
-            # fallback: coincidencia parcial
             for i, h in enumerate(normalizados):
-                if any(a in h for a in alias):
+                if h and any(a in h for a in alias):
                     m[clave] = i
                     break
     return m
 
 
-def leer_export(ruta: Path):
-    """Devuelve (lista_de_tareas, nombre_proyecto)."""
-    wb = load_workbook(ruta, read_only=True, data_only=True)
-    ws = wb[wb.sheetnames[0]]
-    filas = ws.iter_rows(values_only=True)
+def buscar_fila_encabezado(ws, max_scan=10):
+    """
+    Misma logica que generar_portafolio.py: el encabezado es la primera fila
+    (dentro de las primeras 10) que tenga 'Task ID' y 'Name'.
+    """
+    for r in range(1, max_scan + 1):
+        valores = [c.value for c in ws[r]]
+        if "Task ID" in valores and "Name" in valores:
+            return r, valores
+    # Respaldo por si el export viniera localizado al espaniol
+    for r in range(1, max_scan + 1):
+        valores = [c.value for c in ws[r]]
+        vn = [norm(v) for v in valores]
+        if any(v in ("name", "nombre") for v in vn):
+            return r, valores
+    return None, None
 
-    encabezados = None
-    for fila in filas:
-        if fila and any(c not in (None, "") for c in fila):
-            encabezados = list(fila)
-            break
-    if not encabezados:
+
+def leer_export(ruta: Path):
+    """
+    Devuelve (lista_de_tareas, nombre_proyecto).
+
+    IMPORTANTE: se abre SIN read_only. Los XLSX de Asana declaran mal el rango
+    de dimensiones y en modo read_only openpyxl devuelve solo el encabezado.
+    Es el mismo criterio que usa generar_portafolio.py.
+    """
+    wb = openpyxl.load_workbook(ruta, data_only=True)
+    ws = wb.active
+
+    fila_enc, encabezados = buscar_fila_encabezado(ws)
+    if fila_enc is None:
         wb.close()
         return [], ruta.stem
 
     col = mapear_columnas(encabezados)
     tareas = []
-    for fila in filas:
-        if not fila or all(c in (None, "") for c in fila):
-            continue
-
+    for fila in ws.iter_rows(min_row=fila_enc + 1, values_only=True):
         def g(clave):
             i = col.get(clave)
             return fila[i] if i is not None and i < len(fila) else None
 
+        nombre = g("nombre")
+        if nombre in (None, ""):
+            continue
+
         tareas.append({
             "id":         str(g("id") or "").strip(),
-            "nombre":     str(g("nombre") or "").strip(),
+            "nombre":     str(nombre).strip(),
             "creado":     a_fecha(g("creado")),
             "completado": a_fecha(g("completado")),
             "vence":      a_fecha(g("vence")),
@@ -173,25 +199,37 @@ def cadena_padres(tarea, por_id, por_nombre, tope=6):
 
 def buscar_despacho(tareas):
     """
-    Fecha de la tarea de despacho. Prioriza la que cuelga de Logistica;
-    si no la encuentra, toma cualquier tarea cuyo nombre hable de despacho.
-    Devuelve (fecha, origen) donde origen dice de donde salio el dato.
+    Fecha de la tarea de despacho (la que cuelga de la fase Logistica).
+
+    En Asana la estructura es:
+        Logistica:            <- fase nivel 1 (cabecera, sin fecha)
+          Despacho            <- nivel 2, ESTA es la que buscamos
+            ...5 subtareas    <- nivel 3, pueden traer la fecha real
+
+    Prioridad de fecha: vencimiento propio -> vencimiento mas tardio de sus
+    subtareas -> completada propia -> completada mas tardia de sus subtareas
+    -> inicio. Devuelve (fecha, origen).
     """
     por_id = {t["id"]: t for t in tareas if t["id"]}
     por_nombre = {norm(t["nombre"]): t for t in tareas if t["nombre"]}
 
+    # hijos por nombre de padre, para poder mirar el nivel 3
+    hijos = {}
+    for t in tareas:
+        if t["padre"]:
+            hijos.setdefault(norm(t["padre"]), []).append(t)
+
     candidatas = []
     for t in tareas:
         n = norm(t["nombre"])
-        if "despach" not in n and "embarq" not in n:
+        if not any(pal in n for pal in PALABRAS_DESPACHO):
+            continue
+        # las fases de nivel 1 son cabeceras, nunca llevan la fecha
+        if not t["padre"]:
             continue
         ancestros = [norm(a) for a in cadena_padres(t, por_id, por_nombre)]
         contexto = " ".join(ancestros + [norm(t["seccion"])])
-        bajo_logistica = "logist" in contexto
-        # una cabecera "Logistica:" no es la tarea de despacho en si
-        es_cabecera = n.rstrip(":") in ("logistica", "logistica y despacho")
-        if es_cabecera:
-            continue
+        bajo_logistica = any(pal in contexto for pal in PALABRAS_LOGISTICA)
         candidatas.append((bajo_logistica, t))
 
     if not candidatas:
@@ -201,13 +239,38 @@ def buscar_despacho(tareas):
     bajo_logistica, t = candidatas[0]
     origen = "Logistica" if bajo_logistica else "tarea suelta"
 
+    subtareas = hijos.get(norm(t["nombre"]), [])
+
     if t["vence"]:
         return t["vence"], f"{origen} · vencimiento"
+
+    vencimientos = [h["vence"] for h in subtareas if h["vence"]]
+    if vencimientos:
+        return max(vencimientos), f"{origen} · vencimiento de subtareas"
+
     if t["completado"]:
         return t["completado"], f"{origen} · completada"
+
+    completadas = [h["completado"] for h in subtareas if h["completado"]]
+    if completadas:
+        return max(completadas), f"{origen} · subtareas completadas"
+
     if t["inicio"]:
         return t["inicio"], f"{origen} · inicio"
-    return None, origen
+
+    return None, f"{origen} · sin fecha cargada"
+
+
+def hijos_de_logistica(tareas):
+    """Nombres de las tareas que cuelgan de la fase Logistica (solo para el log)."""
+    por_id = {t["id"]: t for t in tareas if t["id"]}
+    por_nombre = {norm(t["nombre"]): t for t in tareas if t["nombre"]}
+    out = []
+    for t in tareas:
+        ancestros = [norm(a) for a in cadena_padres(t, por_id, por_nombre)]
+        if any(pal in " ".join(ancestros) for pal in PALABRAS_LOGISTICA):
+            out.append(t["nombre"])
+    return out
 
 
 # ── 2. Pronostico de termino ─────────────────────────────────────────────────
@@ -290,6 +353,7 @@ def calcular_pronostico(tareas, hoy):
 # ── 3. Recorrer los exports ──────────────────────────────────────────────────
 def procesar(carpeta: Path, hoy: date):
     resultados = {}
+    sin_despacho_mostrado = [False]
     archivos = sorted(list(carpeta.glob("*.xlsx")) + list(carpeta.glob("*.csv")))
     archivos = [a for a in archivos if not a.name.startswith("~$")
                 and "PORTAFOLIO" not in a.name.upper()]
@@ -303,6 +367,9 @@ def procesar(carpeta: Path, hoy: date):
         except Exception as e:
             print(f"  [ERROR] {ruta.name}: {e}")
             continue
+
+        if not tareas:
+            print(f"  [AVISO] {ruta.name}: 0 tareas leidas (revisar encabezados)")
 
         despacho, origen = buscar_despacho(tareas)
         pron = calcular_pronostico(tareas, hoy)
@@ -319,8 +386,24 @@ def procesar(carpeta: Path, hoy: date):
             "habiles":    pron["habiles"],
             "total":      pron["total"],
         }
-        print(f"  {nombre[:48]:<50} despacho={resultados[nombre]['despacho'] or '-':<11}"
+        print(f"  {nombre[:44]:<46} tareas={len(tareas):<4}"
+              f" despacho={resultados[nombre]['despacho'] or '-':<11}"
               f" pron={resultados[nombre]['pron'] or '-':<11} ({pron['conf']})")
+        if pron["nota"]:
+            print(f"       {pron['nota']}")
+        if origen and not despacho:
+            print(f"       [!] Tarea de despacho encontrada pero {origen}")
+
+        # Si no se encontro la tarea de despacho, mostrar que cuelga de
+        # Logistica para poder ajustar PALABRAS_DESPACHO.
+        if not despacho and not sin_despacho_mostrado[0]:
+            hijos = hijos_de_logistica(tareas)
+            if hijos:
+                sin_despacho_mostrado[0] = True
+                print(f"       [?] No hay tarea de despacho. Bajo Logistica hay: "
+                      f"{hijos[:12]}")
+                print(f"       Si alguna es el despacho, agregar su palabra a "
+                      f"PALABRAS_DESPACHO en enriquecer.py")
 
     return resultados
 
