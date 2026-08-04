@@ -424,6 +424,13 @@ CSS_EXTRA = """
 .pron-tag.ok{background:#ECFDF5;border-color:#A7F3D0;color:#065F46;}
 .pron-tag.riesgo{background:#FEF3C7;border-color:#FDE68A;color:#92400E;}
 .pron-tag.critico{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
+.ptop{gap:6px 8px;align-items:center;}
+.pname{flex:1 1 100%;min-width:0;line-height:1.35;margin-bottom:2px;}
+.pcard .ppct{margin-left:auto;}
+@media(max-width:820px){
+  .desp-tag,.pron-tag,.entrega-tag,.exw-tag{font-size:9px;padding:2px 6px;}
+  .pcnt{min-width:0;}
+}
 """
 
 JS_TAGS = """
