@@ -51,6 +51,13 @@ PALABRAS_DESPACHO = ("despach", "embarq", "envio", "entrega a obra", "shipping")
 # Palabras que identifican la fase de logistica
 PALABRAS_LOGISTICA = ("logist", "despacho")
 
+# ── Etiquetas de los tags en la tarjeta ──────────────────────────────────────
+# Editar aca si se quieren nombres mas cortos (las tarjetas se hacen angostas
+# cuando los tres tags son largos).
+ETIQUETA_ENTREGA    = "Fecha entrega cliente"   # viene del portafolio de Asana
+ETIQUETA_DESPACHO   = "Fecha despacho Asana"    # tarea Despacho de la fase Logistica
+ETIQUETA_PRONOSTICO = "Pronostico de entrega"   # calculado por velocidad
+
 
 # ── Utilidades ───────────────────────────────────────────────────────────────
 def norm(s) -> str:
@@ -426,7 +433,7 @@ JS_TAGS = """
       var dDesp=parseExw(x.despacho);
       var despVenc=dDesp&&dDesp<TODAY&&!desp;
       despTag='<span class="desp-tag"'+(despVenc?' style="background:#FEE2E2;border-color:#FECACA;color:#991B1B"':'')
-        +' title="Tarea Despacho (Logistica)">\\uD83D\\uDE9A Despacho '+x.despacho+'</span>';
+        +' title="Tarea Despacho (Logistica)">\\uD83D\\uDE9A __ETQ_DESPACHO__ '+x.despacho+'</span>';
     }
     // Pronostico de termino segun velocidad real de cierre de subtareas
     var pronTag='';
@@ -439,7 +446,7 @@ JS_TAGS = """
         extra=difDias>0?(' +'+difDias+'d'):(difDias<0?(' '+difDias+'d'):' en fecha');
       }
       pronTag='<span class="pron-tag '+clase+'" title="Pronostico por velocidad. Confianza: '
-        +(x.conf||'baja')+'. '+(x.nota||'')+'">\\uD83D\\uDD2E '+x.pron+extra+'</span>';
+        +(x.conf||'baja')+'. '+(x.nota||'')+'">\\uD83D\\uDD2E __ETQ_PRONOSTICO__ '+x.pron+extra+'</span>';
     }
 """
 
@@ -488,15 +495,27 @@ def parchear_html(ruta_html: Path, mapa: dict):
     html = html[:m.start()] + nuevo + html[fin:]
     print(f"  datos inyectados en {aciertos}/{len(proyectos)} proyectos")
 
-    # 4.2 estilos y render (solo la primera vez)
+    # 4.2 renombrar el tag de Entrega que viene del TEMPLATE de
+    # generar_portafolio.py. Se hace siempre porque ese script regenera el
+    # HTML en cada corrida. El ancla no incluye emojis a proposito, para no
+    # depender de como quedaron codificados.
+    if "Entrega '+(entregaVencida" in html:
+        html = html.replace("Entrega '+(entregaVencida",
+                            ETIQUETA_ENTREGA + " '+(entregaVencida", 1)
+        print(f"  tag de entrega renombrado a '{ETIQUETA_ENTREGA}'")
+
+    # 4.3 estilos y render (solo la primera vez)
     if MARCA not in html:
         html = html.replace(
             ".entrega-tag.vencida{",
             MARCA + CSS_EXTRA + ".entrega-tag.vencida{", 1)
 
+        tags_js = (JS_TAGS
+                   .replace("__ETQ_DESPACHO__", ETIQUETA_DESPACHO)
+                   .replace("__ETQ_PRONOSTICO__", ETIQUETA_PRONOSTICO))
         ancla = "    return '<div class=\"pcard\" id=\"c'+i+'\""
         if ancla in html:
-            html = html.replace(ancla, JS_TAGS + ancla, 1)
+            html = html.replace(ancla, tags_js + ancla, 1)
         else:
             print("  [AVISO] no se encontro el ancla del render de tarjetas")
 
