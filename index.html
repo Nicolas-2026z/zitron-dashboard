@@ -95,6 +95,13 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 .pron-tag.ok{background:#ECFDF5;border-color:#A7F3D0;color:#065F46;}
 .pron-tag.riesgo{background:#FEF3C7;border-color:#FDE68A;color:#92400E;}
 .pron-tag.critico{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
+.ptop{gap:6px 8px;align-items:center;}
+.pname{flex:1 1 100%;min-width:0;line-height:1.35;margin-bottom:2px;}
+.pcard .ppct{margin-left:auto;}
+@media(max-width:820px){
+  .desp-tag,.pron-tag,.entrega-tag,.exw-tag{font-size:9px;padding:2px 6px;}
+  .pcnt{min-width:0;}
+}
 .entrega-tag.vencida{background:#FEE2E2;border-color:#FECACA;color:#991B1B;}
 .info-btn{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid #C7D9F5;background:#EEF4FF;color:#1A3A5C;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
 .info-btn:hover{background:#DCE9FB;}
@@ -134,7 +141,7 @@ window.addEventListener('load',function(){if(sessionStorage.getItem('zpw')!=='ok
 </script>
 <header class="header">
   <div class="hleft"><div class="hlogo">Z</div><div><div class="htitle">Portafolio Consolidado Zitron</div><div class="hsub">% avance nivel 1 sin cabeceras ponderado por nivel 2/3</div></div></div>
-  <div class="hright"><div>Actualizado: 04/08/2026 11:34 hrs</div><div style="color:#86EFAC" id="hdrTotal">52 proyectos</div></div>
+  <div class="hright"><div>Actualizado: 04/08/2026 12:05 hrs</div><div style="color:#86EFAC" id="hdrTotal">52 proyectos</div></div>
 </header>
 <div style="max-width:1080px;margin:0 auto;padding:22px 18px;">
   <div class="kpis" id="kpis"></div>
