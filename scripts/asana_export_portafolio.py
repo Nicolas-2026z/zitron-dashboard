@@ -79,7 +79,7 @@ PROYECTOS = [
     ("50001585 - TENIENTE - CODELCO ",                    "https://app.asana.com/1/402967058777498/project/1216987148813468"),
      ("50001586 - ZITRON PERU SAC  CONDESTABLE ",         "https://app.asana.com/1/402967058777498/project/1217117619809497"),
     ("50001591 - ZITRON COLOMBIA  ARIS MARAMTO ",         "https://app.asana.com/1/402967058777498/project/1217117619809514"),
-    ("50001592 - VITA EXPRESS INC (Venezuela)",         "https://app.asana.com/1/402967058777498/project/1217157927256311")
+    ("50001592 - VITA EXPRESS INC (Venezuela)",         "https://app.asana.com/1/402967058777498/project/1217157927256311"),
     
 ]
 
