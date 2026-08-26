@@ -65,12 +65,18 @@ PROYECTOS = [
     ("50001577-  XEMORTIZ LA CANTERA",                         "https://app.asana.com/1/402967058777498/project/1216769310026176"),
     ("50001576-  XEMORTIZ FIRST MAJESTIC",                     "https://app.asana.com/1/402967058777498/project/1216730497556427"),
     ("50001580- CIA. RIO MINERALES",                          "https://app.asana.com/1/402967058777498/project/1216769310026525"),
-    ("50001582 - XEMORTIZ LA CANTERA",                     "https://app.asana.com/1/402967058777498/project/1216769310026827"),
-    ("50001583 - xemortiz stock ",                         "https://app.asana.com/1/402967058777498/project/1216916625315570"),
-    ("50001585 - TENIENTE - CODELCO ",                    "https://app.asana.com/1/402967058777498/project/1216987148813468"),
-    ("50001591 - ZITRON COLOMBIA  ARIS MARAMTO ",         "https://app.asana.com/1/402967058777498/project/1217117619809514"),
-     ("50001592 - VITA EXPRESS INC (Venezuela)",         "https://app.asana.com/1/402967058777498/project/1217157927256311"),
-     ("50001586 - ZITRON PERU SAC  CONDESTABLE",         "https://app.asana.com/1/402967058777498/project/1217117619809497"),
+    ("50001582 - XEMORTIZ LA CANTERA",                          "https://app.asana.com/1/402967058777498/project/1216769310026827"),
+    ("50001583 - xemortiz stock ",                              "https://app.asana.com/1/402967058777498/project/1216916625315570"),
+    ("50001585 - TENIENTE - CODELCO ",                          "https://app.asana.com/1/402967058777498/project/1216987148813468"),
+    ("50001591 - ZITRON COLOMBIA  ARIS MARAMTO ",               "https://app.asana.com/1/402967058777498/project/1217117619809514"),
+     ("50001592 - VITA EXPRESS INC (Venezuela)",                "https://app.asana.com/1/402967058777498/project/1217157927256311"),
+     ("50001586 - ZITRON PERU SAC  CONDESTABLE",                "https://app.asana.com/1/402967058777498/project/1217117619809497"),
+    ("50001588 - ZITRON PERU HUARON",                           "https://app.asana.com/1/402967058777498/project/1217341772721173"),
+    ("50001589 - XEMORTIZ LA CANTERA III",                         "https://app.asana.com/1/402967058777498/project/1217560757639127"),
+    ("50001587 -  usach ",                                          "https://app.asana.com/1/402967058777498/project/1217653008288236"),
+    ("50001449 -  Itaberaba Extracción",                            "https://app.asana.com/1/402967058777498/project/1217783436184643"),
+    
+    
     
     
     
