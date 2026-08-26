@@ -103,8 +103,9 @@ ASSIGNEE_AREA = {
     "Gonzalo Dávila": "Ingeniería",
     "Gabriel Venegas": "Ingeniería",
     "Gabriel Venega": "Ingeniería",
-   "Nicolás López": "Producción",
-    "Nicolas Lopez": "Producción",
+   # Control de Calidad
+   "Nicolás López": "Control de calidad",
+    "Nicolas Lopez": "Control de calidad",
     # Bodega
     "Víctor Muñoz": "Bodega",
     "Victor Muñoz": "Bodega",
