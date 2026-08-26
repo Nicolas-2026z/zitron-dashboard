@@ -82,8 +82,6 @@ ASSIGNEE_AREA = {
     "Benjamin Umaña": "Producción",
     "Nicolás Mol": "Producción",
     "Nicolas Mol": "Producción",
-    "Nicolás López": "Producción",
-    "Nicolas Lopez": "Producción",
     "nespinoza@zitron.com": "Producción",
     "Natalia Espinoza": "Producción",
     "NATALYA ESPINOZA": "Producción",
@@ -105,6 +103,8 @@ ASSIGNEE_AREA = {
     "Gonzalo Dávila": "Ingeniería",
     "Gabriel Venegas": "Ingeniería",
     "Gabriel Venega": "Ingeniería",
+   "Nicolás López": "Producción",
+    "Nicolas Lopez": "Producción",
     # Bodega
     "Víctor Muñoz": "Bodega",
     "Victor Muñoz": "Bodega",
