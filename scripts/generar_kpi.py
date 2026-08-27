@@ -229,6 +229,10 @@ def process_file(path, today):
         if name and str(name).strip().lower() == "costos":
             continue
 
+        # Excluir tareas de "Despacho" (con o sin número de OT)
+        if name and "despacho" in str(name).strip().lower():
+            continue
+
         start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
