@@ -217,6 +217,36 @@ def area_for(assignee, section):
     return "Equipo Proyecto"
 
 
+def rama_excluida(filas, col):
+    """Devuelve el set de nombres normalizados que deben excluirse por
+    jerarquía: las tareas cuyo nombre contiene 'despacho' (nivel 2) y TODA
+    su descendencia (nivel 3, 4, ...), sin importar cuántos niveles baje.
+
+    El export de Asana solo trae el padre inmediato, así que se recorre el
+    árbol hacia abajo repetidamente hasta que no se agregue nada nuevo.
+    """
+    excluidos = set()
+
+    # Semilla: cualquier tarea cuyo nombre contenga las palabras excluidas
+    for row in filas:
+        n = _norm(row[col["Name"]])
+        if n and any(k in n for k in EXCLUIR_NOMBRE_CONTIENE):
+            excluidos.add(n)
+
+    # Propagación hacia abajo: si el padre está excluido, el hijo también
+    cambio = True
+    while cambio:
+        cambio = False
+        for row in filas:
+            n = _norm(row[col["Name"]])
+            p = _norm(row[col["Parent task"]])
+            if n and p and n not in excluidos and p in excluidos:
+                excluidos.add(n)
+                cambio = True
+
+    return excluidos
+
+
 def process_file(path, today):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.active
@@ -231,13 +261,18 @@ def process_file(path, today):
     if not all(r in col for r in required):
         return None
 
+    # Primera pasada: leer todas las filas (incluidas las de nivel 1) para
+    # poder reconstruir la jerarquía completa antes de filtrar.
+    filas = [r for r in ws.iter_rows(min_row=header_row + 1, values_only=True)
+             if r[col["Name"]] not in (None, "")]
+
+    excluidos_rama = rama_excluida(filas, col)
+
     tasks = []
     excluidas = 0
 
-    for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
-        if row[col["Name"]] in (None, ""):
-            continue
-
+    # Segunda pasada: construir las tareas ya filtradas
+    for row in filas:
         parent = row[col["Parent task"]]
         if parent in (None, ""):
             continue
@@ -253,6 +288,12 @@ def process_file(path, today):
         n_assignee = _norm(assignee)
 
         # ---- Exclusiones --------------------------------------------
+        # Rama completa de Despacho: la tarea misma (nivel 2) y toda su
+        # descendencia (nivel 3 en adelante)
+        if n_name in excluidos_rama or n_parent in excluidos_rama:
+            excluidas += 1
+            continue
+
         if any(k in n_name for k in EXCLUIR_NOMBRE_CONTIENE):
             excluidas += 1
             continue
@@ -314,12 +355,16 @@ def process_file(path, today):
         task_id = row[col["Task ID"]] if "Task ID" in col else None
 
         # No mostrar como bloqueantes las tareas de Despacho que ya excluimos
+        def _dep_valida(x):
+            nx = _norm(x)
+            if nx in excluidos_rama:
+                return False
+            return not any(k in nx for k in EXCLUIR_NOMBRE_CONTIENE)
+
         lista_blocked_by = [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else []
-        lista_blocked_by = [x for x in lista_blocked_by
-                            if not any(k in _norm(x) for k in EXCLUIR_NOMBRE_CONTIENE)]
+        lista_blocked_by = [x for x in lista_blocked_by if _dep_valida(x)]
         lista_blocking = [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else []
-        lista_blocking = [x for x in lista_blocking
-                          if not any(k in _norm(x) for k in EXCLUIR_NOMBRE_CONTIENE)]
+        lista_blocking = [x for x in lista_blocking if _dep_valida(x)]
 
         tasks.append({
             "name": name,
