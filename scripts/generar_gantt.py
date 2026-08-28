@@ -2,9 +2,9 @@
 """
 Genera GANTT.html — "Carga de taller por trabajador"
 
-Usa los MISMOS exports de Asana que ya descarga exportar_asana.py.
-No lee el Excel de nadie: el dato de quien hace cada cosa sale del
-campo Assignee, y las fechas de Start Date / Due Date.
+Usa los MISMOS exports de Asana que descarga exportar_taller.py.
+No lee el Excel de nadie: quien hace cada cosa sale del campo Assignee,
+y las fechas de Start Date / Due Date.
 
 Los datos quedan incrustados en el HTML (igual que generar_kpi.py),
 asi que el archivo funciona solo, sin fetch ni CORS ni servidor.
@@ -14,8 +14,8 @@ USO
   python3 generar_gantt.py <carpeta_con_excels> <archivo_salida_html>
 
 Por defecto:
-  carpeta   = data
-  salida    = docs/GANTT.html
+  carpeta   = data-taller
+  salida    = GANTT.HTML   (raiz del repo, junto a KPI.HTML)
 """
 
 import os
@@ -36,7 +36,7 @@ warnings.filterwarnings("ignore")
 # CONFIGURACION
 # ---------------------------------------------------------------------
 
-# Cuantas semanas hacia atras mostrar (tareas ya cerradas quedan atenuadas)
+# Cuantas semanas hacia atras mostrar (tareas ya cerradas quedan en blanco)
 SEMANAS_ATRAS = 2
 
 # Este tablero es independiente del KPI. Por eso, por defecto:
@@ -46,16 +46,16 @@ SEMANAS_ATRAS = 2
 SOLO_NIVEL_2 = False
 APLICAR_EXCLUSIONES = False
 
-# Areas -> color de la barra. Reutiliza el criterio de generar_kpi.py
+# Areas -> color de linea. Tonos apagados, legibles sobre papel blanco.
 COLOR_AREA = {
-    "Ingeniería":         "#4A86B8",
-    "Compras":            "#D9963A",
-    "Producción":         "#57A57C",
-    "Bodega":             "#9370A6",
-    "Logística":          "#C2607A",
-    "Control de calidad": "#5AA0A8",
-    "Servicios":          "#8A8F5C",
-    "Equipo Proyecto":    "#7C8794",
+    "Ingeniería":         "#1B4F8C",
+    "Compras":            "#A8620F",
+    "Producción":         "#2E7D52",
+    "Bodega":             "#6A3F8F",
+    "Logística":          "#A63E5A",
+    "Control de calidad": "#1D6E78",
+    "Servicios":          "#6B7233",
+    "Equipo Proyecto":    "#54606E",
 }
 
 ASSIGNEE_AREA = {
@@ -96,7 +96,6 @@ SECTION_AREA_KEYWORDS = [
     ("montaje", "Producción"),
 ]
 
-# Mismas exclusiones que el KPI, para que ambos tableros cuadren
 EXCLUIR_NOMBRE_CONTIENE = ["despacho"]
 EXCLUIR_NOMBRE_EXACTO = ["costos"]
 EXCLUIR_SECCION_CONTIENE = ["cierre de proyecto"]
@@ -141,16 +140,44 @@ def area_for(assignee, section):
     return "Equipo Proyecto"
 
 
-def find_header_row(ws, max_scan=10):
+def find_header_row(ws, max_scan=12):
+    """Devuelve (fila, mapa_canonico). Acepta cabeceras en ingles o
+    espanol, porque el idioma del export depende de como tenga puesta
+    Asana la persona que genero la sesion."""
     for r in range(1, max_scan + 1):
-        values = [c.value for c in ws[r]]
-        if "Task ID" in values and "Name" in values:
-            return r, values
-    return None, None
+        valores = [c.value for c in ws[r]]
+        mapa = {}
+        for i, celda in enumerate(valores):
+            n = _norm(celda)
+            if not n:
+                continue
+            for canon, alias in ALIAS.items():
+                if canon in mapa:
+                    continue
+                if any(n == _norm(a) for a in alias):
+                    mapa[canon] = i
+                    break
+        if "Name" in mapa and ("Due Date" in mapa or "Start Date" in mapa):
+            return r, mapa, valores
+    return None, None, None
+
+
+ALIAS = {
+    "Task ID":      ["Task ID", "ID de la tarea", "ID de tarea"],
+    "Name":         ["Name", "Nombre", "Nombre de la tarea"],
+    "Section/Column": ["Section/Column", "Seccion/Columna", "Sección/Columna",
+                       "Seccion", "Sección"],
+    "Assignee":     ["Assignee", "Responsable", "Asignado a", "Encargado"],
+    "Start Date":   ["Start Date", "Fecha de inicio", "Fecha inicio"],
+    "Due Date":     ["Due Date", "Fecha de vencimiento", "Fecha de entrega",
+                     "Fecha limite", "Fecha límite"],
+    "Completed At": ["Completed At", "Completada el", "Fecha de finalizacion",
+                     "Fecha de finalización", "Completado el"],
+    "Parent task":  ["Parent task", "Tarea principal", "Tarea padre"],
+}
 
 
 def extraer_ot(texto):
-    """Saca OT-#### del nombre del proyecto o de la tarea."""
     m = re.search(r"OT\s*-?\s*(\d{3,5})", str(texto or ""), re.I)
     return "OT-" + m.group(1) if m else None
 
@@ -169,24 +196,39 @@ def process_file(path, hoy, desde):
     ws = wb.active
     proyecto = Path(path).stem.strip()
 
-    header_row, headers = find_header_row(ws)
+    header_row, col, cabeceras = find_header_row(ws)
     if header_row is None:
+        print(f"  [{proyecto}] No se reconocio la fila de cabeceras.")
+        print("  Primeras filas del archivo:")
+        for r in range(1, 4):
+            fila = [str(c.value)[:22] for c in ws[r] if c.value is not None]
+            print(f"    fila {r}: {fila}")
+        wb.close()
         return []
 
-    col = {name: i for i, name in enumerate(headers) if name is not None}
-    if not all(c in col for c in ("Name", "Due Date")):
-        return []
+    print(f"  [{proyecto}] cabeceras en fila {header_row}: "
+          + ", ".join(sorted(col.keys())))
+    faltan = [c for c in ("Assignee", "Start Date", "Due Date") if c not in col]
+    if faltan:
+        print(f"  [{proyecto}] AVISO: el export no trae {', '.join(faltan)}. "
+              "Agrega esas columnas al exportar desde Asana.")
 
     def get(row, key):
         i = col.get(key)
         return row[i] if i is not None and i < len(row) else None
 
+    # Contadores para saber por que se descarta cada fila
+    n = {"filas": 0, "cabecera": 0, "nivel1": 0, "excluida": 0,
+         "sin_responsable": 0, "sin_fechas": 0, "fuera_ventana": 0, "ok": 0}
+
     tareas = []
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         if not row or get(row, "Name") in (None, ""):
             continue
+        n["filas"] += 1
 
         if SOLO_NIVEL_2 and get(row, "Parent task") in (None, ""):
+            n["nivel1"] += 1
             continue
 
         name = str(get(row, "Name")).strip()
@@ -197,33 +239,33 @@ def process_file(path, hoy, desde):
 
         # Cabeceras de seccion: nombre terminado en ":" y sin responsable
         if n_name.endswith(":") and not str(assignee).strip():
+            n["cabecera"] += 1
             continue
 
         if APLICAR_EXCLUSIONES:
-            if any(k in n_name for k in EXCLUIR_NOMBRE_CONTIENE):
-                continue
-            if n_name in EXCLUIR_NOMBRE_EXACTO:
-                continue
-            if any(k in n_sec for k in EXCLUIR_SECCION_CONTIENE):
-                continue
-            if n_asg in EXCLUIR_ASSIGNEE_EXACTO:
+            if (any(k in n_name for k in EXCLUIR_NOMBRE_CONTIENE)
+                    or n_name in EXCLUIR_NOMBRE_EXACTO
+                    or any(k in n_sec for k in EXCLUIR_SECCION_CONTIENE)
+                    or n_asg in EXCLUIR_ASSIGNEE_EXACTO):
+                n["excluida"] += 1
                 continue
 
-        # Sin responsable no hay fila que dibujar
         if not str(assignee).strip():
+            n["sin_responsable"] += 1
             continue
 
         due = to_date(get(row, "Due Date"))
         start = to_date(get(row, "Start Date")) or due
         if not due or not start:
+            n["sin_fechas"] += 1
             continue
         if due < start:
             start, due = due, start
 
         completed = to_date(get(row, "Completed At"))
 
-        # Fuera de ventana: cerradas hace mucho o que ya terminaron hace mucho
         if due < desde and (completed is None or completed < desde):
+            n["fuera_ventana"] += 1
             continue
 
         if completed:
@@ -232,6 +274,7 @@ def process_file(path, hoy, desde):
             estado = "vencida" if due < hoy else "curso"
 
         task_id = get(row, "Task ID")
+        n["ok"] += 1
         tareas.append({
             "n": name,
             "p": str(assignee).strip(),
@@ -247,12 +290,23 @@ def process_file(path, hoy, desde):
             "u": f"https://app.asana.com/0/0/{int(task_id)}/f" if task_id else None,
         })
 
+    print(f"  [{proyecto}] {n['filas']} filas leidas -> {n['ok']} al Gantt")
+    for etiqueta, clave in (("cabeceras de seccion", "cabecera"),
+                            ("sin responsable", "sin_responsable"),
+                            ("sin fecha de inicio o vencimiento", "sin_fechas"),
+                            ("terminadas hace mas de "
+                             f"{SEMANAS_ATRAS} semanas", "fuera_ventana"),
+                            ("nivel 1 (SOLO_NIVEL_2)", "nivel1"),
+                            ("excluidas por reglas", "excluida")):
+        if n[clave]:
+            print(f"      descartadas por {etiqueta}: {n[clave]}")
+
     wb.close()
     return tareas
 
 
 # ---------------------------------------------------------------------
-# PLANTILLA
+# PLANTILLA — lamina de plano tecnico sobre papel blanco
 # ---------------------------------------------------------------------
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -264,130 +318,327 @@ TEMPLATE = r"""<!DOCTYPE html>
 <title>Carga de taller — Gantt por trabajador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#12161A; --panel:#1A2027; --panel-2:#212932;
-  --line:#2C353E; --line-soft:#232B33;
-  --ink:#E9EEF3; --ink-2:#9DAAB6; --ink-3:#6B7883;
-  --alerta:#D65246; --ok:#57A57C; --hoy:#E3B23C;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --papel:#FFFFFF;
+  --reticula:#E9EDF2;
+  --regla:#C6CFDA;
+  --regla-fuerte:#9AA7B6;
+  --tinta:#0E1620;
+  --tinta-2:#56626F;
+  --tinta-3:#8C98A5;
+  --rojo:#C0392B;
+  --azul:#1B4F8C;
   --dia:26px;
+  --cond:"IBM Plex Sans Condensed",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;-webkit-font-smoothing:antialiased}
-button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+body{
+  background:var(--papel);
+  color:var(--tinta);
+  font-family:var(--sans);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 
-.top{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:20px 24px 16px;
-     border-bottom:1px solid var(--line);background:linear-gradient(180deg,#161C22,#12161A)}
-.marca h1{font-family:var(--display);font-size:30px;font-weight:600;letter-spacing:.02em;
-          text-transform:uppercase;margin:0;line-height:1}
-.marca .sub{font-family:var(--display);font-size:14px;color:var(--ink-3);
-            text-transform:uppercase;letter-spacing:.13em}
-.sello{margin-left:auto;font-size:12px;color:var(--ink-3);text-align:right;line-height:1.6}
+/* ---------- Encabezado tipo lamina ---------- */
+.lamina{
+  border-bottom:2px solid var(--tinta);
+  padding:22px 26px 0;
+  display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;
+}
+.rotulo h1{
+  font-family:var(--cond);
+  font-size:34px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;margin:0;line-height:.95;
+}
+.rotulo .bajada{
+  font-family:var(--mono);font-size:11px;color:var(--tinta-2);
+  letter-spacing:.08em;text-transform:uppercase;margin-top:7px;
+}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
-      background:var(--line-soft);margin:16px 24px 0;border:1px solid var(--line);
-      border-radius:8px;overflow:hidden}
-.kpi{background:var(--panel);padding:14px 16px}
-.kpi .et{font-family:var(--display);font-size:12px;font-weight:500;text-transform:uppercase;
-         letter-spacing:.1em;color:var(--ink-3)}
-.kpi .val{font-family:var(--display);font-size:32px;font-weight:600;line-height:1.1;margin-top:2px}
-.kpi .val small{font-size:15px;color:var(--ink-3);font-weight:400;margin-left:3px}
-.kpi.riesgo .val{color:var(--alerta)}
+/* Cajetin: la firma de la lamina */
+.cajetin{
+  margin-left:auto;
+  border:1.5px solid var(--tinta);
+  display:grid;grid-template-columns:repeat(4,minmax(78px,auto));
+}
+.cajetin div{
+  border-right:1px solid var(--regla);
+  padding:6px 12px 7px;
+}
+.cajetin div:last-child{border-right:0}
+.cajetin .et{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tinta-3);
+}
+.cajetin .dt{
+  font-family:var(--cond);font-size:16px;font-weight:600;
+  margin-top:2px;white-space:nowrap;
+}
 
-.controles{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 24px 12px}
-.grupo{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.grupo button{padding:6px 13px;background:var(--panel);border:0;color:var(--ink-2);
-              font-size:12.5px;font-weight:500;border-right:1px solid var(--line)}
+/* ---------- Cotas / indicadores ---------- */
+.cotas{
+  display:flex;flex-wrap:wrap;
+  border-bottom:1px solid var(--regla);
+  padding:0 26px;
+}
+.cota{
+  padding:14px 30px 13px 0;margin-right:30px;
+  border-right:1px solid var(--reticula);
+}
+.cota:last-child{border-right:0}
+.cota .et{
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--tinta-3);
+}
+.cota .val{
+  font-family:var(--mono);font-size:27px;font-weight:500;
+  line-height:1.15;margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.cota.alerta .val{color:var(--rojo)}
+
+/* ---------- Controles ---------- */
+.controles{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:14px 26px;border-bottom:1px solid var(--regla);
+}
+.grupo{display:flex;border:1px solid var(--regla-fuerte)}
+.grupo button{
+  padding:6px 13px;background:var(--papel);border:0;
+  border-right:1px solid var(--regla);
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
 .grupo button:last-child{border-right:0}
-.grupo button[aria-pressed="true"]{background:#4A86B8;color:#fff}
-.buscar{padding:7px 12px;border-radius:6px;border:1px solid var(--line);
-        background:var(--panel);min-width:200px}
-.buscar::placeholder{color:var(--ink-3)}
-.leyenda{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
-.leyenda span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
-.swatch{width:11px;height:11px;border-radius:2px;flex:none}
+.grupo button[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
+.buscar{
+  padding:6px 11px;border:1px solid var(--regla-fuerte);
+  background:var(--papel);min-width:210px;font-size:13px;
+}
+.buscar::placeholder{color:var(--tinta-3)}
+.leyenda{display:flex;gap:15px;margin-left:auto;flex-wrap:wrap}
+.leyenda span{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
+.tramo{width:16px;height:4px;flex:none}
 
-.tablero{margin:0 24px 24px;border:1px solid var(--line);border-radius:8px;
-         overflow:hidden;background:var(--panel)}
+/* ---------- Tablero ---------- */
 .scroll{overflow-x:auto}
 .rejilla{min-width:max-content;position:relative}
-.fila{display:flex;border-bottom:1px solid var(--line-soft)}
-.fila:last-child{border-bottom:0}
-.fila.cabecera{position:sticky;top:0;z-index:6;background:var(--panel-2);border-bottom:1px solid var(--line)}
-.izq{width:250px;flex:none;padding:10px 14px;border-right:1px solid var(--line);
-     position:sticky;left:0;z-index:5;background:var(--panel)}
-.fila.cabecera .izq{background:var(--panel-2);z-index:7}
-.nombre{font-family:var(--display);font-size:17px;font-weight:600;line-height:1.2}
-.rol{font-size:11px;color:var(--ink-3);margin-top:1px;text-transform:uppercase;letter-spacing:.07em}
-.medidor{height:4px;background:var(--line);border-radius:2px;margin-top:7px;overflow:hidden}
-.medidor i{display:block;height:100%;background:var(--ok);border-radius:2px}
-.medidor i.alto{background:var(--hoy)}
-.medidor i.sobre{background:var(--alerta)}
-.carga{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:4px;
-       display:flex;justify-content:space-between}
-.pista{position:relative;flex:1;min-height:52px}
+.fila{display:flex;border-bottom:1px solid var(--reticula)}
+.fila.cabecera{
+  position:sticky;top:0;z-index:6;background:var(--papel);
+  border-bottom:1.5px solid var(--tinta);
+}
+.izq{
+  width:246px;flex:none;padding:11px 16px 10px;
+  border-right:1.5px solid var(--tinta);
+  position:sticky;left:0;z-index:5;background:var(--papel);
+}
+.fila.cabecera .izq{z-index:7}
+.nombre{
+  font-family:var(--cond);font-size:17px;font-weight:600;
+  letter-spacing:.03em;text-transform:uppercase;line-height:1.15;
+}
+.rol{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--tinta-3);margin-top:3px;
+}
+/* Cota de carga: linea de cota, no barra de progreso */
+.cotaLinea{
+  margin-top:9px;height:7px;position:relative;
+  border-left:1px solid var(--regla-fuerte);
+  border-right:1px solid var(--regla-fuerte);
+}
+.cotaLinea::before{
+  content:"";position:absolute;top:3px;left:0;right:0;
+  border-top:1px solid var(--regla);
+}
+.cotaLinea i{
+  position:absolute;top:2px;left:0;height:3px;display:block;
+  background:var(--tinta);
+}
+.cotaLinea i.alerta{background:var(--rojo)}
+.cifras{
+  font-family:var(--mono);font-size:9.5px;color:var(--tinta-3);
+  margin-top:5px;display:flex;justify-content:space-between;
+}
+.cifras b{font-weight:500;color:var(--rojo)}
+
+.pista{position:relative;flex:1;min-height:50px}
 .fila.cabecera .pista{min-height:0}
-.meses{display:flex;height:22px;border-bottom:1px solid var(--line-soft)}
-.mes{font-family:var(--display);font-size:11.5px;font-weight:600;text-transform:uppercase;
-     letter-spacing:.11em;color:var(--ink-2);padding:4px 0 0 8px;border-left:1px solid var(--line);
-     overflow:hidden;white-space:nowrap}
-.dias{display:flex;height:26px}
-.dia{width:var(--dia);flex:none;text-align:center;font-family:var(--mono);font-size:10px;
-     color:var(--ink-3);padding-top:6px;border-left:1px solid var(--line-soft)}
-.dia.finde{background:rgba(255,255,255,.022);color:#525E68}
-.dia.lunes{border-left-color:var(--line)}
+
+.meses{display:flex;height:21px;border-bottom:1px solid var(--reticula)}
+.mes{
+  font-family:var(--mono);font-size:9.5px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-2);
+  padding:5px 0 0 8px;border-left:1px solid var(--regla);
+  overflow:hidden;white-space:nowrap;
+}
+.dias{display:flex;height:25px}
+.dia{
+  width:var(--dia);flex:none;text-align:center;
+  font-family:var(--mono);font-size:9.5px;color:var(--tinta-3);
+  padding-top:6px;border-left:1px solid var(--reticula);
+  font-variant-numeric:tabular-nums;
+}
+.dia.lunes{border-left:1px solid var(--regla)}
+.dia.finde{color:#B4BEC9}
+
 .trama{position:absolute;inset:0;display:flex;pointer-events:none}
-.celda{width:var(--dia);flex:none;border-left:1px solid var(--line-soft)}
-.celda.finde{background:rgba(255,255,255,.022)}
-.celda.lunes{border-left-color:var(--line)}
-.hoy{position:absolute;top:0;bottom:0;width:2px;background:var(--hoy);z-index:4;
-     pointer-events:none;box-shadow:0 0 8px rgba(227,178,60,.45)}
-.hoy::after{content:"HOY";position:absolute;top:2px;left:5px;font-family:var(--display);
-            font-size:10px;font-weight:700;letter-spacing:.13em;color:var(--hoy)}
-.barra{position:absolute;height:26px;border-radius:4px;padding:0 8px;display:flex;
-       align-items:center;gap:7px;font-size:11.5px;font-weight:500;color:#0E1216;
-       overflow:hidden;white-space:nowrap;text-decoration:none;
-       border:1px solid rgba(0,0,0,.28);transition:filter .12s,transform .12s}
-.barra:hover{filter:brightness(1.13);transform:translateY(-1px);z-index:3}
-.barra .ot{font-family:var(--mono);font-size:10.5px;font-weight:700;opacity:.82}
+.celda{width:var(--dia);flex:none;border-left:1px solid var(--reticula)}
+.celda.lunes{border-left:1px solid var(--regla)}
+/* Achurado de fin de semana, como zona fuera de alcance en un plano */
+.celda.finde{
+  background:repeating-linear-gradient(45deg,
+    transparent 0 3px, #EFF2F6 3px 4px);
+}
+
+/* Linea de hoy: eje de referencia */
+.hoy{
+  position:absolute;top:0;bottom:0;width:0;
+  border-left:1px dashed var(--rojo);z-index:4;pointer-events:none;
+}
+.hoy::after{
+  content:"HOY";position:absolute;top:1px;left:4px;
+  font-family:var(--mono);font-size:8.5px;font-weight:600;
+  letter-spacing:.16em;color:var(--rojo);background:var(--papel);
+  padding:1px 3px;
+}
+
+/* Barras: elementos dibujados, no pastillas */
+.barra{
+  position:absolute;height:23px;border-radius:1px;
+  padding:0 7px;display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:500;color:#fff;
+  overflow:hidden;white-space:nowrap;text-decoration:none;
+  border:1px solid rgba(0,0,0,.32);
+}
+.barra:hover{filter:brightness(1.12)}
+.barra .ot{
+  font-family:var(--mono);font-size:9.5px;font-weight:600;
+  letter-spacing:.04em;opacity:.85;
+}
 .barra .txt{overflow:hidden;text-overflow:ellipsis}
-.barra.cerrada{opacity:.42}
-.barra.vencida{border:1px solid var(--alerta);box-shadow:0 0 0 1px rgba(214,82,70,.45)}
-.barra.vencida::before{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(214,82,70,.32) 5px 10px)}
-.vacio{padding:52px 24px;text-align:center;color:var(--ink-3)}
-.vacio .t{font-family:var(--display);font-size:20px;color:var(--ink-2);
-          text-transform:uppercase;letter-spacing:.06em}
-.pie{padding:12px 24px 28px;font-size:11.5px;color:var(--ink-3);display:flex;gap:18px;flex-wrap:wrap}
-@media (max-width:720px){.izq{width:160px}.marca h1{font-size:23px}.leyenda{margin-left:0;width:100%}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Cerrada: contorno, sin relleno — el trabajo ya no ocupa capacidad */
+.barra.cerrada{background:var(--papel)!important;border-width:1px}
+.barra.cerrada .txt,.barra.cerrada .ot{opacity:.9}
+.barra.vencida::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(45deg,
+    transparent 0 4px, rgba(255,255,255,.4) 4px 8px);
+}
+.barra.vencida{border:1.5px solid var(--rojo)}
+
+.vacio{padding:56px 26px;text-align:center}
+.vacio .t{
+  font-family:var(--cond);font-size:19px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
+.vacio p{color:var(--tinta-3);font-size:13px}
+
+.pie{
+  padding:14px 26px 30px;border-top:1px solid var(--regla);
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  color:var(--tinta-3);display:flex;gap:26px;flex-wrap:wrap;
+  text-transform:uppercase;
+}
+/* ---------- Portada de acceso ---------- */
+#gate{
+  position:fixed;inset:0;background:var(--papel);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+}
+#gate.hidden{display:none}
+#gate .caja{
+  border:1.5px solid var(--tinta);width:330px;padding:0;
+}
+#gate .caja .franja{
+  border-bottom:1px solid var(--regla);padding:14px 20px;
+}
+#gate .caja h2{
+  font-family:var(--cond);font-size:23px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;margin:0;line-height:1;
+}
+#gate .caja .sub{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--tinta-3);margin-top:6px;
+}
+#gate .caja .cuerpo{padding:20px}
+#gate input{
+  padding:9px 12px;border:1px solid var(--regla-fuerte);
+  font-size:14px;width:100%;background:var(--papel);
+}
+#gate button{
+  margin-top:10px;padding:10px 16px;border:0;width:100%;
+  background:var(--tinta);color:var(--papel);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;
+}
+#gate .error{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--rojo);margin-top:9px;height:13px;
+}
+#app{display:none}
+#app.show{display:block}
+
+@media (max-width:760px){
+  .izq{width:158px}
+  .rotulo h1{font-size:26px}
+  .cajetin{margin-left:0;margin-top:14px}
+  .leyenda{margin-left:0;width:100%}
+}
+@media print{
+  .controles{display:none}
+  body{font-size:11px}
+}
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="marca">
-    <h1>Carga de taller</h1>
-    <div class="sub">Gantt por trabajador · datos de Asana</div>
+<div id="gate">
+  <div class="caja">
+    <div class="franja">
+      <h2>Carga de taller</h2>
+      <div class="sub">Acceso restringido</div>
+    </div>
+    <div class="cuerpo">
+      <input type="password" id="gatePass" placeholder="Contraseña"
+             onkeydown="if(event.key==='Enter')checkPass()">
+      <button onclick="checkPass()">Ingresar</button>
+      <div class="error" id="gateError"></div>
+    </div>
   </div>
-  <div class="sello">
-    Generado __FECHA__<br>
-    <span id="proyectosInfo"></span>
+</div>
+
+<div id="app">
+
+<header class="lamina">
+  <div class="rotulo">
+    <h1>Carga de taller</h1>
+    <div class="bajada">Programa por trabajador · origen Asana</div>
+  </div>
+  <div class="cajetin">
+    <div><div class="et">Emitido</div><div class="dt" id="cbFecha">—</div></div>
+    <div><div class="et">Proyectos</div><div class="dt" id="cbProy">—</div></div>
+    <div><div class="et">Tareas</div><div class="dt" id="cbTareas">—</div></div>
+    <div><div class="et">Escala</div><div class="dt" id="cbEscala">8 sem</div></div>
   </div>
 </header>
 
-<section class="kpis">
-  <div class="kpi"><div class="et">Personas con carga</div><div class="val" id="kPers">—</div></div>
-  <div class="kpi"><div class="et">Tareas abiertas</div><div class="val" id="kAbiertas">—</div></div>
-  <div class="kpi"><div class="et">Media por persona</div><div class="val" id="kMedia">—</div></div>
-  <div class="kpi riesgo"><div class="et">Vencidas</div><div class="val" id="kVenc">—</div></div>
-  <div class="kpi"><div class="et">Proyectos</div><div class="val" id="kProy">—</div></div>
+<section class="cotas">
+  <div class="cota"><div class="et">Personas con carga</div><div class="val" id="kPers">—</div></div>
+  <div class="cota"><div class="et">Tareas abiertas</div><div class="val" id="kAbiertas">—</div></div>
+  <div class="cota"><div class="et">Media por persona</div><div class="val" id="kMedia">—</div></div>
+  <div class="cota alerta"><div class="et">Vencidas</div><div class="val" id="kVenc">—</div></div>
 </section>
 
 <div class="controles">
@@ -402,23 +653,44 @@ button{cursor:pointer}
   </div>
   <div class="grupo" id="gCerradas">
     <button data-c="0" aria-pressed="true">Solo abiertas</button>
-    <button data-c="1" aria-pressed="false">Incluir cerradas</button>
+    <button data-c="1" aria-pressed="false">Con cerradas</button>
   </div>
-  <input class="buscar" id="buscar" placeholder="Filtrar por persona, proyecto, OT o tarea">
+  <input class="buscar" id="buscar" placeholder="Filtrar por persona, OT o tarea">
   <div class="leyenda" id="leyenda"></div>
 </div>
 
-<div class="tablero"><div class="scroll"><div class="rejilla" id="rejilla"></div></div></div>
+<div class="scroll"><div class="rejilla" id="rejilla"></div></div>
 
 <div class="pie">
-  <span>Barra = desde Start Date hasta Due Date en Asana.</span>
-  <span>Rayado rojo = vencida sin completar. Atenuada = ya cerrada.</span>
-  <span>Clic en una barra abre la tarea en Asana.</span>
+  <span>Barra = Start Date → Due Date en Asana</span>
+  <span>Contorno sin relleno = tarea cerrada</span>
+  <span>Achurado rojo = vencida sin completar</span>
+  <span>Clic en la barra abre la tarea</span>
 </div>
 
+</div><!-- /#app -->
+
 <script>
+// Misma clave y misma sesion que KPI.HTML: si ya entraste alli en esta
+// pestana, este tablero se abre directo.
+const CLAVE = "zitron2026!";
+function checkPass(){
+  if(document.getElementById('gatePass').value === CLAVE){
+    sessionStorage.setItem('zitron_ok','1');
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('show');
+  } else {
+    document.getElementById('gateError').textContent = 'Contraseña incorrecta';
+  }
+}
+if(sessionStorage.getItem('zitron_ok') === '1'){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('app').classList.add('show');
+}
+
 const TAREAS = __DATA__;
 const COLOR  = __COLORES__;
+const FECHA  = __FECHA_CORTA__;
 
 let vista = "persona", semanas = 8, verCerradas = false, filtro = "";
 const $ = s => document.querySelector(s);
@@ -432,7 +704,10 @@ const esFinde = d => d.getDay()===0 || d.getDay()===6;
 TAREAS.forEach(t => { t._i = D(t.i); t._f = D(t.f); });
 
 $("#leyenda").innerHTML = Object.entries(COLOR)
-  .map(([a,c])=>`<span><i class="swatch" style="background:${c}"></i>${a}</span>`).join("");
+  .map(([a,c])=>`<span><i class="tramo" style="background:${c}"></i>${a}</span>`).join("");
+$("#cbFecha").textContent  = FECHA;
+$("#cbProy").textContent   = new Set(TAREAS.map(t=>t.pr)).size;
+$("#cbTareas").textContent = TAREAS.length;
 
 function visibles(){
   let out = TAREAS;
@@ -445,13 +720,15 @@ function visibles(){
 
 function pintar(){
   const datos = visibles();
-  kpis(datos);
+  cotas(datos);
+  $("#cbEscala").textContent = semanas + " sem";
+
   const rejilla = $("#rejilla");
   rejilla.innerHTML = "";
 
   if(!datos.length){
-    rejilla.innerHTML = '<div class="vacio"><div class="t">Nada que mostrar</div>' +
-      '<p>Ajusta el filtro o incluye las tareas cerradas.</p></div>';
+    rejilla.innerHTML = '<div class="vacio"><div class="t">Sin tareas en este corte</div>' +
+      '<p>Ajusta el filtro o incluye las cerradas.</p></div>';
     return;
   }
 
@@ -479,7 +756,7 @@ function pintar(){
   if(off >= 0 && off < total){
     const l = document.createElement("div");
     l.className = "hoy";
-    l.style.left = (250 + off*26 + 13) + "px";
+    l.style.left = (246 + off*26 + 13) + "px";
     rejilla.appendChild(l);
   }
 }
@@ -490,7 +767,7 @@ function cabecera(ini, total, ancho){
   const izq = document.createElement("div");
   izq.className = "izq";
   izq.innerHTML = '<div class="rol" style="margin:0">' +
-    (vista === "persona" ? "Trabajador · tareas abiertas" : "Área") + '</div>';
+    (vista === "persona" ? "Trabajador · carga abierta" : "Área · carga abierta") + '</div>';
   f.appendChild(izq);
 
   const pista = document.createElement("div");
@@ -544,18 +821,20 @@ function fila(nombre, tareas, ini, total, ancho){
     : [...new Set(tareas.map(t=>t.p))].length + " personas";
   izq.appendChild(r);
 
-  const pct = abiertas ? Math.round(vencidas/abiertas*100) : 0;
-  const med = document.createElement("div");
-  med.className = "medidor";
-  const b = document.createElement("i");
-  b.style.width = Math.min(100, pct) + "%";
-  b.className = pct > 50 ? "sobre" : (pct > 20 ? "alto" : "");
-  med.appendChild(b);
-  izq.appendChild(med);
+  // La cota se llena respecto de la persona mas cargada del tablero
+  const tope = Math.max(1, window.__topeCarga || 1);
+  const cota = document.createElement("div");
+  cota.className = "cotaLinea";
+  const marca = document.createElement("i");
+  marca.style.width = Math.min(100, Math.round(abiertas/tope*100)) + "%";
+  if(vencidas) marca.className = "alerta";
+  cota.appendChild(marca);
+  izq.appendChild(cota);
 
   const c = document.createElement("div");
-  c.className = "carga";
-  c.innerHTML = "<span>"+abiertas+" abiertas</span><span>"+vencidas+" vencidas</span>";
+  c.className = "cifras";
+  c.innerHTML = "<span>" + abiertas + " abiertas</span>" +
+                (vencidas ? "<b>" + vencidas + " vencidas</b>" : "<span>—</span>");
   izq.appendChild(c);
   f.appendChild(izq);
 
@@ -580,15 +859,16 @@ function fila(nombre, tareas, ini, total, ancho){
     let k = carriles.findIndex(fin => fin < x0);
     if(k === -1){ carriles.push(x1); k = carriles.length-1; } else carriles[k] = x1;
 
+    const col = COLOR[t.a] || "#54606E";
+    const cerrada = t.e.startsWith("cerrada");
     const el = document.createElement(t.u ? "a" : "div");
     if(t.u){ el.href = t.u; el.target = "_blank"; el.rel = "noopener"; }
-    el.className = "barra" +
-      (t.e === "vencida" ? " vencida" : "") +
-      (t.e.startsWith("cerrada") ? " cerrada" : "");
+    el.className = "barra" + (t.e === "vencida" ? " vencida" : "") + (cerrada ? " cerrada" : "");
     el.style.left  = Math.max(0,x0)*26 + 2 + "px";
     el.style.width = Math.max(24,(Math.min(total,x1+1) - Math.max(0,x0))*26 - 4) + "px";
-    el.style.top   = (6 + k*30) + "px";
-    el.style.background = COLOR[t.a] || "#7C8794";
+    el.style.top   = (6 + k*29) + "px";
+    if(cerrada){ el.style.borderColor = col; el.style.color = col; }
+    else { el.style.background = col; }
     el.innerHTML = (t.ot ? '<span class="ot">'+t.ot+'</span>' : '') +
                    '<span class="txt">'+t.n+'</span>';
     el.title = t.n + "\n" + t.pr + "\n" + t.p + " · " + t.a +
@@ -598,21 +878,23 @@ function fila(nombre, tareas, ini, total, ancho){
     pista.appendChild(el);
   });
 
-  pista.style.minHeight = (12 + Math.max(1,carriles.length)*30) + "px";
+  pista.style.minHeight = (12 + Math.max(1,carriles.length)*29) + "px";
   f.appendChild(pista);
   return f;
 }
 
-function kpis(datos){
+function cotas(datos){
   const abiertas = datos.filter(t => t.e==="curso" || t.e==="vencida");
-  const personas = new Set(abiertas.map(t=>t.p));
-  const venc = abiertas.filter(t=>t.e==="vencida").length;
-  $("#kPers").textContent = personas.size;
+  const personas = {};
+  abiertas.forEach(t => personas[t.p] = (personas[t.p]||0) + 1);
+  const nombres = Object.keys(personas);
+  window.__topeCarga = nombres.length ? Math.max(...Object.values(personas)) : 1;
+
+  $("#kPers").textContent = nombres.length;
   $("#kAbiertas").textContent = abiertas.length;
-  $("#kMedia").textContent = personas.size
-    ? (abiertas.length/personas.size).toFixed(1) : "0";
-  $("#kVenc").textContent = venc;
-  $("#kProy").textContent = new Set(datos.map(t=>t.pr)).size;
+  $("#kMedia").textContent = nombres.length
+    ? (abiertas.length/nombres.length).toFixed(1) : "0";
+  $("#kVenc").textContent = abiertas.filter(t=>t.e==="vencida").length;
 }
 
 $("#gVista").addEventListener("click", e=>{
@@ -639,8 +921,7 @@ $("#buscar").addEventListener("input", e=>{
   tec = setTimeout(()=>{ filtro = e.target.value.trim(); pintar(); }, 200);
 });
 
-$("#proyectosInfo").textContent =
-  new Set(TAREAS.map(t=>t.pr)).size + " proyectos · " + TAREAS.length + " tareas";
+cotas(visibles());   // fija el tope de carga antes del primer dibujo
 pintar();
 </script>
 </body>
@@ -653,8 +934,8 @@ pintar();
 # ---------------------------------------------------------------------
 
 def main():
-    carpeta = sys.argv[1] if len(sys.argv) > 1 else "data"
-    salida = sys.argv[2] if len(sys.argv) > 2 else "docs/GANTT.html"
+    carpeta = sys.argv[1] if len(sys.argv) > 1 else "data-taller"
+    salida = sys.argv[2] if len(sys.argv) > 2 else "GANTT.HTML"
 
     if not os.path.isdir(carpeta):
         print(f"[ERROR] No existe la carpeta {os.path.abspath(carpeta)}")
@@ -664,7 +945,7 @@ def main():
     archivos = [f for f in archivos if not os.path.basename(f).startswith("~$")]
     print(f"Archivos .xlsx encontrados: {len(archivos)}")
     if not archivos:
-        print("Nada que procesar. ¿Corrió antes exportar_asana.py?")
+        print("Nada que procesar. ¿Corrió antes exportar_taller.py?")
         sys.exit(1)
 
     hoy = datetime.date.today()
@@ -673,8 +954,7 @@ def main():
     tareas, errores = [], []
     for f in archivos:
         try:
-            t = process_file(f, hoy, desde)
-            tareas.extend(t)
+            tareas.extend(process_file(f, hoy, desde))
         except Exception as e:
             errores.append((os.path.basename(f), str(e)))
 
@@ -684,14 +964,12 @@ def main():
         sys.exit(1)
 
     ahora = datetime.datetime.now(ZoneInfo("America/Santiago"))
-    dias = ["lunes", "martes", "miércoles", "jueves",
-            "viernes", "sábado", "domingo"]
-    fecha = f"{dias[ahora.weekday()]} {ahora.strftime('%d/%m/%Y %H:%M')} hrs (Chile)"
+    fecha_corta = ahora.strftime("%d/%m %H:%M")
 
     html = (TEMPLATE
             .replace("__DATA__", json.dumps(tareas, ensure_ascii=False))
             .replace("__COLORES__", json.dumps(COLOR_AREA, ensure_ascii=False))
-            .replace("__FECHA__", fecha))
+            .replace("__FECHA_CORTA__", json.dumps(fecha_corta, ensure_ascii=False)))
 
     Path(salida).parent.mkdir(parents=True, exist_ok=True)
     Path(salida).write_text(html, encoding="utf-8")
