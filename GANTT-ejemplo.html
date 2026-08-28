@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Carga de taller — Gantt por trabajador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FFFFFF;
+  --reticula:#E9EDF2;
+  --regla:#C6CFDA;
+  --regla-fuerte:#9AA7B6;
+  --tinta:#0E1620;
+  --tinta-2:#56626F;
+  --tinta-3:#8C98A5;
+  --rojo:#C0392B;
+  --azul:#1B4F8C;
+  --dia:26px;
+  --cond:"IBM Plex Sans Condensed",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papel);
+  color:var(--tinta);
+  font-family:var(--sans);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ---------- Encabezado tipo lamina ---------- */
+.lamina{
+  border-bottom:2px solid var(--tinta);
+  padding:22px 26px 0;
+  display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;
+}
+.rotulo h1{
+  font-family:var(--cond);
+  font-size:34px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;margin:0;line-height:.95;
+}
+.rotulo .bajada{
+  font-family:var(--mono);font-size:11px;color:var(--tinta-2);
+  letter-spacing:.08em;text-transform:uppercase;margin-top:7px;
+}
+
+/* Cajetin: la firma de la lamina */
+.cajetin{
+  margin-left:auto;
+  border:1.5px solid var(--tinta);
+  display:grid;grid-template-columns:repeat(4,minmax(78px,auto));
+}
+.cajetin div{
+  border-right:1px solid var(--regla);
+  padding:6px 12px 7px;
+}
+.cajetin div:last-child{border-right:0}
+.cajetin .et{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tinta-3);
+}
+.cajetin .dt{
+  font-family:var(--cond);font-size:16px;font-weight:600;
+  margin-top:2px;white-space:nowrap;
+}
+
+/* ---------- Cotas / indicadores ---------- */
+.cotas{
+  display:flex;flex-wrap:wrap;
+  border-bottom:1px solid var(--regla);
+  padding:0 26px;
+}
+.cota{
+  padding:14px 30px 13px 0;margin-right:30px;
+  border-right:1px solid var(--reticula);
+}
+.cota:last-child{border-right:0}
+.cota .et{
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--tinta-3);
+}
+.cota .val{
+  font-family:var(--mono);font-size:27px;font-weight:500;
+  line-height:1.15;margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.cota.alerta .val{color:var(--rojo)}
+
+/* ---------- Controles ---------- */
+.controles{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:14px 26px;border-bottom:1px solid var(--regla);
+}
+.grupo{display:flex;border:1px solid var(--regla-fuerte)}
+.grupo button{
+  padding:6px 13px;background:var(--papel);border:0;
+  border-right:1px solid var(--regla);
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
+.grupo button:last-child{border-right:0}
+.grupo button[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
+.buscar{
+  padding:6px 11px;border:1px solid var(--regla-fuerte);
+  background:var(--papel);min-width:210px;font-size:13px;
+}
+.buscar::placeholder{color:var(--tinta-3)}
+.leyenda{display:flex;gap:15px;margin-left:auto;flex-wrap:wrap}
+.leyenda span{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
+.tramo{width:16px;height:4px;flex:none}
+
+/* ---------- Tablero ---------- */
+.scroll{overflow-x:auto}
+.rejilla{min-width:max-content;position:relative}
+.fila{display:flex;border-bottom:1px solid var(--reticula)}
+.fila.cabecera{
+  position:sticky;top:0;z-index:6;background:var(--papel);
+  border-bottom:1.5px solid var(--tinta);
+}
+.izq{
+  width:246px;flex:none;padding:11px 16px 10px;
+  border-right:1.5px solid var(--tinta);
+  position:sticky;left:0;z-index:5;background:var(--papel);
+}
+.fila.cabecera .izq{z-index:7}
+.nombre{
+  font-family:var(--cond);font-size:17px;font-weight:600;
+  letter-spacing:.03em;text-transform:uppercase;line-height:1.15;
+}
+.rol{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--tinta-3);margin-top:3px;
+}
+/* Cota de carga: linea de cota, no barra de progreso */
+.cotaLinea{
+  margin-top:9px;height:7px;position:relative;
+  border-left:1px solid var(--regla-fuerte);
+  border-right:1px solid var(--regla-fuerte);
+}
+.cotaLinea::before{
+  content:"";position:absolute;top:3px;left:0;right:0;
+  border-top:1px solid var(--regla);
+}
+.cotaLinea i{
+  position:absolute;top:2px;left:0;height:3px;display:block;
+  background:var(--tinta);
+}
+.cotaLinea i.alerta{background:var(--rojo)}
+.cifras{
+  font-family:var(--mono);font-size:9.5px;color:var(--tinta-3);
+  margin-top:5px;display:flex;justify-content:space-between;
+}
+.cifras b{font-weight:500;color:var(--rojo)}
+
+.pista{position:relative;flex:1;min-height:50px}
+.fila.cabecera .pista{min-height:0}
+
+.meses{display:flex;height:21px;border-bottom:1px solid var(--reticula)}
+.mes{
+  font-family:var(--mono);font-size:9.5px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-2);
+  padding:5px 0 0 8px;border-left:1px solid var(--regla);
+  overflow:hidden;white-space:nowrap;
+}
+.dias{display:flex;height:25px}
+.dia{
+  width:var(--dia);flex:none;text-align:center;
+  font-family:var(--mono);font-size:9.5px;color:var(--tinta-3);
+  padding-top:6px;border-left:1px solid var(--reticula);
+  font-variant-numeric:tabular-nums;
+}
+.dia.lunes{border-left:1px solid var(--regla)}
+.dia.finde{color:#B4BEC9}
+
+.trama{position:absolute;inset:0;display:flex;pointer-events:none}
+.celda{width:var(--dia);flex:none;border-left:1px solid var(--reticula)}
+.celda.lunes{border-left:1px solid var(--regla)}
+/* Achurado de fin de semana, como zona fuera de alcance en un plano */
+.celda.finde{
+  background:repeating-linear-gradient(45deg,
+    transparent 0 3px, #EFF2F6 3px 4px);
+}
+
+/* Linea de hoy: eje de referencia */
+.hoy{
+  position:absolute;top:0;bottom:0;width:0;
+  border-left:1px dashed var(--rojo);z-index:4;pointer-events:none;
+}
+.hoy::after{
+  content:"HOY";position:absolute;top:1px;left:4px;
+  font-family:var(--mono);font-size:8.5px;font-weight:600;
+  letter-spacing:.16em;color:var(--rojo);background:var(--papel);
+  padding:1px 3px;
+}
+
+/* Barras: elementos dibujados, no pastillas */
+.barra{
+  position:absolute;height:23px;border-radius:1px;
+  padding:0 7px;display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:500;color:#fff;
+  overflow:hidden;white-space:nowrap;text-decoration:none;
+  border:1px solid rgba(0,0,0,.32);
+}
+.barra:hover{filter:brightness(1.12)}
+.barra .ot{
+  font-family:var(--mono);font-size:9.5px;font-weight:600;
+  letter-spacing:.04em;opacity:.85;
+}
+.barra .txt{overflow:hidden;text-overflow:ellipsis}
+/* Cerrada: contorno, sin relleno — el trabajo ya no ocupa capacidad */
+.barra.cerrada{background:var(--papel)!important;border-width:1px}
+.barra.cerrada .txt,.barra.cerrada .ot{opacity:.9}
+.barra.vencida::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(45deg,
+    transparent 0 4px, rgba(255,255,255,.4) 4px 8px);
+}
+.barra.vencida{border:1.5px solid var(--rojo)}
+
+.vacio{padding:56px 26px;text-align:center}
+.vacio .t{
+  font-family:var(--cond);font-size:19px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tinta-2);
+}
+.vacio p{color:var(--tinta-3);font-size:13px}
+
+.pie{
+  padding:14px 26px 30px;border-top:1px solid var(--regla);
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  color:var(--tinta-3);display:flex;gap:26px;flex-wrap:wrap;
+  text-transform:uppercase;
+}
+/* ---------- Portada de acceso ---------- */
+#gate{
+  position:fixed;inset:0;background:var(--papel);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+}
+#gate.hidden{display:none}
+#gate .caja{
+  border:1.5px solid var(--tinta);width:330px;padding:0;
+}
+#gate .caja .franja{
+  border-bottom:1px solid var(--regla);padding:14px 20px;
+}
+#gate .caja h2{
+  font-family:var(--cond);font-size:23px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;margin:0;line-height:1;
+}
+#gate .caja .sub{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--tinta-3);margin-top:6px;
+}
+#gate .caja .cuerpo{padding:20px}
+#gate input{
+  padding:9px 12px;border:1px solid var(--regla-fuerte);
+  font-size:14px;width:100%;background:var(--papel);
+}
+#gate button{
+  margin-top:10px;padding:10px 16px;border:0;width:100%;
+  background:var(--tinta);color:var(--papel);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;
+}
+#gate .error{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--rojo);margin-top:9px;height:13px;
+}
+#app{display:none}
+#app.show{display:block}
+
+@media (max-width:760px){
+  .izq{width:158px}
+  .rotulo h1{font-size:26px}
+  .cajetin{margin-left:0;margin-top:14px}
+  .leyenda{margin-left:0;width:100%}
+}
+@media print{
+  .controles{display:none}
+  body{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="caja">
+    <div class="franja">
+      <h2>Carga de taller</h2>
+      <div class="sub">Acceso restringido</div>
+    </div>
+    <div class="cuerpo">
+      <input type="password" id="gatePass" placeholder="Contraseña"
+             onkeydown="if(event.key==='Enter')checkPass()">
+      <button onclick="checkPass()">Ingresar</button>
+      <div class="error" id="gateError"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+<header class="lamina">
+  <div class="rotulo">
+    <h1>Carga de taller</h1>
+    <div class="bajada">Programa por trabajador · origen Asana</div>
+  </div>
+  <div class="cajetin">
+    <div><div class="et">Emitido</div><div class="dt" id="cbFecha">—</div></div>
+    <div><div class="et">Proyectos</div><div class="dt" id="cbProy">—</div></div>
+    <div><div class="et">Tareas</div><div class="dt" id="cbTareas">—</div></div>
+    <div><div class="et">Escala</div><div class="dt" id="cbEscala">8 sem</div></div>
+  </div>
+</header>
+
+<section class="cotas">
+  <div class="cota"><div class="et">Personas con carga</div><div class="val" id="kPers">—</div></div>
+  <div class="cota"><div class="et">Tareas abiertas</div><div class="val" id="kAbiertas">—</div></div>
+  <div class="cota"><div class="et">Media por persona</div><div class="val" id="kMedia">—</div></div>
+  <div class="cota alerta"><div class="et">Vencidas</div><div class="val" id="kVenc">—</div></div>
+</section>
+
+<div class="controles">
+  <div class="grupo" id="gVista">
+    <button data-v="persona" aria-pressed="true">Por persona</button>
+    <button data-v="area" aria-pressed="false">Por área</button>
+  </div>
+  <div class="grupo" id="gRango">
+    <button data-s="4" aria-pressed="false">4 sem</button>
+    <button data-s="8" aria-pressed="true">8 sem</button>
+    <button data-s="16" aria-pressed="false">16 sem</button>
+  </div>
+  <div class="grupo" id="gCerradas">
+    <button data-c="0" aria-pressed="true">Solo abiertas</button>
+    <button data-c="1" aria-pressed="false">Con cerradas</button>
+  </div>
+  <input class="buscar" id="buscar" placeholder="Filtrar por persona, OT o tarea">
+  <div class="leyenda" id="leyenda"></div>
+</div>
+
+<div class="scroll"><div class="rejilla" id="rejilla"></div></div>
+
+<div class="pie">
+  <span>Barra = Start Date → Due Date en Asana</span>
+  <span>Contorno sin relleno = tarea cerrada</span>
+  <span>Achurado rojo = vencida sin completar</span>
+  <span>Clic en la barra abre la tarea</span>
+</div>
+
+</div><!-- /#app -->
+
+<script>
+// Misma clave y misma sesion que KPI.HTML: si ya entraste alli en esta
+// pestana, este tablero se abre directo.
+const CLAVE = "zitron2026!";
+function checkPass(){
+  if(document.getElementById('gatePass').value === CLAVE){
+    sessionStorage.setItem('zitron_ok','1');
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('show');
+  } else {
+    document.getElementById('gateError').textContent = 'Contraseña incorrecta';
+  }
+}
+if(sessionStorage.getItem('zitron_ok') === '1'){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('app').classList.add('show');
+}
+
+const TAREAS = [{"n": "Ingenieria basica Rodete", "p": "Hernan Roberto Gutierrez Barrientos", "a": "Ingeniería", "s": "Ingeniería y diseño:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-17", "f": "2026-08-26", "c": null, "e": "vencida", "u": "https://app.asana.com/0/0/1217946000001/f"}, {"n": "Ingenieria Detalle", "p": "Hernan Roberto Gutierrez Barrientos", "a": "Ingeniería", "s": "Ingeniería y diseño:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-27", "f": "2026-09-11", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000002/f"}, {"n": "Planos Definitivos", "p": "Francisca González Cornejo", "a": "Ingeniería", "s": "Ingeniería y diseño:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-24", "f": "2026-09-04", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000003/f"}, {"n": "Check Planos", "p": "Gonzalo Dávila", "a": "Ingeniería", "s": "Ingeniería y diseño:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-07", "f": "2026-09-15", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000004/f"}, {"n": "Generación OC Rodete", "p": "Rosemary Singh", "a": "Compras", "s": "Compras:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-10", "f": "2026-08-21", "c": "2026-08-20", "e": "cerrada", "u": "https://app.asana.com/0/0/1217946000005/f"}, {"n": "Fabricación Rodete", "p": "Rosemary Singh", "a": "Compras", "s": "Compras:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-24", "f": "2026-10-02", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000006/f"}, {"n": "Generación OC Tableros", "p": "Yerlia Ayleen Castillo Diaz", "a": "Compras", "s": "Compras:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-18", "f": "2026-08-25", "c": null, "e": "vencida", "u": "https://app.asana.com/0/0/1217946000007/f"}, {"n": "Fabricación Tablero", "p": "Yerlia Ayleen Castillo Diaz", "a": "Compras", "s": "Compras:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-26", "f": "2026-09-30", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000008/f"}, {"n": "Recepcion materiales a codigos", "p": "Victor Muñoz", "a": "Bodega", "s": "Bodega:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-01", "f": "2026-09-08", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000009/f"}, {"n": "Control de calidad Armado", "p": "Nicolas Lopez", "a": "Bodega", "s": "Bodega:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-09", "f": "2026-09-16", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000010/f"}, {"n": "Montaje motor", "p": "Benjamin Umaña", "a": "Producción", "s": "Montaje:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-14", "f": "2026-09-25", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000011/f"}, {"n": "Montaje Rodete", "p": "Benjamin Umaña", "a": "Producción", "s": "Montaje:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-28", "f": "2026-10-07", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000012/f"}, {"n": "Pruebas FAT", "p": "Nicolas Mol", "a": "Producción", "s": "Montaje:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-10-08", "f": "2026-10-14", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000013/f"}, {"n": "Embalaje", "p": "Karin Harlett Pinto Araneda", "a": "Logística", "s": "Logistica:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-10-15", "f": "2026-10-20", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000014/f"}, {"n": "PACKING LIST", "p": "Karin Harlett Pinto Araneda", "a": "Logística", "s": "Logistica:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-10-19", "f": "2026-10-23", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000015/f"}, {"n": "Alcance del proyecto", "p": "Francisca Alejandra Ramos Aravales", "a": "Equipo Proyecto", "s": "Kick off", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-12", "f": "2026-08-19", "c": "2026-08-18", "e": "cerrada", "u": "https://app.asana.com/0/0/1217946000016/f"}, {"n": "Definicion Tecnica de componentes", "p": "Sergio de la Fuente Fernandez", "a": "Equipo Proyecto", "s": "Kick off", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-14", "f": "2026-08-24", "c": null, "e": "vencida", "u": "https://app.asana.com/0/0/1217946000017/f"}, {"n": "Revestimiento", "p": "Benjamin Umaña", "a": "Producción", "s": "Montaje:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-09-03", "f": "2026-09-11", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000018/f"}, {"n": "Ingenieria electrica", "p": "Gabriel Venegas", "a": "Ingeniería", "s": "Ingeniería y diseño:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-08-20", "f": "2026-09-02", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000019/f"}, {"n": "Puesta en Marcha Servicios", "p": "Ignacio Garcia Martinez", "a": "Servicios", "s": "Cierre:", "pr": "50001592 - CARGA DE TALLER", "ped": "50001592", "ot": "", "i": "2026-10-21", "f": "2026-10-30", "c": null, "e": "curso", "u": "https://app.asana.com/0/0/1217946000020/f"}];
+const COLOR  = {"Ingeniería": "#1B4F8C", "Compras": "#A8620F", "Producción": "#2E7D52", "Bodega": "#6A3F8F", "Logística": "#A63E5A", "Control de calidad": "#1D6E78", "Servicios": "#6B7233", "Equipo Proyecto": "#54606E"};
+const FECHA  = "28/08 16:19";
+
+let vista = "persona", semanas = 8, verCerradas = false, filtro = "";
+const $ = s => document.querySelector(s);
+const hoy = (()=>{const d=new Date();d.setHours(0,0,0,0);return d;})();
+const diaMs = 86400000;
+const D = s => { const [a,m,d] = s.split("-").map(Number); return new Date(a,m-1,d); };
+const sumaDias = (d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const difDias = (a,b)=>Math.round((b-a)/diaMs);
+const esFinde = d => d.getDay()===0 || d.getDay()===6;
+
+TAREAS.forEach(t => { t._i = D(t.i); t._f = D(t.f); });
+
+$("#leyenda").innerHTML = Object.entries(COLOR)
+  .map(([a,c])=>`<span><i class="tramo" style="background:${c}"></i>${a}</span>`).join("");
+$("#cbFecha").textContent  = FECHA;
+$("#cbProy").textContent   = new Set(TAREAS.map(t=>t.pr)).size;
+$("#cbTareas").textContent = TAREAS.length;
+
+function visibles(){
+  let out = TAREAS;
+  if(!verCerradas) out = out.filter(t => t.e === "curso" || t.e === "vencida");
+  const f = filtro.toLowerCase();
+  if(f) out = out.filter(t =>
+    (t.p+" "+t.pr+" "+t.ot+" "+t.n+" "+t.a+" "+t.ped).toLowerCase().includes(f));
+  return out;
+}
+
+function pintar(){
+  const datos = visibles();
+  cotas(datos);
+  $("#cbEscala").textContent = semanas + " sem";
+
+  const rejilla = $("#rejilla");
+  rejilla.innerHTML = "";
+
+  if(!datos.length){
+    rejilla.innerHTML = '<div class="vacio"><div class="t">Sin tareas en este corte</div>' +
+      '<p>Ajusta el filtro o incluye las cerradas.</p></div>';
+    return;
+  }
+
+  let ini = new Date(Math.min(...datos.map(t=>+t._i), +hoy));
+  ini = sumaDias(ini, -3);
+  const finMax = new Date(Math.max(...datos.map(t=>+t._f)));
+  let fin = sumaDias(ini, semanas*7);
+  if(fin > finMax) fin = sumaDias(finMax, 3);
+  const total = Math.max(14, difDias(ini, fin) + 1);
+  const ancho = total * 26;
+
+  rejilla.appendChild(cabecera(ini, total, ancho));
+
+  const grupos = {};
+  datos.forEach(t => {
+    const k = vista === "persona" ? t.p : t.a;
+    (grupos[k] = grupos[k] || []).push(t);
+  });
+
+  Object.keys(grupos)
+    .sort((a,b)=>grupos[b].length - grupos[a].length || a.localeCompare(b,"es"))
+    .forEach(k => rejilla.appendChild(fila(k, grupos[k], ini, total, ancho)));
+
+  const off = difDias(ini, hoy);
+  if(off >= 0 && off < total){
+    const l = document.createElement("div");
+    l.className = "hoy";
+    l.style.left = (246 + off*26 + 13) + "px";
+    rejilla.appendChild(l);
+  }
+}
+
+function cabecera(ini, total, ancho){
+  const f = document.createElement("div");
+  f.className = "fila cabecera";
+  const izq = document.createElement("div");
+  izq.className = "izq";
+  izq.innerHTML = '<div class="rol" style="margin:0">' +
+    (vista === "persona" ? "Trabajador · carga abierta" : "Área · carga abierta") + '</div>';
+  f.appendChild(izq);
+
+  const pista = document.createElement("div");
+  pista.className = "pista";
+  pista.style.width = ancho + "px";
+
+  const meses = document.createElement("div");
+  meses.className = "meses";
+  let d = new Date(ini), i = 0;
+  while(i < total){
+    const desde = i, m = d.getMonth();
+    while(i < total && d.getMonth() === m){ d = sumaDias(d,1); i++; }
+    const c = document.createElement("div");
+    c.className = "mes";
+    c.style.width = ((i - desde) * 26) + "px";
+    const et = sumaDias(ini, desde);
+    c.textContent = et.toLocaleDateString("es-CL",{month:"long"}) + " " + et.getFullYear();
+    meses.appendChild(c);
+  }
+  pista.appendChild(meses);
+
+  const dias = document.createElement("div");
+  dias.className = "dias";
+  for(let j=0;j<total;j++){
+    const x = sumaDias(ini,j);
+    const c = document.createElement("div");
+    c.className = "dia" + (esFinde(x)?" finde":"") + (x.getDay()===1?" lunes":"");
+    c.textContent = x.getDate();
+    dias.appendChild(c);
+  }
+  pista.appendChild(dias);
+  f.appendChild(pista);
+  return f;
+}
+
+function fila(nombre, tareas, ini, total, ancho){
+  const f = document.createElement("div");
+  f.className = "fila";
+
+  const izq = document.createElement("div");
+  izq.className = "izq";
+  izq.innerHTML = '<div class="nombre">' + nombre + '</div>';
+
+  const abiertas = tareas.filter(t => t.e==="curso" || t.e==="vencida").length;
+  const vencidas = tareas.filter(t => t.e==="vencida").length;
+
+  const r = document.createElement("div");
+  r.className = "rol";
+  r.textContent = vista === "persona"
+    ? [...new Set(tareas.map(t=>t.a))].join(" · ")
+    : [...new Set(tareas.map(t=>t.p))].length + " personas";
+  izq.appendChild(r);
+
+  // La cota se llena respecto de la persona mas cargada del tablero
+  const tope = Math.max(1, window.__topeCarga || 1);
+  const cota = document.createElement("div");
+  cota.className = "cotaLinea";
+  const marca = document.createElement("i");
+  marca.style.width = Math.min(100, Math.round(abiertas/tope*100)) + "%";
+  if(vencidas) marca.className = "alerta";
+  cota.appendChild(marca);
+  izq.appendChild(cota);
+
+  const c = document.createElement("div");
+  c.className = "cifras";
+  c.innerHTML = "<span>" + abiertas + " abiertas</span>" +
+                (vencidas ? "<b>" + vencidas + " vencidas</b>" : "<span>—</span>");
+  izq.appendChild(c);
+  f.appendChild(izq);
+
+  const pista = document.createElement("div");
+  pista.className = "pista";
+  pista.style.width = ancho + "px";
+
+  const trama = document.createElement("div");
+  trama.className = "trama";
+  for(let j=0;j<total;j++){
+    const x = sumaDias(ini,j);
+    const cc = document.createElement("div");
+    cc.className = "celda" + (esFinde(x)?" finde":"") + (x.getDay()===1?" lunes":"");
+    trama.appendChild(cc);
+  }
+  pista.appendChild(trama);
+
+  const carriles = [];
+  tareas.sort((a,b)=>a._i-b._i).forEach(t => {
+    const x0 = difDias(ini, t._i), x1 = difDias(ini, t._f);
+    if(x1 < 0 || x0 > total) return;
+    let k = carriles.findIndex(fin => fin < x0);
+    if(k === -1){ carriles.push(x1); k = carriles.length-1; } else carriles[k] = x1;
+
+    const col = COLOR[t.a] || "#54606E";
+    const cerrada = t.e.startsWith("cerrada");
+    const el = document.createElement(t.u ? "a" : "div");
+    if(t.u){ el.href = t.u; el.target = "_blank"; el.rel = "noopener"; }
+    el.className = "barra" + (t.e === "vencida" ? " vencida" : "") + (cerrada ? " cerrada" : "");
+    el.style.left  = Math.max(0,x0)*26 + 2 + "px";
+    el.style.width = Math.max(24,(Math.min(total,x1+1) - Math.max(0,x0))*26 - 4) + "px";
+    el.style.top   = (6 + k*29) + "px";
+    if(cerrada){ el.style.borderColor = col; el.style.color = col; }
+    else { el.style.background = col; }
+    el.innerHTML = (t.ot ? '<span class="ot">'+t.ot+'</span>' : '') +
+                   '<span class="txt">'+t.n+'</span>';
+    el.title = t.n + "\n" + t.pr + "\n" + t.p + " · " + t.a +
+      (t.s ? " · " + t.s : "") + "\n" +
+      t._i.toLocaleDateString("es-CL") + " → " + t._f.toLocaleDateString("es-CL") +
+      (t.c ? "\nCompletada " + D(t.c).toLocaleDateString("es-CL") : "");
+    pista.appendChild(el);
+  });
+
+  pista.style.minHeight = (12 + Math.max(1,carriles.length)*29) + "px";
+  f.appendChild(pista);
+  return f;
+}
+
+function cotas(datos){
+  const abiertas = datos.filter(t => t.e==="curso" || t.e==="vencida");
+  const personas = {};
+  abiertas.forEach(t => personas[t.p] = (personas[t.p]||0) + 1);
+  const nombres = Object.keys(personas);
+  window.__topeCarga = nombres.length ? Math.max(...Object.values(personas)) : 1;
+
+  $("#kPers").textContent = nombres.length;
+  $("#kAbiertas").textContent = abiertas.length;
+  $("#kMedia").textContent = nombres.length
+    ? (abiertas.length/nombres.length).toFixed(1) : "0";
+  $("#kVenc").textContent = abiertas.filter(t=>t.e==="vencida").length;
+}
+
+$("#gVista").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  vista = b.dataset.v;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+  pintar();
+});
+$("#gRango").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  semanas = +b.dataset.s;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+  pintar();
+});
+$("#gCerradas").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  verCerradas = b.dataset.c === "1";
+  [...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+  pintar();
+});
+let tec;
+$("#buscar").addEventListener("input", e=>{
+  clearTimeout(tec);
+  tec = setTimeout(()=>{ filtro = e.target.value.trim(); pintar(); }, 200);
+});
+
+cotas(visibles());   // fija el tope de carga antes del primer dibujo
+pintar();
+</script>
+</body>
+</html>
