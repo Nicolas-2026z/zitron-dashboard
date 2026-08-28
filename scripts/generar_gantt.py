@@ -252,7 +252,7 @@ def process_file(path, hoy, desde):
 
         if not str(assignee).strip():
             n["sin_responsable"] += 1
-            continue
+            assignee = ""          # se decide en main que hacer con estas
 
         due = to_date(get(row, "Due Date"))
         start = to_date(get(row, "Start Date")) or due
@@ -546,6 +546,16 @@ button{cursor:pointer}
 }
 .vacio p{color:var(--tinta-3);font-size:13px}
 
+/* Aviso cuando no hay responsables asignados */
+#aviso{
+  display:none;margin:0;padding:12px 26px;
+  border-bottom:1px solid var(--regla);
+  border-left:4px solid var(--rojo);
+  background:#FDF4F3;font-size:13px;color:var(--tinta-2);line-height:1.5;
+}
+#aviso.on{display:block}
+#aviso b{color:var(--tinta);font-weight:600}
+
 .pie{
   padding:14px 26px 30px;border-top:1px solid var(--regla);
   font-family:var(--mono);font-size:10px;letter-spacing:.05em;
@@ -634,6 +644,8 @@ button{cursor:pointer}
   </div>
 </header>
 
+<div id="aviso"></div>
+
 <section class="cotas">
   <div class="cota"><div class="et">Personas con carga</div><div class="val" id="kPers">—</div></div>
   <div class="cota"><div class="et">Tareas abiertas</div><div class="val" id="kAbiertas">—</div></div>
@@ -691,6 +703,15 @@ if(sessionStorage.getItem('zitron_ok') === '1'){
 const TAREAS = __DATA__;
 const COLOR  = __COLORES__;
 const FECHA  = __FECHA_CORTA__;
+const AVISO  = __AVISO__;
+const POR_ETAPA = AVISO !== "";
+
+if(POR_ETAPA){
+  const a = document.getElementById("aviso");
+  a.className = "on";
+  a.innerHTML = "<b>Vista por etapa.</b> " + AVISO;
+  document.querySelector('#gVista button[data-v="persona"]').textContent = "Por etapa";
+}
 
 let vista = "persona", semanas = 8, verCerradas = false, filtro = "";
 const $ = s => document.querySelector(s);
@@ -767,7 +788,9 @@ function cabecera(ini, total, ancho){
   const izq = document.createElement("div");
   izq.className = "izq";
   izq.innerHTML = '<div class="rol" style="margin:0">' +
-    (vista === "persona" ? "Trabajador · carga abierta" : "Área · carga abierta") + '</div>';
+    (vista === "persona"
+      ? (POR_ETAPA ? "Etapa · carga abierta" : "Trabajador · carga abierta")
+      : "Área · carga abierta") + '</div>';
   f.appendChild(izq);
 
   const pista = document.createElement("div");
@@ -959,9 +982,33 @@ def main():
             errores.append((os.path.basename(f), str(e)))
 
     if not tareas:
-        print("No se encontró ninguna tarea con responsable y fechas.")
-        print("Revisa que el export de Asana incluya Assignee, Start Date y Due Date.")
+        print("No se encontró ninguna tarea con fechas de inicio o vencimiento.")
+        print("Revisa que el export de Asana incluya Start Date y Due Date.")
         sys.exit(1)
+
+    # ¿Hay responsables? Si los hay, las tareas sin asignar se descartan,
+    # como corresponde a un Gantt por trabajador.
+    con_resp = [t for t in tareas if t["p"]]
+    aviso = ""
+    if con_resp:
+        descartadas = len(tareas) - len(con_resp)
+        tareas = con_resp
+        if descartadas:
+            print(f"Descartadas {descartadas} tareas sin responsable asignado.")
+    else:
+        # Nadie asignado en todo el proyecto: en vez de fallar, se agrupa
+        # por etapa. No es el Gantt por trabajador, y el HTML lo dice.
+        print("=" * 62)
+        print("AVISO: ninguna tarea del proyecto tiene responsable en Asana.")
+        print("El Gantt se genera agrupado por ETAPA, no por persona.")
+        print("Para el Gantt por trabajador hay que asignar las tareas en Asana.")
+        print("=" * 62)
+        for t in tareas:
+            etapa = (t["s"] or "Sin etapa").strip().rstrip(":")
+            t["p"] = etapa
+        aviso = ("Ninguna tarea de este proyecto tiene responsable asignado en "
+                 "Asana, así que las filas son etapas, no personas. En cuanto "
+                 "se asignen responsables, el tablero pasa solo a mostrarlos.")
 
     ahora = datetime.datetime.now(ZoneInfo("America/Santiago"))
     fecha_corta = ahora.strftime("%d/%m %H:%M")
@@ -969,6 +1016,7 @@ def main():
     html = (TEMPLATE
             .replace("__DATA__", json.dumps(tareas, ensure_ascii=False))
             .replace("__COLORES__", json.dumps(COLOR_AREA, ensure_ascii=False))
+            .replace("__AVISO__", json.dumps(aviso, ensure_ascii=False))
             .replace("__FECHA_CORTA__", json.dumps(fecha_corta, ensure_ascii=False)))
 
     Path(salida).parent.mkdir(parents=True, exist_ok=True)
