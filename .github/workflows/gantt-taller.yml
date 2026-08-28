@@ -1,0 +1,74 @@
+name: Gantt carga de taller
+
+on:
+  schedule:
+    # 07:30 y 15:30 hora de Chile. GitHub usa UTC: Chile es UTC-4 en
+    # invierno y UTC-3 en verano, asi que en verano se corre una hora
+    # mas tarde. Si molesta, ajusta estos numeros en octubre y marzo.
+    - cron: "30 11 * * 1-5"
+    - cron: "30 19 * * 1-5"
+  workflow_dispatch:          # permite lanzarlo a mano desde Actions
+
+# Evita que dos corridas se pisen si una tarda mas de lo normal
+concurrency:
+  group: gantt-taller
+  cancel-in-progress: false
+
+permissions:
+  contents: write             # necesario para commitear docs/GANTT.html
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Clonar el repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright openpyxl
+          playwright install --with-deps chromium
+
+      - name: Restaurar la sesion de Asana
+        env:
+          ASANA_AUTH: ${{ secrets.ASANA_AUTH }}
+        run: |
+          if [ -z "$ASANA_AUTH" ]; then
+            echo "::error::El secret ASANA_AUTH esta vacio."
+            exit 1
+          fi
+          printf '%s' "$ASANA_AUTH" > auth.json
+
+      - name: Exportar el proyecto de taller
+        run: python scripts/exportar_taller.py
+
+      - name: Generar el Gantt
+        run: python scripts/generar_gantt.py data-taller docs/GANTT.html
+
+      - name: Publicar el resultado
+        run: |
+          # auth.json y los xlsx no se versionan: contienen la sesion
+          # de Asana y datos de clientes.
+          rm -f auth.json
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/GANTT.html
+          if git diff --staged --quiet; then
+            echo "Sin cambios en el Gantt."
+          else
+            git commit -m "Gantt de taller: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            # Si el workflow del KPI commiteo mientras tanto, reintenta
+            for i in 1 2 3; do
+              git pull --rebase origin "${GITHUB_REF_NAME}" && git push && break
+              echo "Reintento $i..."
+              sleep 5
+            done
+          fi
