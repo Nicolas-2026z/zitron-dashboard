@@ -144,8 +144,11 @@ EXCLUIR_PADRE_CONTIENE = ["despacho"]
 # Se excluye la tarea si su SECCIÓN contiene alguna de estas palabras
 EXCLUIR_SECCION_CONTIENE = ["cierre de proyecto"]
 
-# Se excluye la tarea si el ASSIGNEE es exactamente alguno de estos
-EXCLUIR_ASSIGNEE_EXACTO = ["nicolas", "nicolas mol"]
+# Se excluye la tarea si el ASSIGNEE es exactamente alguno de estos.
+# OJO: es coincidencia EXACTA, no "contiene". "nicolas" NO excluye a
+# "Nicolas Mol" ni a "Nicolas Lopez" — solo al usuario llamado "Nicolas"
+# a secas. Sus tareas de Despacho ya se eliminan por la regla de rama.
+EXCLUIR_ASSIGNEE_EXACTO = ["nicolas"]
 
 # ---------------------------------------------------------------------
 # UTILIDADES DE FECHAS (días hábiles Chile)
