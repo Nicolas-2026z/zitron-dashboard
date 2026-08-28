@@ -45,13 +45,25 @@ jobs:
             echo "::error::El secret ASANA_AUTH esta vacio."
             exit 1
           fi
+          # El secret puede estar guardado en JSON crudo o en base64.
+          # Se prueban las dos formas y se valida antes de seguir.
           printf '%s' "$ASANA_AUTH" > auth.json
+          if ! python -c "import json;json.load(open('auth.json'))" 2>/dev/null; then
+            echo "No es JSON directo, probando base64..."
+            printf '%s' "$ASANA_AUTH" | base64 -d > auth.json 2>/dev/null || true
+          fi
+          if ! python -c "import json;json.load(open('auth.json'))" 2>/dev/null; then
+            echo "::error::ASANA_AUTH no es un auth.json valido (ni crudo ni base64). Vuelve a generarlo con guardar_sesion.py."
+            exit 1
+          fi
+          echo "Sesion cargada. Cookies: $(python -c "import json;print(len(json.load(open('auth.json')).get('cookies',[])))")"
 
       - name: Exportar el proyecto de taller
         run: python scripts/exportar_taller.py
 
       - name: Generar el Gantt
-        run: python scripts/generar_gantt.py data-taller docs/GANTT.html
+        # A la raiz, junto a KPI.HTML: Pages publica desde ahi, no desde docs/
+        run: python scripts/generar_gantt.py data-taller GANTT.HTML
 
       - name: Publicar el resultado
         run: |
@@ -60,7 +72,7 @@ jobs:
           rm -f auth.json
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/GANTT.html
+          git add GANTT.HTML
           if git diff --staged --quiet; then
             echo "Sin cambios en el Gantt."
           else
