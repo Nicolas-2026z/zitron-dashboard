@@ -20,6 +20,10 @@ REGLAS
   ASSIGNEE_AREA) y, si no está mapeado, por palabras clave en
   'Section/Column' (ver SECTION_AREA_KEYWORDS).
 
+- Exclusiones: ver bloque EXCLUIR_* más abajo. Se aplican sobre texto
+  normalizado (sin acentos, sin mayúsculas, sin espacios duros), por lo
+  que atrapan variantes como "DESPACHO OT4342", "Despacho ", "despácho".
+
 USO
 ---
   python3 generar_kpi.py <carpeta_con_excels> <archivo_salida_html>
@@ -78,14 +82,13 @@ ASSIGNEE_AREA = {
     "Sergio de la Fuente Fernandez": "Equipo Proyecto",
     "David Blazquez": "Equipo Proyecto",
     "DAVID BLAZQUEZ": "Equipo Proyecto",
-  # Producción
+    # Producción
     "Benjamin Umaña": "Producción",
     "Nicolás Mol": "Producción",
     "Nicolas Mol": "Producción",
     "nespinoza@zitron.com": "Producción",
     "Natalia Espinoza": "Producción",
     "NATALYA ESPINOZA": "Producción",
-  
     # Compras
     "Eliana": "Compras",
     "Yerlia": "Compras",
@@ -103,8 +106,8 @@ ASSIGNEE_AREA = {
     "Gonzalo Dávila": "Ingeniería",
     "Gabriel Venegas": "Ingeniería",
     "Gabriel Venega": "Ingeniería",
-   # Control de Calidad
-   "Nicolás López": "Control de calidad",
+    # Control de Calidad
+    "Nicolás López": "Control de calidad",
     "Nicolas Lopez": "Control de calidad",
     # Bodega
     "Víctor Muñoz": "Bodega",
@@ -121,6 +124,28 @@ SECTION_AREA_KEYWORDS = [
     ("bodega", "Bodega"),
     ("logist", "Logística"), ("logíst", "Logística"),
 ]
+
+# ---------------------------------------------------------------------
+# REGLAS DE EXCLUSIÓN (editables)
+# Todas se comparan sobre texto NORMALIZADO: minúsculas, sin acentos,
+# sin espacios duros (NBSP) y sin espacios dobles.
+# ---------------------------------------------------------------------
+
+# Se excluye la tarea si su NOMBRE contiene alguna de estas palabras
+EXCLUIR_NOMBRE_CONTIENE = ["despacho"]
+
+# Se excluye la tarea si su NOMBRE es exactamente alguno de estos
+EXCLUIR_NOMBRE_EXACTO = ["costos"]
+
+# Se excluye la tarea si su TAREA PADRE contiene alguna de estas palabras
+# (elimina también las subtareas que cuelgan de "Despacho")
+EXCLUIR_PADRE_CONTIENE = ["despacho"]
+
+# Se excluye la tarea si su SECCIÓN contiene alguna de estas palabras
+EXCLUIR_SECCION_CONTIENE = ["cierre de proyecto"]
+
+# Se excluye la tarea si el ASSIGNEE es exactamente alguno de estos
+EXCLUIR_ASSIGNEE_EXACTO = ["nicolas", "nicolas mol"]
 
 # ---------------------------------------------------------------------
 # UTILIDADES DE FECHAS (días hábiles Chile)
@@ -166,11 +191,12 @@ def find_header_row(ws, max_scan=10):
 
 
 def _norm(s):
-    s = str(s or "").lower().strip()
-    repl = {"á":"a","é":"e","í":"i","ó":"o","ú":"u","ñ":"n"}
+    """Minúsculas, sin acentos, sin espacios duros ni dobles."""
+    s = str(s or "").replace("\u00a0", " ").lower().strip()
+    repl = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u", "ñ": "n"}
     for a, b in repl.items():
         s = s.replace(a, b)
-    return s
+    return " ".join(s.split())
 
 
 def area_for(assignee, section):
@@ -206,6 +232,8 @@ def process_file(path, today):
         return None
 
     tasks = []
+    excluidas = 0
+
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
         if row[col["Name"]] in (None, ""):
             continue
@@ -218,21 +246,34 @@ def process_file(path, today):
         section = row[col.get("Section/Column")] if "Section/Column" in col else ""
         assignee = row[col.get("Assignee")] if "Assignee" in col else ""
 
-        if assignee and str(assignee).strip().lower() in ("nicolás", "nicolas"):
+        # ---- Normalización para los filtros -------------------------
+        n_name = _norm(name)
+        n_parent = _norm(parent)
+        n_section = _norm(section)
+        n_assignee = _norm(assignee)
+
+        # ---- Exclusiones --------------------------------------------
+        if any(k in n_name for k in EXCLUIR_NOMBRE_CONTIENE):
+            excluidas += 1
             continue
 
-        # Excluir tareas de la sección "Cierre de proyecto"
-        if section and "cierre de proyecto" in str(section).strip().lower():
+        if n_name in EXCLUIR_NOMBRE_EXACTO:
+            excluidas += 1
             continue
 
-        # Excluir tareas llamadas "Costos"
-        if name and str(name).strip().lower() == "costos":
+        if any(k in n_parent for k in EXCLUIR_PADRE_CONTIENE):
+            excluidas += 1
             continue
 
-        # Excluir tareas de "Despacho" (con o sin número de OT)
-        if name and "despacho" in str(name).strip().lower():
+        if any(k in n_section for k in EXCLUIR_SECCION_CONTIENE):
+            excluidas += 1
             continue
 
+        if n_assignee in EXCLUIR_ASSIGNEE_EXACTO:
+            excluidas += 1
+            continue
+
+        # ---- Fechas y semáforo --------------------------------------
         start = to_date(row[col["Start Date"]]) if "Start Date" in col else None
         due = to_date(row[col["Due Date"]])
         completed = to_date(row[col["Completed At"]])
@@ -272,6 +313,14 @@ def process_file(path, today):
         blocking = row[col["Blocking (Dependencies)"]] if "Blocking (Dependencies)" in col else ""
         task_id = row[col["Task ID"]] if "Task ID" in col else None
 
+        # No mostrar como bloqueantes las tareas de Despacho que ya excluimos
+        lista_blocked_by = [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else []
+        lista_blocked_by = [x for x in lista_blocked_by
+                            if not any(k in _norm(x) for k in EXCLUIR_NOMBRE_CONTIENE)]
+        lista_blocking = [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else []
+        lista_blocking = [x for x in lista_blocking
+                          if not any(k in _norm(x) for k in EXCLUIR_NOMBRE_CONTIENE)]
+
         tasks.append({
             "name": name,
             "section": section or "",
@@ -285,9 +334,9 @@ def process_file(path, today):
             "due_fmt": due.strftime("%d/%m/%y") if due else "--",
             "completed_fmt": completed.strftime("%d/%m/%y") if completed else "--",
             "duracion_prevista": dias_habiles_entre(start, due) if start and due else (1 if due else None),
-            "blocked_by": [x.strip() for x in str(blocked_by).split(",") if x.strip()] if blocked_by else [],
-            "blocking": [x.strip() for x in str(blocking).split(",") if x.strip()] if blocking else [],
-            "bloqueada": bool(blocked_by and str(blocked_by).strip()),
+            "blocked_by": lista_blocked_by,
+            "blocking": lista_blocking,
+            "bloqueada": bool(lista_blocked_by),
             "asana_url": f"https://app.asana.com/0/0/{int(task_id)}/f" if task_id else None,
             "atraso_dias": abs(dias_habiles_entre(due, completed)) if completed and due and completed > due else (abs(dias_habiles_entre(due, today)) if due and today > due and not completed else 0),
             "dias_plazo": dias_habiles_entre(due, completed) if completed and due else None,
@@ -295,6 +344,9 @@ def process_file(path, today):
             "estado_plazo": estado_plazo,
             "estado_general": estado_general,
         })
+
+    if excluidas:
+        print(f"  {project_name}: {excluidas} filas excluidas (despacho/costos/cierre/assignee)")
 
     return {"project": project_name, "file": os.path.basename(path), "tasks": tasks}
 
@@ -654,37 +706,6 @@ function cambiarTab(tab) {
   if (tab === 'cascada') renderCascada();
 }
 
-function toggleSelectorSecciones() {
-  document.getElementById('selectorSeccionesCascada').classList.toggle('open');
-}
-document.addEventListener('click', function(e) {
-  const sel = document.getElementById('selectorSeccionesCascada');
-  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
-});
-
-function seleccionarTodasSecciones(valor) {
-  document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').forEach(cb => cb.checked = valor);
-  actualizarLabelSecciones();
-  renderCascada();
-}
-
-function actualizarLabelSecciones() {
-  const checks = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked');
-  const total = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]').length;
-  const label = document.getElementById('labelSeccionesCascada');
-  if (!label) return;
-  if (checks.length === 0 || checks.length === total) {
-    label.textContent = 'Todas';
-  } else {
-    label.textContent = checks.length + ' seleccionadas';
-  }
-}
-
-function getSeccionesSeleccionadas() {
-  const checks = document.querySelectorAll('#panelSeccionesCascada input[type=checkbox]:checked');
-  return Array.from(checks).map(cb => cb.value);
-}
-
 function toggleSelector() {
   document.getElementById('selectorMulti').classList.toggle('open');
 }
@@ -779,7 +800,6 @@ function renderAreas(tasks) {
   const ORDEN = ["Equipo Proyecto", "Servicios", "Compras", "Ingeniería", "Producción", "Bodega", "Logística"];
   const areas = {};
 
-  // Primero acumular contadores generales desde las tareas (total, cerradas, verde, etc.)
   tasks.forEach(t => {
     areas[t.area] = areas[t.area] || {total:0, cerradas:0, verde:0, cerrada_atraso:0, abierta_vencida:0, dias_totales:0, dias_count:0};
     areas[t.area].total++;
@@ -789,9 +809,6 @@ function renderAreas(tasks) {
     if (t.estado_general === 'Vencida') areas[t.area].abierta_vencida++;
   });
 
-  // Promedio por persona usando dias_plazo (días entre vencimiento y completado, con signo).
-  // Negativo = antes del plazo, positivo = tarde. Promediamos esos valores por persona,
-  // luego promediamos los promedios de personas por área.
   const personas = {};
   tasks.forEach(t => {
     if (!t.assignee || t.assignee === '(sin asignar)') return;
@@ -801,7 +818,6 @@ function renderAreas(tasks) {
     personas[t.assignee].dias_count++;
   });
 
-  // Sumar los promedios individuales por área y dividir por cantidad de personas
   const areaProms = {};
   Object.values(personas).forEach(p => {
     if (p.dias_count === 0) return;
@@ -866,7 +882,6 @@ function renderPersonas(tasks) {
     personas[key].total++;
     if (t.estado_general === 'Completada') {
       personas[key].compl++;
-      // Usar dias_plazo (diferencia entre vencimiento y completado, con signo)
       if (t.dias_plazo !== null && t.dias_plazo !== undefined) {
         personas[key].dias_totales += t.dias_plazo;
         personas[key].dias_count++;
@@ -1120,7 +1135,6 @@ const ORDEN_GLOBAL = [
   "Coordinacion Entrega con Cliente",
   "Embalaje",
   "PACKING LIST",
-  "Despacho",
   "Gestion",
   "Puesta en Marcha Servicios",
   "instalación Componentes",
@@ -1145,9 +1159,6 @@ function esCabecera(nombre) {
   return CABECERAS_SECCION.some(c => n === normStr(c) || n.endsWith(':'));
 }
 
-// Orden canónico global — nombres exactos del Excel (sin cabeceras)
-const ORDEN_GLOBAL_UNUSED = [];
-
 const SECCIONES_ORDEN = [
   { key: "kick_off",          label: "Kick off",             keywords: ["kick off"] },
   { key: "ingenieria",        label: "Ingeniería",           keywords: ["ingenieria de servicio","ingeniería de servicio","ingenieria jefe","ingeniería jefe"] },
@@ -1161,16 +1172,14 @@ const SECCIONES_ORDEN = [
 ];
 
 function normStr(s) {
-  return (s||'').toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+  return (s||'').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 }
 
 function ordenGlobal(nombre) {
   const n = normStr(nombre);
-  // Primero busca coincidencia exacta
   for (let i = 0; i < ORDEN_GLOBAL.length; i++) {
     if (n === normStr(ORDEN_GLOBAL[i])) return i;
   }
-  // Luego busca si empieza igual (para variantes con OT number)
   for (let i = 0; i < ORDEN_GLOBAL.length; i++) {
     const og = normStr(ORDEN_GLOBAL[i]);
     if (n.startsWith(og) || og.startsWith(n)) return i;
@@ -1240,7 +1249,6 @@ function renderCascada() {
   const seccionesSeleccionadas = getSeccionesSeleccionadas();
   actualizarLabelSecciones();
 
-  // Agrupar por proyecto y ordenar
   const porProyecto = {};
   tasks.forEach(t => {
     if (!t.project) return;
@@ -1357,7 +1365,7 @@ def main():
     print(f"Buscando archivos .xlsx en: {input_dir_abs}")
 
     if not os.path.isdir(input_dir_abs):
-        print(f"[ERROR] Esa carpeta NO existe. Verifica la ruta.")
+        print("[ERROR] Esa carpeta NO existe. Verifica la ruta.")
         sys.exit(1)
 
     files = sorted(glob.glob(os.path.join(input_dir, "*.xlsx")))
@@ -1365,7 +1373,6 @@ def main():
 
     print(f"Archivos .xlsx encontrados: {len(files)}")
     if not files:
-        # Mostrar qué tipo de archivos SI hay en la carpeta, para ayudar a diagnosticar
         todos = os.listdir(input_dir_abs)
         ejemplo = todos[:10]
         print(f"No se encontraron archivos .xlsx en {input_dir_abs}")
@@ -1379,6 +1386,7 @@ def main():
     now_chile = datetime.datetime.now(ZoneInfo("America/Santiago"))
     DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
     fecha_str = f"{DIAS[now_chile.weekday()]} {now_chile.strftime('%d/%m/%Y')} {now_chile.strftime('%H:%M')} hrs (Chile)"
+
     data = {}
     errores = []
     for f in files:
@@ -1400,14 +1408,21 @@ def main():
     html_out = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
     html_out = html_out.replace("__FECHA__", fecha_str)
 
-
     out_dir = os.path.dirname(output_file)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as fh:
         fh.write(html_out)
 
+    # Verificación: ninguna tarea excluida debe haber quedado en el JSON
+    total_tareas = sum(len(v) for v in data.values())
+    coladas = sum(
+        1 for v in data.values() for t in v
+        if any(k in _norm(t["name"]) for k in EXCLUIR_NOMBRE_CONTIENE)
+    )
     print(f"Proyectos procesados: {len(data)} / {len(files)}")
+    print(f"Tareas nivel 2 incluidas: {total_tareas}")
+    print(f"Tareas 'despacho' que quedaron en el HTML: {coladas} (debe ser 0)")
     for f, e in errores:
         print(f"  [ERROR] {os.path.basename(f)}: {e}")
     print(f"KPI generado en: {output_file}")
