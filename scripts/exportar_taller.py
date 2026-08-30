@@ -52,46 +52,44 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
             print("     -> Asana redirigio al login: la sesion no sirve.")
             raise RuntimeError("Sesion invalida")
 
-        # El menu de acciones cambia de etiqueta segun el idioma de la
-        # cuenta, asi que se prueban varias formas antes de rendirse.
-        candidatos = [
-            '[role="button"][aria-label="Acciones"]',
-            '[role="button"][aria-label="Actions"]',
-            '[aria-label="Acciones"]',
-            '[aria-label="Actions"]',
-            '[aria-label*="cciones"]',
-            '[aria-label*="ctions"]',
-        ]
-        menu = None
-        for sel in candidatos:
-            loc = page.locator(sel)
-            if loc.count() > 0:
-                print(f"     Menu encontrado con: {sel}")
-                menu = loc.first
-                break
-        if menu is None:
-            # Ultimo recurso: listar que aria-labels hay en la cabecera
+        # El panel del proyecto carga despues que la barra lateral, asi que
+        # hay que ESPERAR a que aparezca, no mirar una sola vez.
+        # La etiqueta cambia segun el idioma de la cuenta: se esperan todas
+        # a la vez con un selector combinado.
+        SEL_MENU = ('[role="button"][aria-label="Acciones"], '
+                    '[role="button"][aria-label="Actions"], '
+                    '[aria-label="Acciones"], [aria-label="Actions"]')
+        try:
+            page.wait_for_selector(SEL_MENU, state="visible", timeout=60000)
+        except Exception:
             etiquetas = page.eval_on_selector_all(
                 "[aria-label]",
-                "els => els.slice(0,40).map(e => e.getAttribute('aria-label'))")
-            print(f"     No se hallo el menu. aria-labels visibles: {etiquetas}")
-            raise RuntimeError("Menu de acciones no encontrado")
+                "els => els.slice(0,60).map(e => e.getAttribute('aria-label'))")
+            print(f"     El menu no aparecio en 60s. aria-labels: {etiquetas}")
+            raise
+        menu = page.locator(SEL_MENU).first
+        print("     Menu de acciones visible.")
 
         menu.click(timeout=15000)
         time.sleep(0.8)
 
         export_menu = page.get_by_text("Exportar o sincronizar", exact=False)
-        if export_menu.count() == 0:
+        try:
+            export_menu.first.wait_for(state="visible", timeout=15000)
+        except Exception:
             export_menu = page.get_by_text("Export", exact=False)
-        export_menu.first.wait_for(state="visible", timeout=10000)
+            export_menu.first.wait_for(state="visible", timeout=15000)
         export_menu.first.hover(timeout=10000)
         time.sleep(1.0)
         export_menu.first.hover(timeout=10000)
         time.sleep(0.8)
 
         opcion_csv = page.get_by_text("Tareas del proyecto en formato CSV/XLSX", exact=False)
-        if opcion_csv.count() == 0:
+        try:
+            opcion_csv.first.wait_for(state="visible", timeout=12000)
+        except Exception:
             opcion_csv = page.get_by_text("CSV/XLSX", exact=False)
+            opcion_csv.first.wait_for(state="visible", timeout=12000)
         opcion_csv.first.click(timeout=15000)
         time.sleep(0.8)
 
