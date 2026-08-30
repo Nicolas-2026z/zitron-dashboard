@@ -43,14 +43,46 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
     print(f"\n[{indice}/{total}] {nombre}")
     try:
         page.goto(url, wait_until="domcontentloaded", timeout=45000)
-        page.wait_for_timeout(4000)
+        page.wait_for_timeout(6000)
 
-        menu = page.locator('[role="button"][aria-label="Acciones"]')
-        menu.first.wait_for(state="visible", timeout=20000)
-        menu.first.click(timeout=15000)
+        # Diagnostico: que pagina esta viendo realmente el navegador
+        print(f"     URL final : {page.url}")
+        print(f"     Titulo    : {page.title()}")
+        if "login" in page.url or "account" in page.url:
+            print("     -> Asana redirigio al login: la sesion no sirve.")
+            raise RuntimeError("Sesion invalida")
+
+        # El menu de acciones cambia de etiqueta segun el idioma de la
+        # cuenta, asi que se prueban varias formas antes de rendirse.
+        candidatos = [
+            '[role="button"][aria-label="Acciones"]',
+            '[role="button"][aria-label="Actions"]',
+            '[aria-label="Acciones"]',
+            '[aria-label="Actions"]',
+            '[aria-label*="cciones"]',
+            '[aria-label*="ctions"]',
+        ]
+        menu = None
+        for sel in candidatos:
+            loc = page.locator(sel)
+            if loc.count() > 0:
+                print(f"     Menu encontrado con: {sel}")
+                menu = loc.first
+                break
+        if menu is None:
+            # Ultimo recurso: listar que aria-labels hay en la cabecera
+            etiquetas = page.eval_on_selector_all(
+                "[aria-label]",
+                "els => els.slice(0,40).map(e => e.getAttribute('aria-label'))")
+            print(f"     No se hallo el menu. aria-labels visibles: {etiquetas}")
+            raise RuntimeError("Menu de acciones no encontrado")
+
+        menu.click(timeout=15000)
         time.sleep(0.8)
 
         export_menu = page.get_by_text("Exportar o sincronizar", exact=False)
+        if export_menu.count() == 0:
+            export_menu = page.get_by_text("Export", exact=False)
         export_menu.first.wait_for(state="visible", timeout=10000)
         export_menu.first.hover(timeout=10000)
         time.sleep(1.0)
@@ -58,6 +90,8 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
         time.sleep(0.8)
 
         opcion_csv = page.get_by_text("Tareas del proyecto en formato CSV/XLSX", exact=False)
+        if opcion_csv.count() == 0:
+            opcion_csv = page.get_by_text("CSV/XLSX", exact=False)
         opcion_csv.first.click(timeout=15000)
         time.sleep(0.8)
 
@@ -67,7 +101,10 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
             time.sleep(0.3)
 
         with page.expect_download(timeout=30000) as download_info:
-            page.get_by_role("button", name="Exportar", exact=True).first.click(timeout=15000)
+            boton = page.get_by_role("button", name="Exportar", exact=True)
+            if boton.count() == 0:
+                boton = page.get_by_role("button", name="Export", exact=True)
+            boton.first.click(timeout=15000)
 
         download = download_info.value
         sufijo = Path(download.suggested_filename).suffix or ".xlsx"
@@ -83,7 +120,7 @@ def exportar_proyecto(page, nombre: str, url: str, indice: int, total: int) -> b
         try:
             page.screenshot(path=str(debug / "fallo.png"), full_page=True)
             debug.joinpath("fallo.html").write_text(page.content(), encoding="utf-8")
-            print("     -> Guardado screenshot/html de diagnostico")
+            print(f"     -> Diagnostico en {debug}")
         except Exception as e2:
             print(f"     (no se pudo guardar diagnostico: {e2})")
         return False
