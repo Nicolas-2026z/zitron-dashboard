@@ -61,6 +61,15 @@ jobs:
       - name: Exportar el proyecto de taller
         run: python scripts/exportar_taller.py
 
+      - name: Guardar diagnostico si fallo
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostico-asana
+          path: debug-taller/
+          if-no-files-found: ignore
+          retention-days: 5
+
       - name: Generar el Gantt
         # A la raiz, junto a KPI.HTML: Pages publica desde ahi, no desde docs/
         run: python scripts/generar_gantt.py data-taller GANTT.HTML
