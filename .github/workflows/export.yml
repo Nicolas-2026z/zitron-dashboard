@@ -27,7 +27,9 @@ jobs:
           playwright install chromium --with-deps
 
       - name: Restaurar sesion de Asana
-        run: echo "${{ secrets.ASANA_AUTH }}" | base64 -d > auth.json
+        env:
+          ASANA_AUTH: ${{ secrets.ASANA_AUTH }}
+        run: echo "$ASANA_AUTH" | base64 -d > auth.json
 
       - name: Limpiar carpeta data
         run: rm -f data/*.xlsx data/*.csv
