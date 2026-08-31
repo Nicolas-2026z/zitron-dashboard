@@ -53,7 +53,7 @@ jobs:
         run: python scripts/generar_kpi.py data KPI.HTML
 
       - name: Generar CURVAS.HTML
-        run: python scripts/generar_curvaS.py data CURVAS.HTML
+        run: python scripts/generar_curvas.py data CURVAS.HTML
 
       - name: Commit y push
         run: |
